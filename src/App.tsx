@@ -37,10 +37,12 @@ export default function App() {
           {/* Protected Routes - Rutas protegidas */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
+              {/* Dashboard */}
               <Route index path="/" element={<Home />} />
 
-              {/* Others Page */}
-              <Route path="/profile" element={<UserProfiles />} />
+              {/* Account */}
+              <Route path="/account/me" element={<UserProfiles />} />
+
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/blank" element={<Blank />} />
 
