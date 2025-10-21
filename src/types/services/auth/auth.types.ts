@@ -20,8 +20,16 @@ export interface LoginErrorData {
   password?: string;
 }
 
+export interface ResetPasswordErrorData {
+  email?: string;
+}
+
 
 // Exportar los tipados
 export type LoginResponse =
     | ApiResponse<LoginSuccessData>
     | ApiResponse<LoginErrorData>;
+
+export type ResetPasswordResponse =
+    | ApiResponse<{ message: string }>
+    | ApiResponse<ResetPasswordErrorData>;

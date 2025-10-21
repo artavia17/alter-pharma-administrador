@@ -1,13 +1,16 @@
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
 import SignInForm from "../../components/auth/SignInForm";
+import useTitle from "../../hook/useTitle";
 
 export default function SignIn() {
+  useTitle("Iniciar Sesión");
+
   return (
     <>
       <PageMeta
-        title="React.js SignIn Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is React.js SignIn Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Iniciar Sesión | Alter Pharma"
+        description="Esta es la página de inicio de sesión para el Administrador de Alter Pharma"
       />
       <AuthLayout>
         <SignInForm />

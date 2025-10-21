@@ -85,8 +85,7 @@ const othersItems: NavItem[] = [
     icon: <PlugInIcon />,
     name: "Authentication",
     subItems: [
-      { name: "Sign In", path: "auth/signin" },
-      { name: "Sign Up", path: "auth/signup" },
+      { name: "Sign In", path: "auth/sign-in" },
     ],
   },
 ];

@@ -145,7 +145,7 @@ export default function SignInForm() {
                   <Input
                     type="email"
                     name="email"
-                    placeholder="ejemplo@correo.com"
+                    placeholder="Ingrese su correo electrónico"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     onBlur={() => handleBlur("email")}
@@ -178,7 +178,7 @@ export default function SignInForm() {
                     </span>
                   </div>
                   <Link
-                    to="/reset-password"
+                    to="/auth/reset-password"
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
                     ¿Olvidaste tu contraseña?
