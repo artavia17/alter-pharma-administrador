@@ -11,4 +11,6 @@ export type {
   AuthState,
   ResetPasswordRequest,
   ResetPasswordConfirm,
+  ResetPasswordCreateFormData,
+  ResetPasswordCreateFormErrors,
 } from "./auth.types";

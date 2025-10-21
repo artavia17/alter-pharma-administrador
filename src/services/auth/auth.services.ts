@@ -12,7 +12,13 @@ const resetPassword = async (data: Record<string, any>) => {
     return response.data;
 };
 
+const resetPasswordCreate = async (data: Record<string, any>, email: string, token: string) => {
+    const response = await api.post<ResetPasswordResponse>(`/administrator/auth/reset-password/reset/${email}/${token}`, data);
+    return response.data;
+};
+
 export {
     login,
-    resetPassword
+    resetPassword,
+    resetPasswordCreate
 }

@@ -19,6 +19,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/ProtectedPages/Dashboard/Home";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
+import ResetPasswordCreate from "./pages/AuthPages/ResetPasswordCreate";
 
 export default function App() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/auth/sign-in" element={<SignIn />} />
           <Route path="/auth/sign-up" element={<SignUp />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordCreate />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

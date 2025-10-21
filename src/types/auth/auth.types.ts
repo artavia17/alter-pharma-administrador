@@ -73,6 +73,24 @@ export interface ResetPasswordRequest {
  */
 export interface ResetPasswordConfirm {
   token: string;
-  newPassword: string;
-  confirmPassword: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+/**
+ * Datos del formulario de creación de nueva contraseña
+ */
+export interface ResetPasswordCreateFormData {
+  password: string;
+  password_confirmation: string;
+}
+
+/**
+ * Errores del formulario de creación de nueva contraseña
+ */
+export interface ResetPasswordCreateFormErrors {
+  password?: string;
+  password_confirmation?: string;
+  general?: string;
 }

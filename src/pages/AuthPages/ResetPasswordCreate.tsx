@@ -1,9 +1,9 @@
-import ResetPasswordForm from "../../components/auth/ResetPasswordForm";
+import ResetPasswordCreateForm from "../../components/auth/ResetPasswordCreateForm";
 import PageMeta from "../../components/common/PageMeta";
 import useTitle from "../../hook/useTitle";
 import AuthLayout from "./AuthPageLayout";
 
-const ResetPassword = () => {
+const ResetPasswordCreate = () => {
   useTitle("Restablecer Contraseña | Alter Pharma");
 
   return (
@@ -13,9 +13,9 @@ const ResetPassword = () => {
         description="Esta es la página para restablecer la contraseña del Administrador de Alter Pharma"
       />
       <AuthLayout>
-        <ResetPasswordForm />
+        <ResetPasswordCreateForm />
       </AuthLayout>
     </>
   );
 };
-export default ResetPassword;
+export default ResetPasswordCreate;
