@@ -19,6 +19,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/ProtectedPages/Dashboard/Home";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
+
 import ResetPasswordCreate from "./pages/AuthPages/ResetPasswordCreate";
 
 export default function App() {
