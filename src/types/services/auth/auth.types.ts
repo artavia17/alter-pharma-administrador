@@ -24,7 +24,6 @@ export interface ResetPasswordErrorData {
   email?: string;
 }
 
-
 // Exportar los tipados
 export type LoginResponse =
     | ApiResponse<LoginSuccessData>

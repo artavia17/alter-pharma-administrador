@@ -20,5 +20,5 @@ const resetPasswordCreate = async (data: Record<string, any>, email: string, tok
 export {
     login,
     resetPassword,
-    resetPasswordCreate
+    resetPasswordCreate,
 }

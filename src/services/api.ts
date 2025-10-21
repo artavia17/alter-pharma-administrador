@@ -13,7 +13,7 @@ const api = axios.create({
 
 // Handles user authentication.
 api.interceptors.request.use(config => {
-    const token = getCookie('token');
+    const token = getCookie('user_token');
     if(token){
         config.headers.Authorization = `Bearer ${token}`;
     }
