@@ -34,8 +34,7 @@ const navItems: NavItem[] = [
     name: "Accesos  ",
     subItems: [
       { name: "Modulos", path: "/modulos" },
-      { name: "Permisos", path: "/modulos/permisos" },
-      { name: "Usuarios", path: "/modulos/permisos/usuarios" },
+      { name: "Usuarios", path: "/modulos/usuarios" },
     ],
   },
   {
