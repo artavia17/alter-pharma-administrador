@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import PageMeta from "../../../components/common/PageMeta";
-import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
-import { verifyEmail } from "../../../services/protected/my-account.services";
-import useTitle from "../../../hooks/useTitle";
-import Button from "../../../components/ui/button/Button";
+import PageMeta from "../../../../components/common/PageMeta";
+import PageBreadcrumb from "../../../../components/common/PageBreadCrumb";
+import { verifyEmail } from "../../../../services/protected/my-account.services";
+import useTitle from "../../../../hooks/useTitle";
+import Button from "../../../../components/ui/button/Button";
 
 type VerificationStatus = "loading" | "success" | "error" | "invalid";
 

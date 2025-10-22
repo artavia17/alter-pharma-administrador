@@ -1,8 +1,8 @@
-import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
-import UserMetaCard from "../../../components/UserProfile/UserMetaCard";
-import UserInfoCard from "../../../components/UserProfile/UserInfoCard";
-import PageMeta from "../../../components/common/PageMeta";
-import useTitle from "../../../hooks/useTitle";
+import PageBreadcrumb from "../../../../components/common/PageBreadCrumb";
+import UserMetaCard from "../../../../components/UserProfile/UserMetaCard";
+import UserInfoCard from "../../../../components/UserProfile/UserInfoCard";
+import PageMeta from "../../../../components/common/PageMeta";
+import useTitle from "../../../../hooks/useTitle";
 
 export default function UserProfile() {
   useTitle("Mi perfil");

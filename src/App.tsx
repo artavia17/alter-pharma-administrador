@@ -1,26 +1,27 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
-import NotFound from "./pages/ProtectedPages/OtherPage/NotFound";
-import UserProfiles from "./pages/ProtectedPages/MyAccount/UserProfile";
-import Videos from "./pages/ProtectedPages/UiElements/Videos";
-import Images from "./pages/ProtectedPages/UiElements/Images";
-import Alerts from "./pages/ProtectedPages/UiElements/Alerts";
-import Badges from "./pages/ProtectedPages/UiElements/Badges";
-import Avatars from "./pages/ProtectedPages/UiElements/Avatars";
-import Buttons from "./pages/ProtectedPages/UiElements/Buttons";
-import LineChart from "./pages/ProtectedPages/Charts/LineChart";
-import BarChart from "./pages/ProtectedPages/Charts/BarChart";
+import NotFound from "./pages/ProtectedPages/Examples/OtherPage/NotFound";
+import UserProfiles from "./pages/ProtectedPages/Examples/MyAccount/UserProfile";
+import Videos from "./pages/ProtectedPages/Examples/UiElements/Videos";
+import Images from "./pages/ProtectedPages/Examples/UiElements/Images";
+import Alerts from "./pages/ProtectedPages/Examples/UiElements/Alerts";
+import Badges from "./pages/ProtectedPages/Examples/UiElements/Badges";
+import Avatars from "./pages/ProtectedPages/Examples/UiElements/Avatars";
+import Buttons from "./pages/ProtectedPages/Examples/UiElements/Buttons";
+import LineChart from "./pages/ProtectedPages/Examples/Charts/LineChart";
+import BarChart from "./pages/ProtectedPages/Examples/Charts/BarChart";
 import Calendar from "./pages/Calendar";
-import BasicTables from "./pages/ProtectedPages/Tables/BasicTables";
-import FormElements from "./pages/ProtectedPages/Forms/FormElements";
+import BasicTables from "./pages/ProtectedPages/Examples/Tables/BasicTables";
+import FormElements from "./pages/ProtectedPages/Examples/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/ProtectedPages/Dashboard/Home";
+import Home from "./pages/ProtectedPages/Examples/Dashboard/Home";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
 import ResetPasswordCreate from "./pages/AuthPages/ResetPasswordCreate";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
-import VerifyEmail from "./pages/ProtectedPages/MyAccount/VerifyEmail";
+import VerifyEmail from "./pages/ProtectedPages/Examples/MyAccount/VerifyEmail";
+import ModulosPage from "./pages/ProtectedPages/Accesos/Modulos";
 
 export default function App() {
   return (
@@ -43,6 +44,10 @@ export default function App() {
               <Route path="/account/me" element={<UserProfiles />} />
               <Route path="/account/verify-email" element={<VerifyEmail />} />
 
+              {/* Usuarios */}
+              <Route path="/modulos" element={<ModulosPage />} />
+
+              {/* Paginas de ejemplos (Eliminar despues) */}
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/blank" element={<Blank />} />
 
