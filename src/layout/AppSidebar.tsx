@@ -11,7 +11,6 @@ import {
   ListIcon,
   PageIcon,
   PieChartIcon,
-  PlugInIcon,
   TableIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -74,14 +73,7 @@ const othersItems: NavItem[] = [
       { name: "Images", path: "/images" },
       { name: "Videos", path: "/videos" },
     ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "auth/sign-in" },
-    ],
-  },
+  }
 ];
 
 const AppSidebar: React.FC = () => {

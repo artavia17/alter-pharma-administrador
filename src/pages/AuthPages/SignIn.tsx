@@ -1,7 +1,7 @@
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
 import SignInForm from "../../components/auth/SignInForm";
-import useTitle from "../../hook/useTitle";
+import useTitle from "../../hooks/useTitle";
 
 export default function SignIn() {
   useTitle("Iniciar Sesión");

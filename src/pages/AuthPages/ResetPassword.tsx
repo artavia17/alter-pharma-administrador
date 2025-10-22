@@ -1,6 +1,6 @@
 import ResetPasswordForm from "../../components/auth/ResetPasswordForm";
 import PageMeta from "../../components/common/PageMeta";
-import useTitle from "../../hook/useTitle";
+import useTitle from "../../hooks/useTitle";
 import AuthLayout from "./AuthPageLayout";
 
 const ResetPassword = () => {

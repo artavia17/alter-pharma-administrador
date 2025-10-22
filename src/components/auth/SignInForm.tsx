@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
@@ -11,6 +11,7 @@ import { setCookieHelper } from "../../helper/cookieHelper";
 
 export default function SignInForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isChecked, setIsChecked] = useState(false);
   const [formData, setFormData] = useState<SignInCredentials>({
     email: "",
@@ -104,9 +105,10 @@ export default function SignInForm() {
         setCookieHelper('user_updated_at', user.updated_at);
         setCookieHelper('user_created_at', user.created_at);
         setCookieHelper('user_email_verified_at', user.email_verified_at || '');
-        
-        // Redirect to home page
-        navigate('/');
+
+        // Redirect to the page the user was trying to access, or home page by default
+        const redirectPath = searchParams.get('redirect') || '/';
+        navigate(redirectPath);
       }else{
         setErrors({
           email: resp.message || "Credenciales incorrectas. Verifica tu correo y contraseña.",

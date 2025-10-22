@@ -1,67 +1,179 @@
+import { useEffect, useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { myAccount, updateMyAccount, getProfileImage } from "../../services/protected/my-account.services";
+import { MyaccountErrorData, MyaccountSuccessData } from "../../types/services/protected/my-account.types";
+import { getCookie, setCookieHelper } from "../../helper/cookieHelper";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+
+  // User data
+  const [photo, setPhoto] = useState<string>(getCookie('user_photo') || '');
+  const [name, setName] = useState<string>(getCookie('user_name') || '');
+  const [email, setEmail] = useState<string>(getCookie('user_email') || '');
+
+  // Preview de la foto seleccionada
+  const [photoPreview, setPhotoPreview] = useState<string>('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+
+  // Form fields
+  const [formName, setFormName] = useState<string>('');
+  const [formPassword, setFormPassword] = useState<string>('');
+  const [formPasswordConfirm, setFormPasswordConfirm] = useState<string>('');
+
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState<MyaccountErrorData>({});
+
+  useEffect(() => {
+    account();
+  }, []);
+
+  const account = async () => {
+    try {
+      // Validar el token con el servidor
+      const response = await myAccount();
+
+      if (response.status === 200) {
+        const user: MyaccountSuccessData = response.data as MyaccountSuccessData;
+
+        // Cargar imagen de perfil si existe
+        if (user.profile_image) {
+          try {
+            const imageUrl = await getProfileImage();
+            setPhoto(imageUrl);
+          } catch (error) {
+            console.error("Error cargando imagen de perfil:", error);
+            setPhoto('');
+          }
+        } else {
+          setPhoto('');
+        }
+
+        setName(user.name);
+        setEmail(user.email);
+        setFormName(user.name);
+      }
+    } catch (error) {
+      console.error("Error obteniendo usuario:", error);
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const formData = new FormData();
+      formData.append('name', formName);
+
+      if (formPassword) {
+        formData.append('password', formPassword);
+        formData.append('password_confirmation', formPasswordConfirm);
+      }
+
+      if (photoFile) {
+        formData.append('profile_image', photoFile);
+      }
+
+      const response = await updateMyAccount(formData);
+
+      if (response.status === 200) {
+        const user: MyaccountSuccessData = response.data as MyaccountSuccessData;
+
+        // Actualizar el estado con los nuevos datos
+        setName(user.name);
+        setEmail(user.email);
+
+        // Actualizar cookies
+        setCookieHelper('user_name', user.name);
+        setCookieHelper('user_email', user.email);
+        if (user.profile_image) {
+          setCookieHelper('user_photo', user.profile_image);
+        }
+
+        // Cargar la nueva imagen de perfil si existe
+        if (user.profile_image) {
+          try {
+            const imageUrl = await getProfileImage();
+            setPhoto(imageUrl);
+          } catch (error) {
+            console.error("Error cargando imagen de perfil:", error);
+            setPhoto('');
+          }
+        } else {
+          setPhoto('');
+        }
+
+        // Limpiar el preview y archivo
+        setPhotoPreview('');
+        setPhotoFile(null);
+        setFormPassword('');
+        setFormPasswordConfirm('');
+
+        // Emitir evento para notificar a otros componentes
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
+
+        closeModal();
+      } else if (response.status === 422) {
+        // Manejar errores de validación
+        const errorData = response.data as MyaccountErrorData;
+        setErrors(errorData);
+      }
+    } catch (error: any) {
+      console.error("Error actualizando usuario:", error);
+      // Manejar errores de red o del servidor
+      if (error?.response?.status === 422) {
+        const errorData = error.response.data?.data as MyaccountErrorData;
+        setErrors(errorData || {});
+      } else {
+        setErrors({ message: 'Error al actualizar el perfil. Intenta de nuevo.' });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-            Personal Information
+            Información personal
           </h4>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                First Name
+                Nombre completo
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {name}
               </p>
             </div>
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Last Name
+                Correo electrónico
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Email address
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Phone
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Bio
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+                {email}
               </p>
             </div>
           </div>
@@ -86,7 +198,7 @@ export default function UserInfoCard() {
               fill=""
             />
           </svg>
-          Edit
+          Editar
         </button>
       </div>
 
@@ -94,86 +206,94 @@ export default function UserInfoCard() {
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Edit Personal Information
+              Editar información personal
             </h4>
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Update your details to keep your profile up-to-date.
+              Actualiza tus datos para mantener tu perfil al día.
             </p>
           </div>
-          <form className="flex flex-col">
-            <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+          <form className="flex flex-col" onSubmit={handleSave}>
+            <div className="custom-scrollbar border-t border-b border-gray-200 h-[450px] overflow-y-auto px-2 pb-4 pt-4">
               <div>
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
+                  Información Personal
                 </h5>
 
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      value="https://www.facebook.com/PimjoHQ"
-                    />
+                {errors.message && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                    {errors.message}
                   </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" value="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      value="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input type="text" value="https://instagram.com/PimjoHQ" />
-                  </div>
-                </div>
-              </div>
-              <div className="mt-7">
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Personal Information
-                </h5>
+                )}
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>First Name</Label>
-                    <Input type="text" value="Musharof" />
+                    <Label>Nombre completo</Label>
+                    <Input
+                      type="text"
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>
+                    )}
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Last Name</Label>
-                    <Input type="text" value="Chowdhury" />
+                    <Label>Correo electrónico</Label>
+                    <Input type="text" value={email} disabled/>
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Email Address</Label>
-                    <Input type="text" value="randomuser@pimjo.com" />
+                    <Label>Contraseña (Opcional)</Label>
+                    <Input
+                      type="password"
+                      value={formPassword}
+                      onChange={(e) => setFormPassword(e.target.value)}
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password}</p>
+                    )}
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Phone</Label>
-                    <Input type="text" value="+09 363 398 46" />
+                    <Label>Confirmar contraseña (Opcional)</Label>
+                    <Input
+                      type="password"
+                      value={formPasswordConfirm}
+                      onChange={(e) => setFormPasswordConfirm(e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2">
-                    <Label>Bio</Label>
-                    <Input type="text" value="Team Manager" />
+                    <Label>Foto de perfil (Opcional)</Label>
+                    <Input
+                      type="file"
+                      className="cursor-pointer"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                    />
+                    {errors.profile_photo && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.profile_photo}</p>
+                    )}
+                  </div>
+                  <div className="col-span-2 flex items-center justify-center">
+                    <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800">
+                      <img
+                        src={`${photoPreview ? photoPreview : (photo ? photo : '/images/user/profile-photo.webp')}`}
+                        alt="User"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
-                Close
+              <Button size="sm" variant="outline" type="button" onClick={closeModal}>
+                Cancelar
               </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
+              <Button size="sm" type="submit" disabled={isLoading}>
+                {isLoading ? 'Guardando...' : 'Guardar cambios'}
               </Button>
             </div>
           </form>

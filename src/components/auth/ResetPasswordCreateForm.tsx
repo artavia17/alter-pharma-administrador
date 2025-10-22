@@ -141,7 +141,7 @@ export default function ResetPasswordCreateForm() {
 
         // Redirigir después de 3 segundos
         setTimeout(() => {
-          navigate("/auth/sign-in");
+          navigate("auth/sign-in");
         }, 3000);
       }else{
         setErrors({

@@ -1,8 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/ProtectedPages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
+import UserProfiles from "./pages/ProtectedPages/MyAccount/UserProfile";
 import Videos from "./pages/ProtectedPages/UiElements/Videos";
 import Images from "./pages/ProtectedPages/UiElements/Images";
 import Alerts from "./pages/ProtectedPages/UiElements/Alerts";
@@ -21,6 +20,7 @@ import Home from "./pages/ProtectedPages/Dashboard/Home";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
 import ResetPasswordCreate from "./pages/AuthPages/ResetPasswordCreate";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
+import VerifyEmail from "./pages/ProtectedPages/MyAccount/VerifyEmail";
 
 export default function App() {
   return (
@@ -30,7 +30,6 @@ export default function App() {
         <Routes>
           {/* Auth Layout - Rutas públicas */}
           <Route path="/auth/sign-in" element={<SignIn />} />
-          <Route path="/auth/sign-up" element={<SignUp />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/reset-password" element={<ResetPasswordCreate />} />
 
@@ -42,6 +41,7 @@ export default function App() {
 
               {/* Account */}
               <Route path="/account/me" element={<UserProfiles />} />
+              <Route path="/account/verify-email" element={<VerifyEmail />} />
 
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/blank" element={<Blank />} />

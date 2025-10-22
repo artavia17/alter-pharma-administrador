@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 import { myAccount } from "../../services/protected/my-account.services";
 import { getCookie, setCookieHelper } from "../../helper/cookieHelper";
 import { MyaccountSuccessData } from "../../types/services/protected/my-account.types";
@@ -9,6 +9,7 @@ import { MyaccountSuccessData } from "../../types/services/protected/my-account.
  * Valida el token con el servidor antes de permitir el acceso
  */
 export default function ProtectedRoute() {
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,9 +67,10 @@ export default function ProtectedRoute() {
     );
   }
 
-  // Si no está autenticado, redirigir al login
+  // Si no está autenticado, redirigir al login con el path actual como redirect
   if (!isAuthenticated) {
-    return <Navigate to="/auth/sign-in" replace />;
+    const redirectPath = location.pathname + location.search;
+    return <Navigate to={`auth/sign-in?redirect=${encodeURIComponent(redirectPath)}`} replace />;
   }
 
   // Si está autenticado, renderizar las rutas hijas
