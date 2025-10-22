@@ -22,6 +22,7 @@ import ResetPasswordCreate from "./pages/AuthPages/ResetPasswordCreate";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
 import VerifyEmail from "./pages/ProtectedPages/Examples/MyAccount/VerifyEmail";
 import ModulosPage from "./pages/ProtectedPages/Accesos/Modulos";
+import UsuariosPage from "./pages/ProtectedPages/Accesos/Usuarios";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
 
               {/* Usuarios */}
               <Route path="/modulos" element={<ModulosPage />} />
+              <Route path="/modulos/usuarios" element={<UsuariosPage />} />
 
               {/* Paginas de ejemplos (Eliminar despues) */}
               <Route path="/calendar" element={<Calendar />} />
