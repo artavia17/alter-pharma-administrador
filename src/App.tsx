@@ -26,6 +26,8 @@ import UsuariosPage from "./pages/ProtectedPages/Accesos/Usuarios";
 import FarmaceuticasPage from "./pages/ProtectedPages/Farmacias/Farmaceuticas";
 import PaisesPage from "./pages/ProtectedPages/Localizaciones/Paises";
 import CiudadesPage from "./pages/ProtectedPages/Localizaciones/Ciudades";
+import EspecialidadesPage from "./pages/ProtectedPages/Doctores/Especialidades";
+import DoctoresPage from "./pages/ProtectedPages/Doctores/Doctores";
 
 export default function App() {
   return (
@@ -55,6 +57,10 @@ export default function App() {
               {/* Localizaciones */}
               <Route path="/localizaciones/paises" element={<PaisesPage />} />
               <Route path="/localizaciones/ciudades" element={<CiudadesPage />} />
+
+              {/* Doctores */}
+              <Route path="/doctores" element={<DoctoresPage />} />
+              <Route path="/doctores/especialidades" element={<EspecialidadesPage />} />
 
               {/* Farmacias */}
               <Route path="/farmaceuticas" element={<FarmaceuticasPage />} />
