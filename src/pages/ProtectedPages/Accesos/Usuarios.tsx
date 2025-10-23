@@ -297,7 +297,7 @@ export default function UsuariosPage() {
               </div>
               <div>
                 <Label>Módulos de acceso</Label>
-                <div className="space-y-2 mt-2">
+                <div className="space-y-2 mt-2 max-h-[300px] overflow-auto border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
                   {modules.map((module) => (
                     <label key={module.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                       <input type="checkbox" checked={selectedModules.includes(module.id)} onChange={() => toggleModule(module.id)} className="w-4 h-4 text-blue-600 rounded" />
@@ -336,7 +336,7 @@ export default function UsuariosPage() {
               </div>
               <div>
                 <Label>Módulos de acceso</Label>
-                <div className="space-y-2 mt-2">
+                <div className="space-y-2 mt-2 max-h-[300px] overflow-auto border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
                   {modules.map((module) => (
                     <label key={module.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                       <input type="checkbox" checked={selectedModules.includes(module.id)} onChange={() => toggleModule(module.id)} className="w-4 h-4 text-blue-600 rounded" />
@@ -365,7 +365,7 @@ export default function UsuariosPage() {
           </div>
           <div className="px-2 pb-4">
             <Label>Módulos de acceso</Label>
-            <div className="space-y-2 mt-2">
+            <div className="space-y-2 mt-2 max-h-[300px] overflow-auto border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
               {modules.map((module) => (
                 <label key={module.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                   <input type="checkbox" checked={selectedModules.includes(module.id)} onChange={() => toggleModule(module.id)} className="w-4 h-4 text-blue-600 rounded" />

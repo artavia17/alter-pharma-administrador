@@ -23,6 +23,9 @@ import ProtectedRoute from "./components/routes/ProtectedRoute";
 import VerifyEmail from "./pages/ProtectedPages/Examples/MyAccount/VerifyEmail";
 import ModulosPage from "./pages/ProtectedPages/Accesos/Modulos";
 import UsuariosPage from "./pages/ProtectedPages/Accesos/Usuarios";
+import FarmaceuticasPage from "./pages/ProtectedPages/Farmacias/Farmaceuticas";
+import PaisesPage from "./pages/ProtectedPages/Localizaciones/Paises";
+import CiudadesPage from "./pages/ProtectedPages/Localizaciones/Ciudades";
 
 export default function App() {
   return (
@@ -49,6 +52,18 @@ export default function App() {
               <Route path="/modulos" element={<ModulosPage />} />
               <Route path="/modulos/usuarios" element={<UsuariosPage />} />
 
+              {/* Localizaciones */}
+              <Route path="/localizaciones/paises" element={<PaisesPage />} />
+              <Route path="/localizaciones/ciudades" element={<CiudadesPage />} />
+
+              {/* Farmacias */}
+              <Route path="/farmaceuticas" element={<FarmaceuticasPage />} />
+
+              {/* ----------------------------------------------------------------------------- */}
+              {/* ----------------------------------------------------------------------------- */}
+              {/* ----------------------------------------------------------------------------- */}
+
+
               {/* Paginas de ejemplos (Eliminar despues) */}
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/blank" element={<Blank />} />
@@ -70,6 +85,10 @@ export default function App() {
               {/* Charts */}
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
+
+              {/* ----------------------------------------------------------------------------- */}
+              {/* ----------------------------------------------------------------------------- */}
+              {/* ----------------------------------------------------------------------------- */}
             </Route>
           </Route>
 

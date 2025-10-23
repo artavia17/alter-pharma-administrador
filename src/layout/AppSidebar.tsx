@@ -11,8 +11,11 @@ import {
   ListIcon,
   PageIcon,
   PieChartIcon,
+  PaperPlaneIcon,
   TableIcon,
-  UserIcon
+  UserIcon,
+  DocumentCurrency,
+  GlobeAmericas
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -31,58 +34,81 @@ const navItems: NavItem[] = [
   },
   {
     icon: <UserIcon />,
-    name: "Accesos  ",
+    name: "Accesos",
     subItems: [
       { name: "Modulos", path: "/modulos" },
       { name: "Usuarios", path: "/modulos/usuarios" },
     ],
   },
   {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
-  },
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements" }],
-  },
-  {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables" }],
-  },
-  {
-    name: "Pages",
-    icon: <PageIcon />,
+    icon: <GlobeAmericas />,
+    name: "Localizaciones",
     subItems: [
-      { name: "Blank Page", path: "/blank" },
-      { name: "404 Error", path: "/error-404" },
+      { name: "Paises", path: "/localizaciones/paises" },
+      { name: "Ciudades", path: "/localizaciones/ciudades" },
     ],
   },
+  {
+    icon: <DocumentCurrency />,
+    name: "Doctores",
+    subItems: [
+      { name: "Nuestros doctores", path: "/doctores" },
+      { name: "Especialidades", path: "/doctores/especialidades" },
+    ],
+  },
+  {
+    icon: <TableIcon />,
+    name: "Farmacias",
+    subItems: [
+      { name: "Farmacéuticas", path: "/farmaceuticas" },
+    ],
+  },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/calendar",
+  // },
+  // {
+  //   name: "Forms",
+  //   icon: <ListIcon />,
+  //   subItems: [{ name: "Form Elements", path: "/form-elements" }],
+  // },
+  // {
+  //   name: "Tables",
+  //   icon: <TableIcon />,
+  //   subItems: [{ name: "Basic Tables", path: "/basic-tables" }],
+  // },
+  // {
+  //   name: "Pages",
+  //   icon: <PageIcon />,
+  //   subItems: [
+  //     { name: "Blank Page", path: "/blank" },
+  //     { name: "404 Error", path: "/error-404" },
+  //   ],
+  // },
 ];
 
 const othersItems: NavItem[] = [
-  {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart" },
-      { name: "Bar Chart", path: "/bar-chart" },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/alerts" },
-      { name: "Avatar", path: "/avatars" },
-      { name: "Badge", path: "/badge" },
-      { name: "Buttons", path: "/buttons" },
-      { name: "Images", path: "/images" },
-      { name: "Videos", path: "/videos" },
-    ],
-  }
+  // {
+  //   icon: <PieChartIcon />,
+  //   name: "Charts",
+  //   subItems: [
+  //     { name: "Line Chart", path: "/line-chart" },
+  //     { name: "Bar Chart", path: "/bar-chart" },
+  //   ],
+  // },
+  // {
+  //   icon: <BoxCubeIcon />,
+  //   name: "UI Elements",
+  //   subItems: [
+  //     { name: "Alerts", path: "/alerts" },
+  //     { name: "Avatar", path: "/avatars" },
+  //     { name: "Badge", path: "/badge" },
+  //     { name: "Buttons", path: "/buttons" },
+  //     { name: "Images", path: "/images" },
+  //     { name: "Videos", path: "/videos" },
+  //   ],
+  // }
 ];
 
 const AppSidebar: React.FC = () => {
