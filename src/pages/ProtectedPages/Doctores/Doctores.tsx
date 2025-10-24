@@ -7,6 +7,7 @@ import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
 import Switch from "../../../components/form/switch/Switch";
+import Alert from "../../../components/ui/alert/Alert";
 import { useModal } from "../../../hooks/useModal";
 import {
   Table,
@@ -42,6 +43,9 @@ export default function DoctoresPage() {
   const [doctorBio, setDoctorBio] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedSpecialties, setSelectedSpecialties] = useState<number[]>([]);
+
+  // Error handling
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
@@ -145,6 +149,7 @@ export default function DoctoresPage() {
     if (!selectedCountryId || selectedSpecialties.length === 0) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const params = {
@@ -163,8 +168,15 @@ export default function DoctoresPage() {
         resetForm();
         closeAddModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creando doctor:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al crear el doctor" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -175,6 +187,7 @@ export default function DoctoresPage() {
     if (!selectedDoctor || !selectedCountryId || selectedSpecialties.length === 0) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const params = {
@@ -194,8 +207,15 @@ export default function DoctoresPage() {
         setSelectedDoctor(null);
         closeEditModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editando doctor:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al actualizar el doctor" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -234,6 +254,7 @@ export default function DoctoresPage() {
     setDoctorBio("");
     setSelectedCountryId(null);
     setSelectedSpecialties([]);
+    setErrors({});
   };
 
   const handleCloseAdd = () => {
@@ -461,6 +482,15 @@ export default function DoctoresPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nuevo Doctor</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear un nuevo doctor</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleAddDoctor} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto">
               <div>
@@ -552,6 +582,15 @@ export default function DoctoresPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Doctor</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos del doctor seleccionado</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleEditDoctor} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-t border-b border-gray-200 dark:border-white/[0.05] pt-4 pb-6">
               <div>

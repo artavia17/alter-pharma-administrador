@@ -6,6 +6,7 @@ import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Switch from "../../../components/form/switch/Switch";
+import Alert from "../../../components/ui/alert/Alert";
 import { useModal } from "../../../hooks/useModal";
 import {
   Table,
@@ -26,6 +27,9 @@ export default function PaisesPage() {
   // Form fields
   const [countryName, setCountryName] = useState("");
   const [countryCode, setCountryCode] = useState("");
+
+  // Error handling
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
@@ -49,6 +53,7 @@ export default function PaisesPage() {
   const handleAddCountry = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await createCountry(countryName, countryCode);
@@ -58,8 +63,15 @@ export default function PaisesPage() {
         setCountryCode("");
         closeAddModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creando país:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al crear el país" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -70,6 +82,7 @@ export default function PaisesPage() {
     if (!selectedCountry) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await updateCountry(selectedCountry.id, countryName, countryCode);
@@ -80,8 +93,15 @@ export default function PaisesPage() {
         setSelectedCountry(null);
         closeEditModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editando país:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al actualizar el país" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +120,7 @@ export default function PaisesPage() {
     setCountryName("");
     setCountryCode("");
     setSelectedCountry(null);
+    setErrors({});
     closeAddModal();
   };
 
@@ -114,6 +135,7 @@ export default function PaisesPage() {
     setCountryName("");
     setCountryCode("");
     setSelectedCountry(null);
+    setErrors({});
     closeEditModal();
   };
 
@@ -201,6 +223,18 @@ export default function PaisesPage() {
                 ))}
               </TableBody>
             </Table>
+
+            {countries.length === 0 && (
+              <div className="px-5 py-12 text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay países</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Comienza agregando un nuevo país al sistema.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -212,6 +246,15 @@ export default function PaisesPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nuevo País</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear un nuevo país</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleAddCountry} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>
@@ -256,6 +299,15 @@ export default function PaisesPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar País</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos del país seleccionado</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleEditCountry} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>

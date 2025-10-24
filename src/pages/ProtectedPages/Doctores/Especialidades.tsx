@@ -6,6 +6,7 @@ import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Switch from "../../../components/form/switch/Switch";
+import Alert from "../../../components/ui/alert/Alert";
 import { useModal } from "../../../hooks/useModal";
 import {
   Table,
@@ -26,6 +27,9 @@ export default function EspecialidadesPage() {
 
   // Form fields
   const [specialtyName, setSpecialtyName] = useState("");
+
+  // Error handling
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
@@ -62,6 +66,7 @@ export default function EspecialidadesPage() {
   const handleAddSpecialty = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await createSpecialty(specialtyName);
@@ -70,8 +75,15 @@ export default function EspecialidadesPage() {
         setSpecialtyName("");
         closeAddModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creando especialidad:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al crear la especialidad" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +94,7 @@ export default function EspecialidadesPage() {
     if (!selectedSpecialty) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await updateSpecialty(selectedSpecialty.id, specialtyName);
@@ -91,8 +104,15 @@ export default function EspecialidadesPage() {
         setSelectedSpecialty(null);
         closeEditModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editando especialidad:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al actualizar la especialidad" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -126,6 +146,7 @@ export default function EspecialidadesPage() {
   const handleCloseAdd = () => {
     setSpecialtyName("");
     setSelectedSpecialty(null);
+    setErrors({});
     closeAddModal();
   };
 
@@ -138,6 +159,7 @@ export default function EspecialidadesPage() {
   const handleCloseEdit = () => {
     setSpecialtyName("");
     setSelectedSpecialty(null);
+    setErrors({});
     closeEditModal();
   };
 
@@ -278,6 +300,15 @@ export default function EspecialidadesPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Especialidad</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear una nueva especialidad médica</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleAddSpecialty} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>
@@ -305,6 +336,15 @@ export default function EspecialidadesPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Especialidad</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la especialidad seleccionada</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleEditSpecialty} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>

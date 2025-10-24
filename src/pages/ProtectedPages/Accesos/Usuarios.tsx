@@ -6,6 +6,7 @@ import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Switch from "../../../components/form/switch/Switch";
+import Alert from "../../../components/ui/alert/Alert";
 import { useModal } from "../../../hooks/useModal";
 import {
   Table,
@@ -30,6 +31,9 @@ export default function UsuariosPage() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [selectedModules, setSelectedModules] = useState<number[]>([]);
+
+  // Error handling
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
@@ -66,6 +70,7 @@ export default function UsuariosPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await createUser(userName, userEmail, selectedModules);
@@ -76,8 +81,15 @@ export default function UsuariosPage() {
         setSelectedModules([]);
         closeAddModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creando usuario:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al crear el usuario" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +100,7 @@ export default function UsuariosPage() {
     if (!selectedUser) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await updateUser(selectedUser.id, userName, userEmail, selectedModules);
@@ -99,8 +112,15 @@ export default function UsuariosPage() {
         setSelectedUser(null);
         closeEditModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editando usuario:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al actualizar el usuario" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -153,6 +173,7 @@ export default function UsuariosPage() {
     setUserEmail("");
     setSelectedModules([]);
     setSelectedUser(null);
+    setErrors({});
     closeAddModal();
   };
 
@@ -169,6 +190,7 @@ export default function UsuariosPage() {
     setUserEmail("");
     setSelectedModules([]);
     setSelectedUser(null);
+    setErrors({});
     closeEditModal();
   };
 
@@ -274,6 +296,18 @@ export default function UsuariosPage() {
                 ))}
               </TableBody>
             </Table>
+
+            {users.length === 0 && (
+              <div className="px-5 py-12 text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay usuarios</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Comienza agregando un nuevo usuario al sistema.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -285,6 +319,15 @@ export default function UsuariosPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nuevo Usuario</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear un nuevo usuario</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleAddUser} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>
@@ -324,6 +367,15 @@ export default function UsuariosPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Usuario</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos del usuario seleccionado</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleEditUser} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>

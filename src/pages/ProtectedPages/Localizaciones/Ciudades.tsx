@@ -7,6 +7,7 @@ import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
 import Switch from "../../../components/form/switch/Switch";
+import Alert from "../../../components/ui/alert/Alert";
 import { useModal } from "../../../hooks/useModal";
 import {
   Table,
@@ -31,6 +32,9 @@ export default function CiudadesPage() {
   // Form fields
   const [stateName, setStateName] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
+
+  // Error handling
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
@@ -100,6 +104,7 @@ export default function CiudadesPage() {
     if (!selectedCountryId) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await createState(stateName, selectedCountryId);
@@ -109,8 +114,15 @@ export default function CiudadesPage() {
         setSelectedCountryId(null);
         closeAddModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creando estado:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al crear la ciudad/estado" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -121,6 +133,7 @@ export default function CiudadesPage() {
     if (!selectedState || !selectedCountryId) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await updateState(selectedState.id, stateName, selectedCountryId);
@@ -131,8 +144,15 @@ export default function CiudadesPage() {
         setSelectedState(null);
         closeEditModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editando estado:", error);
+      if (error.response?.status === 422 && error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Ocurrió un error al actualizar la ciudad/estado" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -167,6 +187,7 @@ export default function CiudadesPage() {
     setStateName("");
     setSelectedCountryId(null);
     setSelectedState(null);
+    setErrors({});
     closeAddModal();
   };
 
@@ -181,6 +202,7 @@ export default function CiudadesPage() {
     setStateName("");
     setSelectedCountryId(null);
     setSelectedState(null);
+    setErrors({});
     closeEditModal();
   };
 
@@ -191,6 +213,7 @@ export default function CiudadesPage() {
 
   const handleCloseDelete = () => {
     setSelectedState(null);
+    setErrors({});
     closeDeleteModal();
   };
 
@@ -326,6 +349,15 @@ export default function CiudadesPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Ciudad/Estado</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear una nueva ciudad/estado</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleAddState} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>
@@ -362,6 +394,15 @@ export default function CiudadesPage() {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Ciudad/Estado</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la ciudad/estado seleccionada</p>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="px-2 mb-4">
+              <Alert
+                variant="error"
+                title="Error de validación"
+                message={errors.general || Object.values(errors)[0] || "Por favor corrige los errores en el formulario"}
+              />
+            </div>
+          )}
           <form onSubmit={handleEditState} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4">
               <div>
