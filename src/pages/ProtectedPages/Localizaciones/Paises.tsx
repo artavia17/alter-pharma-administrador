@@ -27,6 +27,11 @@ export default function PaisesPage() {
   // Form fields
   const [countryName, setCountryName] = useState("");
   const [countryCode, setCountryCode] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [identificationMinLength, setIdentificationMinLength] = useState("");
+  const [identificationMaxLength, setIdentificationMaxLength] = useState("");
+  const [phoneMinLength, setPhoneMinLength] = useState("");
+  const [phoneMaxLength, setPhoneMaxLength] = useState("");
 
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,12 +60,43 @@ export default function PaisesPage() {
     setIsLoading(true);
     setErrors({});
 
+    // Validación: min no puede ser mayor que max
+    const idMinLen = parseInt(identificationMinLength);
+    const idMaxLen = parseInt(identificationMaxLength);
+    const phoneMin = parseInt(phoneMinLength);
+    const phoneMax = parseInt(phoneMaxLength);
+
+    if (idMinLen > idMaxLen) {
+      setErrors({ general: "La longitud mínima de identificación no puede ser mayor que la máxima" });
+      setIsLoading(false);
+      return;
+    }
+
+    if (phoneMin > phoneMax) {
+      setErrors({ general: "La longitud mínima de teléfono no puede ser mayor que la máxima" });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await createCountry(countryName, countryCode);
+      const response = await createCountry(
+        countryName,
+        countryCode,
+        phoneCode,
+        idMinLen,
+        idMaxLen,
+        phoneMin,
+        phoneMax
+      );
       if (response.status === 200 || response.status === 201) {
         await loadCountries();
         setCountryName("");
         setCountryCode("");
+        setPhoneCode("");
+        setIdentificationMinLength("");
+        setIdentificationMaxLength("");
+        setPhoneMinLength("");
+        setPhoneMaxLength("");
         closeAddModal();
       }
     } catch (error: any) {
@@ -84,12 +120,44 @@ export default function PaisesPage() {
     setIsLoading(true);
     setErrors({});
 
+    // Validación: min no puede ser mayor que max
+    const idMinLen = parseInt(identificationMinLength);
+    const idMaxLen = parseInt(identificationMaxLength);
+    const phoneMin = parseInt(phoneMinLength);
+    const phoneMax = parseInt(phoneMaxLength);
+
+    if (idMinLen > idMaxLen) {
+      setErrors({ general: "La longitud mínima de identificación no puede ser mayor que la máxima" });
+      setIsLoading(false);
+      return;
+    }
+
+    if (phoneMin > phoneMax) {
+      setErrors({ general: "La longitud mínima de teléfono no puede ser mayor que la máxima" });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await updateCountry(selectedCountry.id, countryName, countryCode);
+      const response = await updateCountry(
+        selectedCountry.id,
+        countryName,
+        countryCode,
+        phoneCode,
+        idMinLen,
+        idMaxLen,
+        phoneMin,
+        phoneMax
+      );
       if (response.status === 200) {
         await loadCountries();
         setCountryName("");
         setCountryCode("");
+        setPhoneCode("");
+        setIdentificationMinLength("");
+        setIdentificationMaxLength("");
+        setPhoneMinLength("");
+        setPhoneMaxLength("");
         setSelectedCountry(null);
         closeEditModal();
       }
@@ -119,6 +187,11 @@ export default function PaisesPage() {
   const handleCloseAdd = () => {
     setCountryName("");
     setCountryCode("");
+    setPhoneCode("");
+    setIdentificationMinLength("");
+    setIdentificationMaxLength("");
+    setPhoneMinLength("");
+    setPhoneMaxLength("");
     setSelectedCountry(null);
     setErrors({});
     closeAddModal();
@@ -128,12 +201,22 @@ export default function PaisesPage() {
     setSelectedCountry(country);
     setCountryName(country.name);
     setCountryCode(country.code);
+    setPhoneCode(country.phone_code);
+    setIdentificationMinLength(country.identification_min_length.toString());
+    setIdentificationMaxLength(country.identification_max_length.toString());
+    setPhoneMinLength(country.phone_min_length.toString());
+    setPhoneMaxLength(country.phone_max_length.toString());
     openEditModal();
   };
 
   const handleCloseEdit = () => {
     setCountryName("");
     setCountryCode("");
+    setPhoneCode("");
+    setIdentificationMinLength("");
+    setIdentificationMaxLength("");
+    setPhoneMinLength("");
+    setPhoneMaxLength("");
     setSelectedCountry(null);
     setErrors({});
     closeEditModal();
@@ -180,6 +263,9 @@ export default function PaisesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">País</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Código</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Cód. Tel.</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Long. Identificación</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Long. Teléfono</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estados</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
@@ -198,6 +284,15 @@ export default function PaisesPage() {
                       <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                         {country.code}
                       </span>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      +{country.phone_code}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {country.identification_min_length} - {country.identification_max_length}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {country.phone_min_length} - {country.phone_max_length}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
                       {country.states?.length || 0} estado(s)
@@ -283,10 +378,63 @@ export default function PaisesPage() {
                   Código de 2 letras (ISO 3166-1 alpha-2)
                 </p>
               </div>
+              <div>
+                <Label>Código telefónico</Label>
+                <Input
+                  type="text"
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value)}
+                  placeholder="Ej: 1809"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Long. mín. identificación</Label>
+                  <Input
+                    type="number"
+                    value={identificationMinLength}
+                    onChange={(e) => setIdentificationMinLength(e.target.value)}
+                    placeholder="Ej: 11"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <Label>Long. máx. identificación</Label>
+                  <Input
+                    type="number"
+                    value={identificationMaxLength}
+                    onChange={(e) => setIdentificationMaxLength(e.target.value)}
+                    placeholder="Ej: 13"
+                    min="1"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Long. mín. teléfono</Label>
+                  <Input
+                    type="number"
+                    value={phoneMinLength}
+                    onChange={(e) => setPhoneMinLength(e.target.value)}
+                    placeholder="Ej: 10"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <Label>Long. máx. teléfono</Label>
+                  <Input
+                    type="number"
+                    value={phoneMaxLength}
+                    onChange={(e) => setPhoneMaxLength(e.target.value)}
+                    placeholder="Ej: 10"
+                    min="1"
+                  />
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !countryName || !countryCode}>{isLoading ? 'Guardando...' : 'Guardar País'}</Button>
+              <Button size="sm" type="submit" disabled={isLoading || !countryName || !countryCode || !phoneCode || !identificationMinLength || !identificationMaxLength || !phoneMinLength || !phoneMaxLength}>{isLoading ? 'Guardando...' : 'Guardar País'}</Button>
             </div>
           </form>
         </div>
@@ -336,10 +484,63 @@ export default function PaisesPage() {
                   Código de 2 letras (ISO 3166-1 alpha-2)
                 </p>
               </div>
+              <div>
+                <Label>Código telefónico</Label>
+                <Input
+                  type="text"
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value)}
+                  placeholder="Ej: 1809"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Long. mín. identificación</Label>
+                  <Input
+                    type="number"
+                    value={identificationMinLength}
+                    onChange={(e) => setIdentificationMinLength(e.target.value)}
+                    placeholder="Ej: 11"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <Label>Long. máx. identificación</Label>
+                  <Input
+                    type="number"
+                    value={identificationMaxLength}
+                    onChange={(e) => setIdentificationMaxLength(e.target.value)}
+                    placeholder="Ej: 13"
+                    min="1"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Long. mín. teléfono</Label>
+                  <Input
+                    type="number"
+                    value={phoneMinLength}
+                    onChange={(e) => setPhoneMinLength(e.target.value)}
+                    placeholder="Ej: 10"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <Label>Long. máx. teléfono</Label>
+                  <Input
+                    type="number"
+                    value={phoneMaxLength}
+                    onChange={(e) => setPhoneMaxLength(e.target.value)}
+                    placeholder="Ej: 10"
+                    min="1"
+                  />
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseEdit}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !countryName || !countryCode}>{isLoading ? 'Guardando...' : 'Guardar Cambios'}</Button>
+              <Button size="sm" type="submit" disabled={isLoading || !countryName || !countryCode || !phoneCode || !identificationMinLength || !identificationMaxLength || !phoneMinLength || !phoneMaxLength}>{isLoading ? 'Guardando...' : 'Guardar Cambios'}</Button>
             </div>
           </form>
         </div>

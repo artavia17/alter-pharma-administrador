@@ -4,6 +4,9 @@ export interface CountryBasic {
     id: number;
     name: string;
     code: string;
+    phone_code: string;
+    phone_min_length: number;
+    phone_max_length: number;
     status: boolean;
     created_at: string;
     updated_at: string;
@@ -12,10 +15,12 @@ export interface CountryBasic {
 export interface PharmacyData {
     id: number;
     country_id: number;
+    state_id: number;
     legal_name: string;
     commercial_name: string;
     identification_number: string;
     physical_address: string;
+    street_address: string;
     phone: string;
     email: string;
     administrator_name: string;

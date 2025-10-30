@@ -24,10 +24,13 @@ import VerifyEmail from "./pages/ProtectedPages/Examples/MyAccount/VerifyEmail";
 import ModulosPage from "./pages/ProtectedPages/Accesos/Modulos";
 import UsuariosPage from "./pages/ProtectedPages/Accesos/Usuarios";
 import FarmaceuticasPage from "./pages/ProtectedPages/Farmacias/Farmaceuticas";
+import SucursalesPage from "./pages/ProtectedPages/Farmacias/Sucursales";
 import PaisesPage from "./pages/ProtectedPages/Localizaciones/Paises";
 import CiudadesPage from "./pages/ProtectedPages/Localizaciones/Ciudades";
 import EspecialidadesPage from "./pages/ProtectedPages/Doctores/Especialidades";
 import DoctoresPage from "./pages/ProtectedPages/Doctores/Doctores";
+import ProductosPage from "./pages/ProtectedPages/Medicamentos/Productos";
+import DosisPage from "./pages/ProtectedPages/Medicamentos/Dosis";
 
 export default function App() {
   return (
@@ -64,6 +67,11 @@ export default function App() {
 
               {/* Farmacias */}
               <Route path="/farmaceuticas" element={<FarmaceuticasPage />} />
+              <Route path="/farmaceuticas/sucursales" element={<SucursalesPage />} />
+
+              {/* Medicamentos */}
+              <Route path="/medicamentos/productos" element={<ProductosPage />} />
+              <Route path="/medicamentos/dosis" element={<DosisPage />} />
 
               {/* ----------------------------------------------------------------------------- */}
               {/* ----------------------------------------------------------------------------- */}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Option {
   value: string;
@@ -11,6 +11,8 @@ interface SelectProps {
   onChange: (value: string) => void;
   className?: string;
   defaultValue?: string;
+  value?: string; // Controlled mode
+  disabled?: boolean;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -19,13 +21,33 @@ const Select: React.FC<SelectProps> = ({
   onChange,
   className = "",
   defaultValue = "",
+  value: controlledValue,
+  disabled = false,
 }) => {
-  // Manage the selected value
-  const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
+  // Determine if component is controlled or uncontrolled
+  const isControlled = controlledValue !== undefined;
+
+  // Manage the selected value (only for uncontrolled mode)
+  const [uncontrolledValue, setUncontrolledValue] = useState<string>(defaultValue);
+
+  // Use controlled value if provided, otherwise use internal state
+  const selectedValue = isControlled ? controlledValue : uncontrolledValue;
+
+  // Sync uncontrolled value with defaultValue changes
+  useEffect(() => {
+    if (!isControlled) {
+      setUncontrolledValue(defaultValue);
+    }
+  }, [defaultValue, isControlled]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setSelectedValue(value);
+
+    // Only update internal state if uncontrolled
+    if (!isControlled) {
+      setUncontrolledValue(value);
+    }
+
     onChange(value); // Trigger parent handler
   };
 
@@ -35,14 +57,14 @@ const Select: React.FC<SelectProps> = ({
         selectedValue
           ? "text-gray-800 dark:text-white/90"
           : "text-gray-400 dark:text-gray-400"
-      } ${className}`}
+      } ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
       value={selectedValue}
       onChange={handleChange}
+      disabled={disabled}
     >
       {/* Placeholder option */}
       <option
         value=""
-        disabled
         className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
       >
         {placeholder}

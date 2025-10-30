@@ -14,6 +14,11 @@ export interface CountryData {
     id: number;
     name: string;
     code: string;
+    phone_code: string;
+    identification_min_length: number;
+    identification_max_length: number;
+    phone_min_length: number;
+    phone_max_length: number;
     status: boolean;
     created_at: string;
     updated_at: string;

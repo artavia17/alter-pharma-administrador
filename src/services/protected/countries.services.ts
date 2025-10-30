@@ -11,18 +11,45 @@ const getCountry = async (id: number) => {
     return response.data;
 };
 
-const createCountry = async (name: string, code: string) => {
+const createCountry = async (
+    name: string,
+    code: string,
+    phone_code: string,
+    identification_min_length: number,
+    identification_max_length: number,
+    phone_min_length: number,
+    phone_max_length: number
+) => {
     const response = await api.post<SingleCountryResponse>("/administrator/countries", {
         name,
-        code
+        code,
+        phone_code,
+        identification_min_length,
+        identification_max_length,
+        phone_min_length,
+        phone_max_length
     });
     return response.data;
 };
 
-const updateCountry = async (id: number, name: string, code: string) => {
+const updateCountry = async (
+    id: number,
+    name: string,
+    code: string,
+    phone_code: string,
+    identification_min_length: number,
+    identification_max_length: number,
+    phone_min_length: number,
+    phone_max_length: number
+) => {
     const response = await api.post<SingleCountryResponse>(`/administrator/countries/${id}`, {
         name,
-        code
+        code,
+        phone_code,
+        identification_min_length,
+        identification_max_length,
+        phone_min_length,
+        phone_max_length
     });
     return response.data;
 };

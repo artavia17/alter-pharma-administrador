@@ -18,21 +18,16 @@ import {
 } from "../../../components/ui/table";
 import { getPharmacies, createPharmacy, updatePharmacy, togglePharmacyStatus } from "../../../services/protected/pharmacies.services";
 import { getCountries } from "../../../services/protected/countries.services";
+import { getStates } from "../../../services/protected/states.services";
 import { PharmacyData } from "../../../types/services/protected/pharmacies.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
+import { StateData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
-
-// Mapeo de códigos de país a prefijos telefónicos
-const PHONE_PREFIXES: Record<string, string> = {
-  'DO': '+1 809-',
-  'HN': '+504 ',
-  'CR': '+506 ',
-  'PA': '+507 ',
-};
 
 export default function FarmaceuticasPage() {
   const [pharmacies, setPharmacies] = useState<PharmacyData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
+  const [states, setStates] = useState<StateData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<PharmacyData | null>(null);
 
@@ -43,12 +38,15 @@ export default function FarmaceuticasPage() {
   const [legalName, setLegalName] = useState("");
   const [commercialName, setCommercialName] = useState("");
   const [identificationNumber, setIdentificationNumber] = useState("");
-  const [physicalAddress, setPhysicalAddress] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [administratorName, setAdministratorName] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
+  const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [phonePrefix, setPhonePrefix] = useState("");
+  const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
+  const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
 
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -61,6 +59,7 @@ export default function FarmaceuticasPage() {
   useEffect(() => {
     loadPharmacies();
     loadCountries();
+    loadStates();
   }, []);
 
   const loadPharmacies = async () => {
@@ -82,6 +81,17 @@ export default function FarmaceuticasPage() {
       }
     } catch (error) {
       console.error("Error cargando países:", error);
+    }
+  };
+
+  const loadStates = async () => {
+    try {
+      const response = await getStates();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setStates(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando estados:", error);
     }
   };
 
@@ -116,50 +126,90 @@ export default function FarmaceuticasPage() {
       }));
   }, [countries]);
 
+  // Opciones para select de estados (filtradas por país seleccionado)
+  const stateOptions = useMemo(() => {
+    if (!selectedCountryId) return [];
+    return states
+      .filter(state => state.country_id === selectedCountryId && state.status)
+      .map(state => ({
+        value: state.id.toString(),
+        label: state.name
+      }));
+  }, [states, selectedCountryId]);
+
   // Actualizar prefijo de teléfono cuando cambia el país
   const handleCountryChange = (countryId: string) => {
     const id = parseInt(countryId);
     setSelectedCountryId(id);
+    setSelectedStateId(null); // Resetear estado cuando cambia el país
 
     const country = countries.find(c => c.id === id);
     if (country) {
-      const prefix = PHONE_PREFIXES[country.code] || '+';
+      const prefix = `+${country.phone_code} `;
       setPhonePrefix(prefix);
-      // Si el teléfono está vacío o solo tiene el prefijo anterior, actualizar al nuevo prefijo
-      if (!phone || phone.match(/^\+\d{1,3}\s?-?\s?$/)) {
-        setPhone(prefix);
-      }
+      setPhoneMinLength(country.phone_min_length);
+      setPhoneMaxLength(country.phone_max_length);
+      // Establecer el prefijo cuando se selecciona el país
+      setPhone(prefix);
     }
   };
 
   const handlePhoneChange = (value: string) => {
     // Asegurar que el teléfono siempre comience con el prefijo del país
     if (phonePrefix && !value.startsWith(phonePrefix)) {
-      setPhone(phonePrefix);
-    } else {
-      setPhone(value);
+      return; // No permitir eliminar el prefijo
+    }
+
+    // Solo permitir números después del prefijo
+    const afterPrefix = value.substring(phonePrefix.length);
+    const onlyNumbers = afterPrefix.replace(/\D/g, '');
+
+    // Limitar según la longitud máxima
+    if (onlyNumbers.length <= phoneMaxLength) {
+      setPhone(phonePrefix + onlyNumbers);
     }
   };
 
   const handleIdentificationChange = (value: string) => {
-    // Eliminar espacios del número de identificación
-    setIdentificationNumber(value.replace(/\s/g, ''));
+    // Eliminar espacios y limitar a 25 caracteres
+    const cleanValue = value.replace(/\s/g, '');
+    if (cleanValue.length <= 25) {
+      setIdentificationNumber(cleanValue);
+    }
+  };
+
+  const handleStreetAddressChange = (value: string) => {
+    // Limitar a 35 caracteres
+    if (value.length <= 35) {
+      setStreetAddress(value);
+    }
   };
 
   const handleAddPharmacy = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCountryId) return;
+    if (!selectedCountryId || !selectedStateId) return;
 
     setIsLoading(true);
     setErrors({});
 
+    // Validar longitud del teléfono (sin contar el prefijo)
+    const phoneDigits = phone.substring(phonePrefix.length);
+    if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
+      setErrors({
+        general: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const params = {
         country_id: selectedCountryId,
+        state_id: selectedStateId,
         legal_name: legalName,
         commercial_name: commercialName,
         identification_number: identificationNumber,
-        physical_address: physicalAddress,
+        street_address: streetAddress,
         phone: phone,
         email: email,
         administrator_name: administratorName,
@@ -187,18 +237,29 @@ export default function FarmaceuticasPage() {
 
   const handleEditPharmacy = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPharmacy || !selectedCountryId) return;
+    if (!selectedPharmacy || !selectedCountryId || !selectedStateId) return;
 
     setIsLoading(true);
     setErrors({});
 
+    // Validar longitud del teléfono (sin contar el prefijo)
+    const phoneDigits = phone.substring(phonePrefix.length);
+    if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
+      setErrors({
+        general: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const params = {
         country_id: selectedCountryId,
+        state_id: selectedStateId,
         legal_name: legalName,
         commercial_name: commercialName,
         identification_number: identificationNumber,
-        physical_address: physicalAddress,
+        street_address: streetAddress,
         phone: phone,
         email: email,
         administrator_name: administratorName,
@@ -238,12 +299,15 @@ export default function FarmaceuticasPage() {
     setLegalName("");
     setCommercialName("");
     setIdentificationNumber("");
-    setPhysicalAddress("");
+    setStreetAddress("");
     setPhone("");
     setEmail("");
     setAdministratorName("");
     setSelectedCountryId(null);
+    setSelectedStateId(null);
     setPhonePrefix("");
+    setPhoneMinLength(0);
+    setPhoneMaxLength(0);
     setErrors({});
   };
 
@@ -258,15 +322,18 @@ export default function FarmaceuticasPage() {
     setLegalName(pharmacy.legal_name);
     setCommercialName(pharmacy.commercial_name);
     setIdentificationNumber(pharmacy.identification_number);
-    setPhysicalAddress(pharmacy.physical_address);
+    setStreetAddress(pharmacy.street_address);
     setPhone(pharmacy.phone);
     setEmail(pharmacy.email);
     setAdministratorName(pharmacy.administrator_name);
     setSelectedCountryId(pharmacy.country_id);
+    setSelectedStateId(pharmacy.state_id);
 
-    // Establecer prefijo actual
-    const prefix = PHONE_PREFIXES[pharmacy.country.code] || '+';
+    // Establecer prefijo y longitudes actuales desde el país
+    const prefix = `+${pharmacy.country.phone_code} `;
     setPhonePrefix(prefix);
+    setPhoneMinLength(pharmacy.country.phone_min_length);
+    setPhoneMaxLength(pharmacy.country.phone_max_length);
 
     openEditModal();
   };
@@ -403,11 +470,12 @@ export default function FarmaceuticasPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                           </svg>
                         </button>
-                        <button onClick={() => openEdit(pharmacy)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar farmacéutica">
+                        {/* Esta opcion se remueve porque no se agrego */}
+                        {/* <button onClick={() => openEdit(pharmacy)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar farmacéutica">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                           </svg>
-                        </button>
+                        </button> */}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -456,11 +524,21 @@ export default function FarmaceuticasPage() {
                   onChange={handleCountryChange}
                   defaultValue=""
                 />
-                {phonePrefix && (
+                {phonePrefix && phoneMinLength > 0 && (
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Formato de teléfono: {phonePrefix}XXXXXXXX
+                    El teléfono debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos (sin contar el código de país)
                   </p>
                 )}
+              </div>
+              <div>
+                <Label>Estado/Provincia *</Label>
+                <Select
+                  options={stateOptions}
+                  placeholder="Selecciona un estado"
+                  onChange={(value) => setSelectedStateId(parseInt(value))}
+                  defaultValue=""
+                  disabled={!selectedCountryId}
+                />
               </div>
               <div>
                 <Label>Razón social *</Label>
@@ -487,16 +565,24 @@ export default function FarmaceuticasPage() {
                   value={identificationNumber}
                   onChange={(e) => handleIdentificationChange(e.target.value)}
                   placeholder="Ej: 3022202222"
+                  maxLength={25}
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Máximo 25 caracteres
+                </p>
               </div>
               <div>
-                <Label>Dirección física *</Label>
+                <Label>Dirección exacta *</Label>
                 <Input
                   type="text"
-                  value={physicalAddress}
-                  onChange={(e) => setPhysicalAddress(e.target.value)}
-                  placeholder="Ej: Cartago, Costa Rica"
+                  value={streetAddress}
+                  onChange={(e) => handleStreetAddressChange(e.target.value)}
+                  placeholder="Ej: Calle 5, Avenida Central"
+                  maxLength={35}
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Máximo 35 caracteres
+                </p>
               </div>
               <div>
                 <Label>Teléfono *</Label>
@@ -504,12 +590,17 @@ export default function FarmaceuticasPage() {
                   type="text"
                   value={phone}
                   onChange={(e) => handlePhoneChange(e.target.value)}
-                  placeholder={phonePrefix ? `${phonePrefix}XXXXXXXX` : "Selecciona un país primero"}
+                  placeholder={phonePrefix ? `${phonePrefix}${"X".repeat(phoneMinLength)}` : "Selecciona un país primero"}
                   disabled={!selectedCountryId}
                 />
+                {phonePrefix && phoneMinLength > 0 && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    El prefijo {phonePrefix.trim()} no se puede eliminar. Solo números permitidos.
+                  </p>
+                )}
               </div>
               <div>
-                <Label>Email *</Label>
+                <Label>Correo electrónico *</Label>
                 <Input
                   type="email"
                   value={email}
@@ -529,7 +620,7 @@ export default function FarmaceuticasPage() {
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !physicalAddress || !phone || !email || !administratorName || !selectedCountryId}>
+              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId}>
                 {isLoading ? 'Guardando...' : 'Guardar'}
               </Button>
             </div>
@@ -563,11 +654,21 @@ export default function FarmaceuticasPage() {
                   onChange={handleCountryChange}
                   defaultValue={selectedCountryId?.toString() || ""}
                 />
-                {phonePrefix && (
+                {phonePrefix && phoneMinLength > 0 && (
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Formato de teléfono: {phonePrefix}XXXXXXXX
+                    El teléfono debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos (sin contar el código de país)
                   </p>
                 )}
+              </div>
+              <div>
+                <Label>Estado/Provincia *</Label>
+                <Select
+                  options={stateOptions}
+                  placeholder="Selecciona un estado"
+                  onChange={(value) => setSelectedStateId(parseInt(value))}
+                  value={selectedStateId?.toString() || ""}
+                  disabled={!selectedCountryId}
+                />
               </div>
               <div>
                 <Label>Razón social *</Label>
@@ -594,16 +695,24 @@ export default function FarmaceuticasPage() {
                   value={identificationNumber}
                   onChange={(e) => handleIdentificationChange(e.target.value)}
                   placeholder="Ej: 3022202222"
+                  maxLength={25}
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Máximo 25 caracteres
+                </p>
               </div>
               <div>
-                <Label>Dirección física *</Label>
+                <Label>Dirección exacta *</Label>
                 <Input
                   type="text"
-                  value={physicalAddress}
-                  onChange={(e) => setPhysicalAddress(e.target.value)}
-                  placeholder="Ej: Cartago, Costa Rica"
+                  value={streetAddress}
+                  onChange={(e) => handleStreetAddressChange(e.target.value)}
+                  placeholder="Ej: Calle 5, Avenida Central"
+                  maxLength={35}
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Máximo 35 caracteres
+                </p>
               </div>
               <div>
                 <Label>Teléfono *</Label>
@@ -611,12 +720,17 @@ export default function FarmaceuticasPage() {
                   type="text"
                   value={phone}
                   onChange={(e) => handlePhoneChange(e.target.value)}
-                  placeholder={phonePrefix ? `${phonePrefix}XXXXXXXX` : "Selecciona un país primero"}
+                  placeholder={phonePrefix ? `${phonePrefix}${"X".repeat(phoneMinLength)}` : "Selecciona un país primero"}
                   disabled={!selectedCountryId}
                 />
+                {phonePrefix && phoneMinLength > 0 && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    El prefijo {phonePrefix.trim()} no se puede eliminar. Solo números permitidos.
+                  </p>
+                )}
               </div>
               <div>
-                <Label>Email *</Label>
+                <Label>Correo electrónico *</Label>
                 <Input
                   type="email"
                   value={email}
@@ -636,7 +750,7 @@ export default function FarmaceuticasPage() {
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseEdit}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !physicalAddress || !phone || !email || !administratorName || !selectedCountryId}>
+              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId}>
                 {isLoading ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
             </div>
