@@ -43,6 +43,9 @@ export default function DoctoresPage() {
   const [doctorBio, setDoctorBio] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedSpecialties, setSelectedSpecialties] = useState<number[]>([]);
+  const [phonePrefix, setPhonePrefix] = useState("");
+  const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
+  const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
 
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -144,12 +147,68 @@ export default function DoctoresPage() {
       }));
   }, [countries]);
 
+  const handleCountryChange = (countryId: string) => {
+    const id = parseInt(countryId);
+    setSelectedCountryId(id);
+
+    // Encontrar el país seleccionado y establecer el prefijo
+    const country = countries.find(c => c.id === id);
+    if (country) {
+      const prefix = `+${country.phone_code} `;
+      setPhonePrefix(prefix);
+      setPhoneMinLength(country.phone_min_length);
+      setPhoneMaxLength(country.phone_max_length);
+      setDoctorPhone(prefix); // Inicializar teléfono con el prefijo
+    } else {
+      setPhonePrefix("");
+      setPhoneMinLength(0);
+      setPhoneMaxLength(0);
+      setDoctorPhone("");
+    }
+  };
+
+  const handlePhoneChange = (value: string) => {
+    // Si el usuario intenta borrar el prefijo, no lo permitimos
+    if (!value.startsWith(phonePrefix)) {
+      return;
+    }
+
+    // Solo permitir números después del prefijo
+    const afterPrefix = value.substring(phonePrefix.length);
+    const onlyNumbers = afterPrefix.replace(/\D/g, '');
+
+    // Limitar según la longitud máxima
+    if (onlyNumbers.length <= phoneMaxLength) {
+      setDoctorPhone(phonePrefix + onlyNumbers);
+    }
+  };
+
+  const handleLicenseChange = (value: string) => {
+    // Solo permitir letras y números (sin espacios ni caracteres especiales) y limitar a 100 caracteres
+    const cleanValue = value.replace(/[^a-zA-Z0-9]/g, '');
+    if (cleanValue.length <= 100) {
+      setDoctorLicense(cleanValue);
+    }
+  };
+
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCountryId || selectedSpecialties.length === 0) return;
 
     setIsLoading(true);
     setErrors({});
+
+    // Validar longitud del teléfono (sin contar el prefijo)
+    if (doctorPhone) {
+      const phoneDigits = doctorPhone.substring(phonePrefix.length);
+      if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
+        setErrors({
+          general: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const params = {
@@ -188,6 +247,18 @@ export default function DoctoresPage() {
 
     setIsLoading(true);
     setErrors({});
+
+    // Validar longitud del teléfono (sin contar el prefijo)
+    if (doctorPhone) {
+      const phoneDigits = doctorPhone.substring(phonePrefix.length);
+      if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
+        setErrors({
+          general: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const params = {
@@ -254,6 +325,9 @@ export default function DoctoresPage() {
     setDoctorBio("");
     setSelectedCountryId(null);
     setSelectedSpecialties([]);
+    setPhonePrefix("");
+    setPhoneMinLength(0);
+    setPhoneMaxLength(0);
     setErrors({});
   };
 
@@ -267,11 +341,26 @@ export default function DoctoresPage() {
     setSelectedDoctor(doctor);
     setDoctorName(doctor.name);
     setDoctorEmail(doctor.email || "");
-    setDoctorPhone(doctor.phone || "");
     setDoctorLicense(doctor.license_number || "");
     setDoctorBio(doctor.bio || "");
     setSelectedCountryId(doctor.country_id);
     setSelectedSpecialties(doctor.specialties.map(s => s.id));
+
+    // Establecer el prefijo del teléfono basado en el país del doctor
+    const country = countries.find(c => c.id === doctor.country_id);
+    if (country) {
+      const prefix = `+${country.phone_code} `;
+      setPhonePrefix(prefix);
+      setPhoneMinLength(country.phone_min_length);
+      setPhoneMaxLength(country.phone_max_length);
+      setDoctorPhone(doctor.phone || prefix);
+    } else {
+      setPhonePrefix("");
+      setPhoneMinLength(0);
+      setPhoneMaxLength(0);
+      setDoctorPhone(doctor.phone || "");
+    }
+
     openEditModal();
   };
 
@@ -507,7 +596,7 @@ export default function DoctoresPage() {
                 <Select
                   options={countryOptions}
                   placeholder="Selecciona un país"
-                  onChange={(value) => setSelectedCountryId(parseInt(value))}
+                  onChange={handleCountryChange}
                   defaultValue=""
                 />
               </div>
@@ -525,28 +614,27 @@ export default function DoctoresPage() {
                 <Input
                   type="text"
                   value={doctorPhone}
-                  onChange={(e) => setDoctorPhone(e.target.value)}
-                  placeholder="Ej: +1 809-555-1234"
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  placeholder={phonePrefix ? `${phonePrefix}0000000` : "Selecciona un país primero"}
+                  disabled={!selectedCountryId}
                 />
+                {phoneMinLength > 0 && phoneMaxLength > 0 && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Número de licencia</Label>
                 <Input
                   type="text"
                   value={doctorLicense}
-                  onChange={(e) => setDoctorLicense(e.target.value)}
-                  placeholder="Ej: DO-12345"
+                  onChange={(e) => handleLicenseChange(e.target.value)}
+                  placeholder="Ej: DO12345"
                 />
-              </div>
-              <div>
-                <Label>Biografía</Label>
-                <textarea
-                  value={doctorBio}
-                  onChange={(e) => setDoctorBio(e.target.value)}
-                  placeholder="Descripción breve del doctor..."
-                  rows={3}
-                  className="h-auto w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Solo letras y números, máximo 100 caracteres
+                </p>
               </div>
               <div>
                 <Label>Especialidades * (Selecciona al menos una)</Label>
@@ -607,7 +695,7 @@ export default function DoctoresPage() {
                 <Select
                   options={countryOptions}
                   placeholder="Selecciona un país"
-                  onChange={(value) => setSelectedCountryId(parseInt(value))}
+                  onChange={handleCountryChange}
                   defaultValue={selectedCountryId?.toString() || ""}
                 />
               </div>
@@ -625,28 +713,27 @@ export default function DoctoresPage() {
                 <Input
                   type="text"
                   value={doctorPhone}
-                  onChange={(e) => setDoctorPhone(e.target.value)}
-                  placeholder="Ej: +1 809-555-1234"
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  placeholder={phonePrefix ? `${phonePrefix}0000000` : "Selecciona un país primero"}
+                  disabled={!selectedCountryId}
                 />
+                {phoneMinLength > 0 && phoneMaxLength > 0 && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Número de licencia</Label>
                 <Input
                   type="text"
                   value={doctorLicense}
-                  onChange={(e) => setDoctorLicense(e.target.value)}
-                  placeholder="Ej: DO-12345"
+                  onChange={(e) => handleLicenseChange(e.target.value)}
+                  placeholder="Ej: DO12345"
                 />
-              </div>
-              <div>
-                <Label>Biografía</Label>
-                <textarea
-                  value={doctorBio}
-                  onChange={(e) => setDoctorBio(e.target.value)}
-                  placeholder="Descripción breve del doctor..."
-                  rows={3}
-                  className="h-auto w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Solo letras y números, máximo 100 caracteres
+                </p>
               </div>
               <div>
                 <Label>Especialidades * (Selecciona al menos una)</Label>
@@ -742,15 +829,6 @@ export default function DoctoresPage() {
                 )}
               </div>
             </div>
-
-            {selectedDoctor?.bio && (
-              <div>
-                <Label>Biografía</Label>
-                <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 italic">
-                  {selectedDoctor.bio}
-                </p>
-              </div>
-            )}
 
             <div>
               <Label>Especialidades</Label>
