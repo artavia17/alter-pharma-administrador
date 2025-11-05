@@ -70,7 +70,7 @@ export default function ProtectedRoute() {
   // Si no está autenticado, redirigir al login con el path actual como redirect
   if (!isAuthenticated) {
     const redirectPath = location.pathname + location.search;
-    return <Navigate to={`auth/sign-in?redirect=${encodeURIComponent(redirectPath)}`} replace />;
+    return <Navigate to={`/auth/sign-in?redirect=${encodeURIComponent(redirectPath)}`} replace />;
   }
 
   // Si está autenticado, renderizar las rutas hijas

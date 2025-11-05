@@ -1,10 +1,14 @@
-function formatDate(fechaStr: string) {
+function formatDate(fechaStr: string | null | undefined) {
+    if (!fechaStr) return "N/A";
+
     const meses = [
         "enero", "febrero", "marzo", "abril", "mayo", "junio",
         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
     ];
-    
-    const [year, month, day] = fechaStr.split("-");
+
+    // Manejar fechas con formato ISO (con hora)
+    const fechaSinHora = fechaStr.split("T")[0];
+    const [year, month, day] = fechaSinHora.split("-");
     return `${parseInt(day)} de ${meses[parseInt(month) - 1]} del ${year}`;
 }
 

@@ -16,6 +16,7 @@ export interface PharmacyData {
     id: number;
     country_id: number;
     state_id: number;
+    municipality_id: number;
     legal_name: string;
     commercial_name: string;
     identification_number: string;

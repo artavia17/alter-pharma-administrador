@@ -19,15 +19,18 @@ import {
 import { getPharmacies, createPharmacy, updatePharmacy, togglePharmacyStatus } from "../../../services/protected/pharmacies.services";
 import { getCountries } from "../../../services/protected/countries.services";
 import { getStates } from "../../../services/protected/states.services";
+import { getMunicipalities } from "../../../services/protected/municipalities.services";
 import { PharmacyData } from "../../../types/services/protected/pharmacies.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { StateData } from "../../../types/services/protected/countries.types";
+import { MunicipalityData } from "../../../types/services/protected/municipalities.types";
 import { formatDate } from "../../../helper/formatData";
 
 export default function FarmaceuticasPage() {
   const [pharmacies, setPharmacies] = useState<PharmacyData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [states, setStates] = useState<StateData[]>([]);
+  const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<PharmacyData | null>(null);
 
@@ -42,8 +45,10 @@ export default function FarmaceuticasPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [administratorName, setAdministratorName] = useState("");
+  const [isChain, setIsChain] = useState(false);
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
+  const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -137,11 +142,24 @@ export default function FarmaceuticasPage() {
       }));
   }, [states, selectedCountryId]);
 
+  // Opciones para select de municipios (filtradas por estado seleccionado)
+  const municipalityOptions = useMemo(() => {
+    if (!selectedStateId) return [];
+    return municipalities
+      .filter(municipality => municipality.state_id === selectedStateId && municipality.status)
+      .map(municipality => ({
+        value: municipality.id.toString(),
+        label: municipality.name
+      }));
+  }, [municipalities, selectedStateId]);
+
   // Actualizar prefijo de teléfono cuando cambia el país
   const handleCountryChange = (countryId: string) => {
     const id = parseInt(countryId);
     setSelectedCountryId(id);
     setSelectedStateId(null); // Resetear estado cuando cambia el país
+    setSelectedMunicipalityId(null); // Resetear municipio cuando cambia el país
+    setMunicipalities([]); // Limpiar municipios
 
     const country = countries.find(c => c.id === id);
     if (country) {
@@ -151,6 +169,24 @@ export default function FarmaceuticasPage() {
       setPhoneMaxLength(country.phone_max_length);
       // Establecer el prefijo cuando se selecciona el país
       setPhone(prefix);
+    }
+  };
+
+  // Cargar municipios cuando cambia el estado
+  const handleStateChange = async (stateId: string) => {
+    const id = parseInt(stateId);
+    setSelectedStateId(id);
+    setSelectedMunicipalityId(null); // Resetear municipio cuando cambia el estado
+
+    // Cargar municipios del estado seleccionado
+    try {
+      const response = await getMunicipalities(id);
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setMunicipalities(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando municipios:", error);
+      setMunicipalities([]);
     }
   };
 
@@ -171,9 +207,9 @@ export default function FarmaceuticasPage() {
   };
 
   const handleIdentificationChange = (value: string) => {
-    // Eliminar espacios y limitar a 25 caracteres
-    const cleanValue = value.replace(/\s/g, '');
-    if (cleanValue.length <= 25) {
+    // Solo permitir letras y números (sin espacios ni caracteres especiales) y limitar a 100 caracteres
+    const cleanValue = value.replace(/[^a-zA-Z0-9]/g, '');
+    if (cleanValue.length <= 100) {
       setIdentificationNumber(cleanValue);
     }
   };
@@ -187,7 +223,7 @@ export default function FarmaceuticasPage() {
 
   const handleAddPharmacy = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCountryId || !selectedStateId) return;
+    if (!selectedCountryId || !selectedStateId || !selectedMunicipalityId) return;
 
     setIsLoading(true);
     setErrors({});
@@ -206,6 +242,7 @@ export default function FarmaceuticasPage() {
       const params = {
         country_id: selectedCountryId,
         state_id: selectedStateId,
+        municipality_id: selectedMunicipalityId,
         legal_name: legalName,
         commercial_name: commercialName,
         identification_number: identificationNumber,
@@ -213,6 +250,7 @@ export default function FarmaceuticasPage() {
         phone: phone,
         email: email,
         administrator_name: administratorName,
+        is_chain: isChain,
       };
 
       const response = await createPharmacy(params);
@@ -237,7 +275,7 @@ export default function FarmaceuticasPage() {
 
   const handleEditPharmacy = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPharmacy || !selectedCountryId || !selectedStateId) return;
+    if (!selectedPharmacy || !selectedCountryId || !selectedStateId || !selectedMunicipalityId) return;
 
     setIsLoading(true);
     setErrors({});
@@ -256,6 +294,7 @@ export default function FarmaceuticasPage() {
       const params = {
         country_id: selectedCountryId,
         state_id: selectedStateId,
+        municipality_id: selectedMunicipalityId,
         legal_name: legalName,
         commercial_name: commercialName,
         identification_number: identificationNumber,
@@ -263,6 +302,7 @@ export default function FarmaceuticasPage() {
         phone: phone,
         email: email,
         administrator_name: administratorName,
+        is_chain: isChain,
       };
 
       const response = await updatePharmacy(selectedPharmacy.id, params);
@@ -303,8 +343,11 @@ export default function FarmaceuticasPage() {
     setPhone("");
     setEmail("");
     setAdministratorName("");
+    setIsChain(false);
     setSelectedCountryId(null);
     setSelectedStateId(null);
+    setSelectedMunicipalityId(null);
+    setMunicipalities([]);
     setPhonePrefix("");
     setPhoneMinLength(0);
     setPhoneMaxLength(0);
@@ -317,7 +360,7 @@ export default function FarmaceuticasPage() {
     closeAddModal();
   };
 
-  const openEdit = (pharmacy: PharmacyData) => {
+  const openEdit = async (pharmacy: PharmacyData) => {
     setSelectedPharmacy(pharmacy);
     setLegalName(pharmacy.legal_name);
     setCommercialName(pharmacy.commercial_name);
@@ -326,14 +369,27 @@ export default function FarmaceuticasPage() {
     setPhone(pharmacy.phone);
     setEmail(pharmacy.email);
     setAdministratorName(pharmacy.administrator_name);
+    setIsChain(pharmacy.is_chain);
     setSelectedCountryId(pharmacy.country_id);
     setSelectedStateId(pharmacy.state_id);
+    setSelectedMunicipalityId(pharmacy.municipality_id);
 
     // Establecer prefijo y longitudes actuales desde el país
     const prefix = `+${pharmacy.country.phone_code} `;
     setPhonePrefix(prefix);
     setPhoneMinLength(pharmacy.country.phone_min_length);
     setPhoneMaxLength(pharmacy.country.phone_max_length);
+
+    // Cargar municipios del estado
+    try {
+      const response = await getMunicipalities(pharmacy.state_id);
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setMunicipalities(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando municipios:", error);
+      setMunicipalities([]);
+    }
 
     openEditModal();
   };
@@ -359,16 +415,16 @@ export default function FarmaceuticasPage() {
   return (
     <>
       <PageMeta
-        title="Farmacéuticas | Alter Pharma"
-        description="Gestión de farmacéuticas en el sistema"
+        title="Cadenas | Alter Pharma"
+        description="Gestión de cadenas en el sistema"
       />
-      <PageBreadcrumb pageTitle="Farmacéuticas" />
+      <PageBreadcrumb pageTitle="Cadenas" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Gestión de Farmacéuticas
+              Gestión de Cadenas
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Administra las farmacéuticas registradas en el sistema
@@ -385,7 +441,7 @@ export default function FarmaceuticasPage() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Agregar Farmacéutica
+            Agregar Cadena
           </Button>
         </div>
 
@@ -415,7 +471,7 @@ export default function FarmaceuticasPage() {
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacéutica</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Cadena</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">País</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Identificación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tipo</TableCell>
@@ -498,11 +554,11 @@ export default function FarmaceuticasPage() {
         </div>
       </div>
 
-      {/* Modal: Agregar Farmacéutica */}
+      {/* Modal: Agregar Cadena */}
       <Modal isOpen={isAddOpen} onClose={handleCloseAdd} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Farmacéutica</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Cadena</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para registrar una nueva farmacéutica</p>
           </div>
           {Object.keys(errors).length > 0 && (
@@ -516,6 +572,27 @@ export default function FarmaceuticasPage() {
           )}
           <form onSubmit={handleAddPharmacy} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-b border-t pt-4 border-gray-200 dark:border-white/[0.05]">
+              <div>
+                <Label>¿Es una cadena de farmacias?</Label>
+                <div className="mt-2">
+                  <label className="flex cursor-pointer select-none items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={isChain}
+                        onChange={(e) => setIsChain(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`block h-6 w-11 rounded-full transition duration-150 ease-linear ${isChain ? 'bg-brand-500' : 'bg-gray-200 dark:bg-white/10'}`}></div>
+                      <div className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-theme-sm duration-150 ease-linear transform ${isChain ? 'translate-x-full' : 'translate-x-0'}`}></div>
+                    </div>
+                    <span>{isChain ? 'Es una cadena' : 'No es una cadena'}</span>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Activa esta opción si la farmacia forma parte de una cadena
+                  </p>
+                </div>
+              </div>
               <div>
                 <Label>País *</Label>
                 <Select
@@ -535,9 +612,19 @@ export default function FarmaceuticasPage() {
                 <Select
                   options={stateOptions}
                   placeholder="Selecciona un estado"
-                  onChange={(value) => setSelectedStateId(parseInt(value))}
+                  onChange={handleStateChange}
                   defaultValue=""
                   disabled={!selectedCountryId}
+                />
+              </div>
+              <div>
+                <Label>Municipio *</Label>
+                <Select
+                  options={municipalityOptions}
+                  placeholder="Selecciona un municipio"
+                  onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
+                  defaultValue=""
+                  disabled={!selectedStateId}
                 />
               </div>
               <div>
@@ -559,16 +646,16 @@ export default function FarmaceuticasPage() {
                 />
               </div>
               <div>
-                <Label>Número de identificación * (sin espacios)</Label>
+                <Label>Número de identificación *</Label>
                 <Input
                   type="text"
                   value={identificationNumber}
                   onChange={(e) => handleIdentificationChange(e.target.value)}
-                  placeholder="Ej: 3022202222"
-                  maxLength={25}
+                  placeholder="Ej: ABC123XYZ789"
+                  maxLength={100}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Máximo 25 caracteres
+                  Solo letras y números, máximo 100 caracteres
                 </p>
               </div>
               <div>
@@ -620,7 +707,7 @@ export default function FarmaceuticasPage() {
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId}>
+              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId || !selectedMunicipalityId}>
                 {isLoading ? 'Guardando...' : 'Guardar'}
               </Button>
             </div>
@@ -628,11 +715,11 @@ export default function FarmaceuticasPage() {
         </div>
       </Modal>
 
-      {/* Modal: Editar Farmacéutica */}
+      {/* Modal: Editar Cadena */}
       <Modal isOpen={isEditOpen} onClose={handleCloseEdit} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Farmacéutica</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Cadena</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la farmacéutica seleccionada</p>
           </div>
           {Object.keys(errors).length > 0 && (
@@ -646,6 +733,27 @@ export default function FarmaceuticasPage() {
           )}
           <form onSubmit={handleEditPharmacy} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-b border-t pt-4 border-gray-200 dark:border-white/[0.05]">
+              <div>
+                <Label>¿Es una cadena de farmacias?</Label>
+                <div className="mt-2">
+                  <label className="flex cursor-pointer select-none items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={isChain}
+                        onChange={(e) => setIsChain(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`block h-6 w-11 rounded-full transition duration-150 ease-linear ${isChain ? 'bg-brand-500' : 'bg-gray-200 dark:bg-white/10'}`}></div>
+                      <div className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-theme-sm duration-150 ease-linear transform ${isChain ? 'translate-x-full' : 'translate-x-0'}`}></div>
+                    </div>
+                    <span>{isChain ? 'Es una cadena' : 'No es una cadena'}</span>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Activa esta opción si la farmacia forma parte de una cadena
+                  </p>
+                </div>
+              </div>
               <div>
                 <Label>País *</Label>
                 <Select
@@ -665,9 +773,19 @@ export default function FarmaceuticasPage() {
                 <Select
                   options={stateOptions}
                   placeholder="Selecciona un estado"
-                  onChange={(value) => setSelectedStateId(parseInt(value))}
+                  onChange={handleStateChange}
                   value={selectedStateId?.toString() || ""}
                   disabled={!selectedCountryId}
+                />
+              </div>
+              <div>
+                <Label>Municipio *</Label>
+                <Select
+                  options={municipalityOptions}
+                  placeholder="Selecciona un municipio"
+                  onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
+                  value={selectedMunicipalityId?.toString() || ""}
+                  disabled={!selectedStateId}
                 />
               </div>
               <div>
@@ -689,16 +807,16 @@ export default function FarmaceuticasPage() {
                 />
               </div>
               <div>
-                <Label>Número de identificación * (sin espacios)</Label>
+                <Label>Número de identificación *</Label>
                 <Input
                   type="text"
                   value={identificationNumber}
                   onChange={(e) => handleIdentificationChange(e.target.value)}
-                  placeholder="Ej: 3022202222"
-                  maxLength={25}
+                  placeholder="Ej: ABC123XYZ789"
+                  maxLength={100}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Máximo 25 caracteres
+                  Solo letras y números, máximo 100 caracteres
                 </p>
               </div>
               <div>
@@ -750,7 +868,7 @@ export default function FarmaceuticasPage() {
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseEdit}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId}>
+              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId || !selectedMunicipalityId}>
                 {isLoading ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
             </div>
@@ -758,7 +876,7 @@ export default function FarmaceuticasPage() {
         </div>
       </Modal>
 
-      {/* Modal: Ver Detalles de Farmacéutica */}
+      {/* Modal: Ver Detalles de Cadena */}
       <Modal isOpen={isDetailOpen} onClose={handleCloseDetail} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">

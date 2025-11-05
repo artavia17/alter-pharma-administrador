@@ -37,6 +37,9 @@ export default function DosisPage() {
 
   // Form fields
   const [dose, setDose] = useState("");
+  const [promotionBuy, setPromotionBuy] = useState<number>(1);
+  const [promotionGet, setPromotionGet] = useState<number>(1);
+  const [redemptionDays, setRedemptionDays] = useState<number>(30);
   const [maxRedemptionsPerMonth, setMaxRedemptionsPerMonth] = useState<number>(1);
   const [maxRedemptionsPerYear, setMaxRedemptionsPerYear] = useState<number>(1);
 
@@ -103,6 +106,9 @@ export default function DosisPage() {
     try {
       const params = {
         dose: dose,
+        promotion_buy: promotionBuy,
+        promotion_get: promotionGet,
+        redemption_days: redemptionDays,
         max_redemptions_per_month: maxRedemptionsPerMonth,
         max_redemptions_per_year: maxRedemptionsPerYear,
       };
@@ -137,6 +143,9 @@ export default function DosisPage() {
     try {
       const params = {
         dose: dose,
+        promotion_buy: promotionBuy,
+        promotion_get: promotionGet,
+        redemption_days: redemptionDays,
         max_redemptions_per_month: maxRedemptionsPerMonth,
         max_redemptions_per_year: maxRedemptionsPerYear,
       };
@@ -190,6 +199,9 @@ export default function DosisPage() {
 
   const resetForm = () => {
     setDose("");
+    setPromotionBuy(1);
+    setPromotionGet(1);
+    setRedemptionDays(30);
     setMaxRedemptionsPerMonth(1);
     setMaxRedemptionsPerYear(1);
     setErrors({});
@@ -203,6 +215,9 @@ export default function DosisPage() {
   const openEdit = (doseItem: DoseData) => {
     setSelectedDose(doseItem);
     setDose(doseItem.dose);
+    setPromotionBuy(doseItem.promotion_buy);
+    setPromotionGet(doseItem.promotion_get);
+    setRedemptionDays(doseItem.redemption_days);
     setMaxRedemptionsPerMonth(doseItem.max_redemptions_per_month);
     setMaxRedemptionsPerYear(doseItem.max_redemptions_per_year);
     openEditModal();
@@ -316,6 +331,8 @@ export default function DosisPage() {
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Dosis</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Promoción</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Días redención</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Canjes por mes</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Canjes por año</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
@@ -329,6 +346,14 @@ export default function DosisPage() {
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{doseItem.id}</TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">{doseItem.dose}</span>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-start">
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Compra {doseItem.promotion_buy} Lleva {doseItem.promotion_get}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {doseItem.redemption_days} días
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
                       {doseItem.max_redemptions_per_month}
@@ -430,6 +455,41 @@ export default function DosisPage() {
                   placeholder="Ej: 100mg x 15's"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Promoción: Compra *</Label>
+                  <Input
+                    type="number"
+                    value={promotionBuy}
+                    onChange={(e) => setPromotionBuy(parseInt(e.target.value))}
+                    placeholder="Ej: 2"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <Label>Promoción: Lleva *</Label>
+                  <Input
+                    type="number"
+                    value={promotionGet}
+                    onChange={(e) => setPromotionGet(parseInt(e.target.value))}
+                    placeholder="Ej: 1"
+                    min="1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Días de redención *</Label>
+                <Input
+                  type="number"
+                  value={redemptionDays}
+                  onChange={(e) => setRedemptionDays(parseInt(e.target.value))}
+                  placeholder="Ej: 30"
+                  min="1"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Días disponibles para redimir la promoción
+                </p>
+              </div>
               <div>
                 <Label>Canjes por mes *</Label>
                 <Input
@@ -488,6 +548,41 @@ export default function DosisPage() {
                   placeholder="Ej: 100mg x 15's"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Promoción: Compra *</Label>
+                  <Input
+                    type="number"
+                    value={promotionBuy}
+                    onChange={(e) => setPromotionBuy(parseInt(e.target.value))}
+                    placeholder="Ej: 2"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <Label>Promoción: Lleva *</Label>
+                  <Input
+                    type="number"
+                    value={promotionGet}
+                    onChange={(e) => setPromotionGet(parseInt(e.target.value))}
+                    placeholder="Ej: 1"
+                    min="1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Días de redención *</Label>
+                <Input
+                  type="number"
+                  value={redemptionDays}
+                  onChange={(e) => setRedemptionDays(parseInt(e.target.value))}
+                  placeholder="Ej: 30"
+                  min="1"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Días disponibles para redimir la promoción
+                </p>
+              </div>
               <div>
                 <Label>Canjes por mes *</Label>
                 <Input
@@ -539,6 +634,21 @@ export default function DosisPage() {
             </div>
           </div>
           <div className="px-2 pb-4 space-y-4">
+            <div>
+              <Label>Información de promoción</Label>
+              <div className="mt-2 space-y-1">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Promoción Compra:</span> {selectedDose?.promotion_buy}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Promoción Lleva:</span> {selectedDose?.promotion_get}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Días de redención:</span> {selectedDose?.redemption_days} días
+                </p>
+              </div>
+            </div>
+
             <div>
               <Label>Información de canjes</Label>
               <div className="mt-2 space-y-1">

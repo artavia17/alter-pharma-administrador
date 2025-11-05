@@ -2,6 +2,9 @@ export interface DoseData {
   id: number;
   product_id: number;
   dose: string;
+  promotion_buy: number;
+  promotion_get: number;
+  redemption_days: number;
   max_redemptions_per_month: number;
   max_redemptions_per_year: number;
   status: boolean;
@@ -23,6 +26,9 @@ export interface SingleDoseResponse {
 
 export interface CreateDoseParams {
   dose: string;
+  promotion_buy: number;
+  promotion_get: number;
+  redemption_days: number;
   max_redemptions_per_month: number;
   max_redemptions_per_year: number;
 }

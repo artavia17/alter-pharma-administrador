@@ -17,6 +17,8 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/ProtectedPages/Examples/Dashboard/Home";
+import Redemptions from "./pages/ProtectedPages/Examples/Dashboard/Redemptions";
+import PatientProductRedemptions from "./pages/ProtectedPages/Examples/Dashboard/PatientProductRedemptions";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
 import ResetPasswordCreate from "./pages/AuthPages/ResetPasswordCreate";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
@@ -27,10 +29,13 @@ import FarmaceuticasPage from "./pages/ProtectedPages/Farmacias/Farmaceuticas";
 import SucursalesPage from "./pages/ProtectedPages/Farmacias/Sucursales";
 import PaisesPage from "./pages/ProtectedPages/Localizaciones/Paises";
 import CiudadesPage from "./pages/ProtectedPages/Localizaciones/Ciudades";
+import MunicipiosPage from "./pages/ProtectedPages/Localizaciones/Municipios";
 import EspecialidadesPage from "./pages/ProtectedPages/Doctores/Especialidades";
 import DoctoresPage from "./pages/ProtectedPages/Doctores/Doctores";
 import ProductosPage from "./pages/ProtectedPages/Medicamentos/Productos";
 import DosisPage from "./pages/ProtectedPages/Medicamentos/Dosis";
+import PacientesPage from "./pages/ProtectedPages/Pacientes/Pacientes";
+import TransaccionesPage from "./pages/ProtectedPages/Transacciones/Transacciones";
 
 export default function App() {
   return (
@@ -48,6 +53,8 @@ export default function App() {
             <Route element={<AppLayout />}>
               {/* Dashboard */}
               <Route index path="/" element={<Home />} />
+              <Route path="/reportes/canjes" element={<Redemptions />} />
+              <Route path="/reportes/pacientes-productos" element={<PatientProductRedemptions />} />
 
               {/* Account */}
               <Route path="/account/me" element={<UserProfiles />} />
@@ -60,6 +67,7 @@ export default function App() {
               {/* Localizaciones */}
               <Route path="/localizaciones/paises" element={<PaisesPage />} />
               <Route path="/localizaciones/ciudades" element={<CiudadesPage />} />
+              <Route path="/localizaciones/municipios" element={<MunicipiosPage />} />
 
               {/* Doctores */}
               <Route path="/doctores" element={<DoctoresPage />} />
@@ -72,6 +80,12 @@ export default function App() {
               {/* Medicamentos */}
               <Route path="/medicamentos/productos" element={<ProductosPage />} />
               <Route path="/medicamentos/dosis" element={<DosisPage />} />
+
+              {/* Pacientes */}
+              <Route path="/pacientes" element={<PacientesPage />} />
+
+              {/* Transacciones */}
+              <Route path="/transacciones" element={<TransaccionesPage />} />
 
               {/* ----------------------------------------------------------------------------- */}
               {/* ----------------------------------------------------------------------------- */}

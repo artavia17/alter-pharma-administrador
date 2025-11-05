@@ -30,7 +30,7 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             if(error.config?.url !== "/administrator/auth/login"){
                 clearCookies();
-                window.location.href = "auth/sign-in";
+                window.location.href = "/auth/sign-in";
             }
         }
 

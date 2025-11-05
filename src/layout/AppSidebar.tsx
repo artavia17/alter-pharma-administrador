@@ -15,7 +15,8 @@ import {
   TableIcon,
   UserIcon,
   DocumentCurrency,
-  GlobeAmericas
+  GlobeAmericas,
+  GroupIcon
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -30,7 +31,11 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Inicio",
-    path: "/",
+    subItems: [
+      { name: "Reportes de Compras", path: "/" },
+      { name: "Reportes de Canjes", path: "/reportes/canjes" },
+      { name: "Pacientes - Productos", path: "/reportes/pacientes-productos" },
+    ],
   },
   {
     icon: <UserIcon />,
@@ -46,6 +51,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Paises", path: "/localizaciones/paises" },
       { name: "Ciudades", path: "/localizaciones/ciudades" },
+      { name: "Municipios", path: "/localizaciones/municipios" },
     ],
   },
   {
@@ -60,7 +66,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     name: "Farmacias",
     subItems: [
-      { name: "Farmacéuticas", path: "/farmaceuticas" },
+      { name: "Cadenas", path: "/farmaceuticas" },
       { name: "Sucursales", path: "/farmaceuticas/sucursales" },
     ],
   },
@@ -71,6 +77,16 @@ const navItems: NavItem[] = [
       { name: "Productos", path: "/medicamentos/productos" },
       { name: "Dosis", path: "/medicamentos/dosis" },
     ],
+  },
+  {
+    icon: <GroupIcon />,
+    name: "Pacientes",
+    path: "/pacientes",
+  },
+  {
+    icon: <ListIcon />,
+    name: "Transacciones",
+    path: "/transacciones",
   },
   // {
   //   icon: <CalenderIcon />,
