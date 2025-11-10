@@ -377,7 +377,6 @@ export default function Bonos() {
             variant={alert.type}
             title={alert.title}
             message={alert.message}
-            onClose={() => setAlert({ ...alert, show: false })}
           />
         </div>
       )}
@@ -639,7 +638,7 @@ export default function Bonos() {
                           <Button
                             type="button"
                             size="sm"
-                            onClick={handlePatientSearch}
+                            onClick={() => handlePatientSearch({ preventDefault: () => {} } as any)}
                             disabled={searchingPatients}
                           >
                             {searchingPatients ? "Buscando..." : "Buscar Paciente"}
@@ -738,8 +737,7 @@ export default function Bonos() {
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(parseInt(e.target.value))}
-                    min={1}
-                    required
+                    min="1"
                   />
                 </div>
 
@@ -751,8 +749,7 @@ export default function Bonos() {
                     type="number"
                     value={expirationDays}
                     onChange={(e) => setExpirationDays(parseInt(e.target.value))}
-                    min={1}
-                    required
+                    min="1"
                   />
                 </div>
 
