@@ -88,8 +88,8 @@ const AppHeader: React.FC = () => {
               alt="Logo"
             />
             <img
-              className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
+              className="hidden dark:block h-[50px]"
+              src="./images/logo/alter-pharma.webp"
               alt="Logo"
             />
           </Link>
