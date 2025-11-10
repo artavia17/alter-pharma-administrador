@@ -25,7 +25,7 @@ const verifyEmail = async (email: string, token: string) => {
 }
 
 const updateMyAccount = async (formData: FormData) => {
-    const response = await api.post<MyAccountResponse>("/administrator/my-account/", formData, {
+    const response = await api.post<MyAccountResponse>("/administrator/my-account", formData, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }

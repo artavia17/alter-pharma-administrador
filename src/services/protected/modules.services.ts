@@ -2,12 +2,12 @@ import { ModulesResponse, SingleModuleResponse } from "../../types/services/prot
 import api from "../api";
 
 const getModules = async () => {
-    const response = await api.get<ModulesResponse>("/administrator/modules/");
+    const response = await api.get<ModulesResponse>("/administrator/modules");
     return response.data;
 };
 
 const createModule = async (name: string) => {
-    const response = await api.post<SingleModuleResponse>("/administrator/modules/", {
+    const response = await api.post<SingleModuleResponse>("/administrator/modules", {
         name
     });
     return response.data;
