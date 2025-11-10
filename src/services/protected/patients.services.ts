@@ -8,6 +8,11 @@ interface SearchPatientsParams {
     phone?: string;
 }
 
+const getAllPatients = async () => {
+    const response = await api.get<PatientsResponse>('/administrator/patients');
+    return response.data;
+};
+
 const searchPatients = async (params: SearchPatientsParams) => {
     const queryParams = new URLSearchParams();
 
@@ -21,5 +26,6 @@ const searchPatients = async (params: SearchPatientsParams) => {
 };
 
 export {
+    getAllPatients,
     searchPatients
 };

@@ -89,6 +89,11 @@ const navItems: NavItem[] = [
     name: "Distribuidores",
     path: "/distribuidores",
   },
+  {
+    icon: <DocumentCurrency />,
+    name: "Bonos",
+    path: "/bonos",
+  },
   // {
   //   icon: <CalenderIcon />,
   //   name: "Calendar",

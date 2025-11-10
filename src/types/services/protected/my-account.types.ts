@@ -46,6 +46,7 @@ export interface MyaccountErrorData {
     password?: string;
     name?: string;
     profile_photo?: string;
+    profile_image?: string;
 }
 
 export type MyAccountResponse =

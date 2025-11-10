@@ -142,7 +142,11 @@ export default function UserInfoCard() {
       // Manejar errores de red o del servidor
       if (error?.response?.status === 422) {
         const errorData = error.response.data?.data as MyaccountErrorData;
-        setErrors(errorData || {});
+        const errorMessage = error.response.data?.message;
+        setErrors({
+          ...errorData,
+          message: errorMessage || 'Error de validación. Por favor revisa los campos.'
+        });
       } else {
         setErrors({ message: 'Error al actualizar el perfil. Intenta de nuevo.' });
       }
@@ -272,9 +276,12 @@ export default function UserInfoCard() {
                       accept="image/*"
                       onChange={handlePhotoChange}
                     />
-                    {errors.profile_photo && (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.profile_photo}</p>
+                    {errors.profile_image && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.profile_image}</p>
                     )}
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      La imagen no debe exceder 2MB
+                    </p>
                   </div>
                   <div className="col-span-2 flex items-center justify-center">
                     <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800">
