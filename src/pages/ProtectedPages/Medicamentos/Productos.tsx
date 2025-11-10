@@ -615,7 +615,7 @@ export default function ProductosPage() {
             <Button size="sm" variant="outline" type="button" onClick={handleCloseDelete} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button size="sm" variant="danger" type="button" onClick={handleDeleteProduct} disabled={isLoading}>
+            <Button size="sm" type="button" onClick={handleDeleteProduct} disabled={isLoading} className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
               {isLoading ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </div>

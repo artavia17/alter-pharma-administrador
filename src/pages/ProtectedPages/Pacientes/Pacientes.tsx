@@ -98,15 +98,9 @@ export default function PacientesPage() {
 
   return (
     <>
-      <PageMeta title="Pacientes" />
+      <PageMeta title="Pacientes | Alter Pharma" description="Gestión de pacientes en el sistema" />
       <div className="flex flex-col gap-6">
-        <PageBreadcrumb
-          pageTitle="Pacientes"
-          items={[
-            { name: "Dashboard", path: "/" },
-            { name: "Pacientes", path: "/pacientes" },
-          ]}
-        />
+        <PageBreadcrumb pageTitle="Pacientes" />
 
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>

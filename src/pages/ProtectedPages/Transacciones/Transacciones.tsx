@@ -163,15 +163,9 @@ export default function TransaccionesPage() {
 
   return (
     <>
-      <PageMeta title="Transacciones" />
+      <PageMeta title="Transacciones | Alter Pharma" description="Gestión de transacciones en el sistema" />
       <div className="flex flex-col gap-6">
-        <PageBreadcrumb
-          pageTitle="Transacciones"
-          items={[
-            { name: "Dashboard", path: "/" },
-            { name: "Transacciones", path: "/transacciones" },
-          ]}
-        />
+        <PageBreadcrumb pageTitle="Transacciones" />
 
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>

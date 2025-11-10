@@ -360,6 +360,8 @@ export default function FarmaceuticasPage() {
     closeAddModal();
   };
 
+  // @ts-ignore - Function reserved for future edit functionality
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openEdit = async (pharmacy: PharmacyData) => {
     setSelectedPharmacy(pharmacy);
     setLegalName(pharmacy.legal_name);
@@ -652,7 +654,6 @@ export default function FarmaceuticasPage() {
                   value={identificationNumber}
                   onChange={(e) => handleIdentificationChange(e.target.value)}
                   placeholder="Ej: ABC123XYZ789"
-                  maxLength={100}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Solo letras y números, máximo 100 caracteres
@@ -665,7 +666,6 @@ export default function FarmaceuticasPage() {
                   value={streetAddress}
                   onChange={(e) => handleStreetAddressChange(e.target.value)}
                   placeholder="Ej: Calle 5, Avenida Central"
-                  maxLength={35}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Máximo 35 caracteres
@@ -813,7 +813,6 @@ export default function FarmaceuticasPage() {
                   value={identificationNumber}
                   onChange={(e) => handleIdentificationChange(e.target.value)}
                   placeholder="Ej: ABC123XYZ789"
-                  maxLength={100}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Solo letras y números, máximo 100 caracteres
@@ -826,7 +825,6 @@ export default function FarmaceuticasPage() {
                   value={streetAddress}
                   onChange={(e) => handleStreetAddressChange(e.target.value)}
                   placeholder="Ej: Calle 5, Avenida Central"
-                  maxLength={35}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Máximo 35 caracteres

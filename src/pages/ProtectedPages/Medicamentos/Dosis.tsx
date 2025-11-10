@@ -37,6 +37,7 @@ export default function DosisPage() {
 
   // Form fields
   const [dose, setDose] = useState("");
+  const [barcode, setBarcode] = useState<string>("");
   const [promotionBuy, setPromotionBuy] = useState<number>(1);
   const [promotionGet, setPromotionGet] = useState<number>(1);
   const [redemptionDays, setRedemptionDays] = useState<number>(30);
@@ -106,6 +107,7 @@ export default function DosisPage() {
     try {
       const params = {
         dose: dose,
+        ...(barcode && { barcode: barcode }),
         promotion_buy: promotionBuy,
         promotion_get: promotionGet,
         redemption_days: redemptionDays,
@@ -143,6 +145,7 @@ export default function DosisPage() {
     try {
       const params = {
         dose: dose,
+        ...(barcode && { barcode: barcode }),
         promotion_buy: promotionBuy,
         promotion_get: promotionGet,
         redemption_days: redemptionDays,
@@ -199,6 +202,7 @@ export default function DosisPage() {
 
   const resetForm = () => {
     setDose("");
+    setBarcode("");
     setPromotionBuy(1);
     setPromotionGet(1);
     setRedemptionDays(30);
@@ -215,6 +219,7 @@ export default function DosisPage() {
   const openEdit = (doseItem: DoseData) => {
     setSelectedDose(doseItem);
     setDose(doseItem.dose);
+    setBarcode(doseItem.barcode || "");
     setPromotionBuy(doseItem.promotion_buy);
     setPromotionGet(doseItem.promotion_get);
     setRedemptionDays(doseItem.redemption_days);
@@ -455,6 +460,18 @@ export default function DosisPage() {
                   placeholder="Ej: 100mg x 15's"
                 />
               </div>
+              <div>
+                <Label>Código de barras</Label>
+                <Input
+                  type="number"
+                  value={barcode || ""}
+                  onChange={(e) => setBarcode(e.target.value)}
+                  placeholder="Ej: 1234567890"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Opcional - Solo números
+                </p>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Promoción: Compra *</Label>
@@ -547,6 +564,18 @@ export default function DosisPage() {
                   onChange={(e) => setDose(e.target.value)}
                   placeholder="Ej: 100mg x 15's"
                 />
+              </div>
+              <div>
+                <Label>Código de barras</Label>
+                <Input
+                  type="number"
+                  value={barcode || ""}
+                  onChange={(e) => setBarcode(e.target.value)}
+                  placeholder="Ej: 1234567890"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Opcional - Solo números
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -697,7 +726,7 @@ export default function DosisPage() {
             <Button size="sm" variant="outline" type="button" onClick={handleCloseDelete} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button size="sm" variant="danger" type="button" onClick={handleDeleteDose} disabled={isLoading}>
+            <Button size="sm" type="button" onClick={handleDeleteDose} disabled={isLoading} className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
               {isLoading ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </div>

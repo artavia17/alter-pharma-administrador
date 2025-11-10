@@ -211,7 +211,7 @@ export default function Redemptions() {
               <Button onClick={handleApplyFilters} className="flex-1">
                 Aplicar
               </Button>
-              <Button onClick={handleClearFilters} variant="secondary">
+              <Button onClick={handleClearFilters} variant="outline">
                 Limpiar
               </Button>
             </div>
@@ -345,7 +345,7 @@ export default function Redemptions() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="outline"
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                   >
@@ -356,7 +356,7 @@ export default function Redemptions() {
                   </span>
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="outline"
                     onClick={handleNextPage}
                     disabled={currentPage === detailsReport.last_page}
                   >

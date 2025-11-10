@@ -2,6 +2,7 @@ export interface DoseData {
   id: number;
   product_id: number;
   dose: string;
+  barcode?: string;
   promotion_buy: number;
   promotion_get: number;
   redemption_days: number;

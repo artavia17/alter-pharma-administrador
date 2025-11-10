@@ -36,6 +36,7 @@ import ProductosPage from "./pages/ProtectedPages/Medicamentos/Productos";
 import DosisPage from "./pages/ProtectedPages/Medicamentos/Dosis";
 import PacientesPage from "./pages/ProtectedPages/Pacientes/Pacientes";
 import TransaccionesPage from "./pages/ProtectedPages/Transacciones/Transacciones";
+import DistribuidoresPage from "./pages/ProtectedPages/Distribuidores/Distribuidores";
 
 export default function App() {
   return (
@@ -86,6 +87,9 @@ export default function App() {
 
               {/* Transacciones */}
               <Route path="/transacciones" element={<TransaccionesPage />} />
+
+              {/* Distribuidores */}
+              <Route path="/distribuidores" element={<DistribuidoresPage />} />
 
               {/* ----------------------------------------------------------------------------- */}
               {/* ----------------------------------------------------------------------------- */}

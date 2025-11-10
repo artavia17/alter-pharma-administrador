@@ -556,7 +556,7 @@ export default function MunicipiosPage() {
           </div>
           <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
             <Button size="sm" variant="outline" type="button" onClick={handleCloseDelete}>Cancelar</Button>
-            <Button size="sm" variant="danger" onClick={handleDelete} disabled={isLoading}>
+            <Button size="sm" onClick={handleDelete} disabled={isLoading} className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
               {isLoading ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </div>

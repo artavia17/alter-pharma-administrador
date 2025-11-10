@@ -4,8 +4,6 @@ layer(base);
 @import "tailwindcss";
 @import url('./assets/css/components/modal.css');
 
-@custom-variant dark (&:is(.dark *));
-
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
@@ -276,9 +274,6 @@ layer(base);
   &::-webkit-scrollbar-thumb {
     @apply bg-gray-200 rounded-full dark:bg-gray-700;
   }
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #344054;
 }
 
 @layer utilities {
@@ -768,10 +763,6 @@ span.flatpickr-weekday,
 
 .simplebar-scrollbar::before {
   @apply !bg-gray-200 !rounded-full dark:!bg-gray-700 !opacity-100;
-}
-
-.dark .simplebar-scrollbar::before {
-  @apply !bg-gray-700;
 }
 
 .simplebar-scrollbar.simplebar-visible:before {

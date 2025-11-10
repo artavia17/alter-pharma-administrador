@@ -252,7 +252,7 @@ export default function Home() {
               <Button onClick={handleApplyFilters} className="flex-1">
                 Aplicar
               </Button>
-              <Button onClick={handleClearFilters} variant="secondary">
+              <Button onClick={handleClearFilters} variant="outline">
                 Limpiar
               </Button>
             </div>
@@ -357,7 +357,7 @@ export default function Home() {
                         <TableCell className="px-5 py-4 text-center">
                           <Button
                             size="sm"
-                            variant="secondary"
+                            variant="outline"
                             onClick={() => handleViewDetails(transaction)}
                           >
                             Ver detalles
@@ -378,7 +378,7 @@ export default function Home() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="outline"
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                   >
@@ -389,7 +389,7 @@ export default function Home() {
                   </span>
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="outline"
                     onClick={handleNextPage}
                     disabled={currentPage === purchaseReport.transactions.last_page}
                   >
