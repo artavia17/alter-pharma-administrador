@@ -125,9 +125,7 @@ export default function FarmaceuticasPage() {
         pharmacy.phone?.toLowerCase().includes(query) ||
         pharmacy.email?.toLowerCase().includes(query) ||
         pharmacy.administrator_name?.toLowerCase().includes(query) ||
-        pharmacy.country.name.toLowerCase().includes(query) ||
-        pharmacy.state?.name.toLowerCase().includes(query) ||
-        pharmacy.municipality?.name.toLowerCase().includes(query)
+        pharmacy.country.name.toLowerCase().includes(query)
       );
     }
 

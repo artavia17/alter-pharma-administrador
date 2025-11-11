@@ -1043,7 +1043,7 @@ export default function DoctoresPage() {
             </div>
           )}
           <form onSubmit={handleEditDoctor} className="flex flex-col">
-            <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-t border-b border-gray-200 dark:border-white/[0.05] pt-4 pb-6">
+            <div className="space-y-4 px-2 max-h-[500px] overflow-y-auto border-t border-b border-gray-200 dark:border-white/[0.05] pt-4 pb-6">
               <div>
                 <Label>Nombre completo *</Label>
                 <Input
