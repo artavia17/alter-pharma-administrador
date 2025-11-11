@@ -28,6 +28,8 @@ export default function MunicipiosPage() {
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [states, setStates] = useState<StateData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [isLoadingStates, setIsLoadingStates] = useState(true);
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityData | null>(null);
 
   // Filtros
@@ -61,6 +63,7 @@ export default function MunicipiosPage() {
   }, [stateFilter]);
 
   const loadCountries = async () => {
+    setIsLoadingCountries(true);
     try {
       const response = await getCountries();
       if (response.status === 200 && Array.isArray(response.data)) {
@@ -68,10 +71,13 @@ export default function MunicipiosPage() {
       }
     } catch (error) {
       console.error("Error cargando países:", error);
+    } finally {
+      setIsLoadingCountries(false);
     }
   };
 
   const loadStates = async () => {
+    setIsLoadingStates(true);
     try {
       const response = await getStates();
       if (response.status === 200 && Array.isArray(response.data)) {
@@ -79,6 +85,8 @@ export default function MunicipiosPage() {
       }
     } catch (error) {
       console.error("Error cargando estados:", error);
+    } finally {
+      setIsLoadingStates(false);
     }
   };
 
@@ -107,8 +115,10 @@ export default function MunicipiosPage() {
   // Opciones de filtro de estados (filtrados por país)
   const stateFilterOptions = useMemo(() => {
     if (!countryFilter) return [];
+    // Comparar como strings para evitar problemas de tipo
+    const filterValue = countryFilter.toString();
     return states
-      .filter(state => state.country_id === parseInt(countryFilter) && state.status)
+      .filter(state => state.country_id.toString() === filterValue && state.status)
       .map(state => ({
         value: state.id.toString(),
         label: state.name
@@ -128,8 +138,10 @@ export default function MunicipiosPage() {
   // Opciones para el formulario (estados filtrados por país seleccionado)
   const stateFormOptions = useMemo(() => {
     if (!selectedCountryIdForm) return [];
+    // Comparar como strings para evitar problemas de tipo
+    const countryIdStr = selectedCountryIdForm.toString();
     return states
-      .filter(state => state.country_id === selectedCountryIdForm && state.status)
+      .filter(state => state.country_id.toString() === countryIdStr && state.status)
       .map(state => ({
         value: state.id.toString(),
         label: state.name
@@ -325,13 +337,13 @@ export default function MunicipiosPage() {
         title="Municipios - Localización | Alter Pharma"
         description="Gestión de municipios en el sistema"
       />
-      <PageBreadcrumb pageTitle="Municipios" />
+      <PageBreadcrumb pageTitle="Municipios/Cantones" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Gestión de Municipios
+              Gestión de Municipios/Cantones
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Administra los municipios por estado y país
@@ -359,19 +371,20 @@ export default function MunicipiosPage() {
               <Label>Filtrar por país:</Label>
               <Select
                 options={countryFilterOptions}
-                placeholder="Selecciona un país"
+                placeholder={isLoadingCountries ? "Cargando países..." : "Selecciona un país"}
                 value={countryFilter}
                 onChange={handleCountryFilterChange}
+                disabled={isLoadingCountries}
               />
             </div>
             <div>
               <Label>Filtrar por estado:</Label>
               <Select
                 options={stateFilterOptions}
-                placeholder="Selecciona un estado"
+                placeholder={isLoadingStates ? "Cargando estados..." : "Selecciona un estado"}
                 value={stateFilter}
                 onChange={(value) => setStateFilter(value)}
-                disabled={!countryFilter}
+                disabled={!countryFilter || isLoadingStates}
               />
             </div>
           </div>
@@ -473,19 +486,20 @@ export default function MunicipiosPage() {
                 <Label>País *</Label>
                 <Select
                   options={countryFormOptions}
-                  placeholder="Selecciona un país"
+                  placeholder={isLoadingCountries ? "Cargando países..." : "Selecciona un país"}
                   onChange={handleCountryFormChange}
-                  defaultValue=""
+                  value={selectedCountryIdForm !== null ? selectedCountryIdForm.toString() : ""}
+                  disabled={isLoadingCountries}
                 />
               </div>
               <div>
                 <Label>Estado *</Label>
                 <Select
                   options={stateFormOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder={isLoadingStates ? "Cargando estados..." : "Selecciona un estado"}
                   onChange={(value) => setSelectedStateId(parseInt(value))}
-                  defaultValue=""
-                  disabled={!selectedCountryIdForm}
+                  value={selectedStateId !== null ? selectedStateId.toString() : ""}
+                  disabled={!selectedCountryIdForm || isLoadingStates}
                 />
               </div>
               <div>

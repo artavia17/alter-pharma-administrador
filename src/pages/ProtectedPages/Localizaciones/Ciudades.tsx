@@ -26,6 +26,7 @@ export default function CiudadesPage() {
   const [states, setStates] = useState<StateData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
   const [selectedState, setSelectedState] = useState<StateData | null>(null);
   const [countryFilter, setCountryFilter] = useState<string>("");
 
@@ -58,6 +59,7 @@ export default function CiudadesPage() {
   };
 
   const loadCountries = async () => {
+    setIsLoadingCountries(true);
     try {
       const response = await getCountries();
       if (response.status === 200 && Array.isArray(response.data)) {
@@ -65,6 +67,8 @@ export default function CiudadesPage() {
       }
     } catch (error) {
       console.error("Error cargando países:", error);
+    } finally {
+      setIsLoadingCountries(false);
     }
   };
 
@@ -73,20 +77,23 @@ export default function CiudadesPage() {
     if (!countryFilter) {
       return states;
     }
-    return states.filter(state => state.country_id === parseInt(countryFilter));
+
+    // Comparar como strings para evitar problemas de tipo
+    const filterValue = countryFilter.toString();
+    return states.filter(state => {
+      const stateCountryId = state.country_id.toString();
+      return stateCountryId === filterValue;
+    });
   }, [states, countryFilter]);
 
   // Opciones para el select de países (filtro)
   const countryFilterOptions = useMemo(() => {
-    return [
-      { value: "", label: "Todos los países" },
-      ...countries
-        .filter(country => country.status)
-        .map(country => ({
-          value: country.id.toString(),
-          label: country.name
-        }))
-    ];
+    return countries
+      .filter(country => country.status)
+      .map(country => ({
+        value: country.id.toString(),
+        label: country.name
+      }));
   }, [countries]);
 
   // Opciones para el select de países (formulario)
@@ -223,13 +230,13 @@ export default function CiudadesPage() {
         title="Ciudades/Estados - Localización | Alter Pharma"
         description="Gestión de ciudades y estados en el sistema"
       />
-      <PageBreadcrumb pageTitle="Ciudades/Estados" />
+      <PageBreadcrumb pageTitle="Ciudades/Estados/Provincias" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Gestión de Ciudades/Estados
+              Gestión de Ciudades/Estados/Provincias
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Administra las ciudades y estados por país
@@ -257,12 +264,13 @@ export default function CiudadesPage() {
             <div className="w-full max-w-xs">
               <Select
                 options={countryFilterOptions}
-                placeholder="Todos los países"
+                placeholder={isLoadingCountries ? "Cargando países..." : "Todos los países"}
                 onChange={(value) => setCountryFilter(value)}
-                defaultValue=""
+                value={countryFilter}
+                disabled={isLoadingCountries}
               />
             </div>
-            {countryFilter && (
+            {countryFilter && !isLoadingCountries && (
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 Mostrando {filteredStates.length} de {states.length} ciudades/estados
               </span>

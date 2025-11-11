@@ -46,8 +46,8 @@ const navItems: NavItem[] = [
     name: "Localizaciones",
     subItems: [
       { name: "Paises", path: "/localizaciones/paises" },
-      { name: "Ciudades", path: "/localizaciones/ciudades" },
-      { name: "Municipios", path: "/localizaciones/municipios" },
+      { name: "Ciudades/Provincias", path: "/localizaciones/ciudades" },
+      { name: "Municipios/Cantones", path: "/localizaciones/municipios" },
     ],
   },
   {
