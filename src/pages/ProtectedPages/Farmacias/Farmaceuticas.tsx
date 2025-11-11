@@ -202,7 +202,7 @@ export default function FarmaceuticasPage() {
   const stateOptions = useMemo(() => {
     if (!selectedCountryId) return [];
     return states
-      .filter(state => state.country_id === selectedCountryId && state.status)
+      .filter(state => Number(state.country_id) === Number(selectedCountryId) && state.status)
       .map(state => ({
         value: state.id.toString(),
         label: state.name
@@ -213,7 +213,7 @@ export default function FarmaceuticasPage() {
   const municipalityOptions = useMemo(() => {
     if (!selectedStateId) return [];
     return municipalities
-      .filter(municipality => municipality.state_id === selectedStateId && municipality.status)
+      .filter(municipality => Number(municipality.state_id) === Number(selectedStateId) && municipality.status)
       .map(municipality => ({
         value: municipality.id.toString(),
         label: municipality.name
@@ -228,7 +228,7 @@ export default function FarmaceuticasPage() {
     setSelectedMunicipalityId(null); // Resetear municipio cuando cambia el país
     setMunicipalities([]); // Limpiar municipios
 
-    const country = countries.find(c => c.id === id);
+    const country = countries.find(c => Number(c.id) === Number(id));
     if (country) {
       const prefix = `+${country.phone_code} `;
       setPhonePrefix(prefix);
@@ -554,7 +554,6 @@ export default function FarmaceuticasPage() {
             <div className="w-full max-w-xs">
               <Select
                 options={countryFilterOptions}
-                placeholder="Todos los países"
                 onChange={(value) => setCountryFilter(value)}
                 value={countryFilter}
               />
