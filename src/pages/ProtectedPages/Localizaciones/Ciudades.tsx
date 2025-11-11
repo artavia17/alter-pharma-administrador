@@ -30,6 +30,11 @@ export default function CiudadesPage() {
   const [selectedState, setSelectedState] = useState<StateData | null>(null);
   const [countryFilter, setCountryFilter] = useState<string>("");
 
+  // Search and pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Form fields
   const [stateName, setStateName] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
@@ -72,19 +77,74 @@ export default function CiudadesPage() {
     }
   };
 
-  // Filtrar estados por país
+  // Filtrar estados por país y búsqueda
   const filteredStates = useMemo(() => {
-    if (!countryFilter) {
-      return states;
+    let filtered = states;
+
+    // Filtrar por país si hay un país seleccionado
+    if (countryFilter) {
+      const filterValue = countryFilter.toString();
+      filtered = filtered.filter(state => {
+        const stateCountryId = state.country_id.toString();
+        return stateCountryId === filterValue;
+      });
     }
 
-    // Comparar como strings para evitar problemas de tipo
-    const filterValue = countryFilter.toString();
-    return states.filter(state => {
-      const stateCountryId = state.country_id.toString();
-      return stateCountryId === filterValue;
-    });
-  }, [states, countryFilter]);
+    // Filtrar por búsqueda si hay un query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(state =>
+        state.name.toLowerCase().includes(query) ||
+        state.country.name.toLowerCase().includes(query) ||
+        state.country.code.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [states, countryFilter, searchQuery]);
+
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredStates.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedStates = filteredStates.slice(startIndex, endIndex);
+
+  // Resetear a la página 1 cuando cambia la búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, countryFilter]);
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      // Mostrar todas las páginas si son pocas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Lógica para mostrar páginas con puntos suspensivos
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   // Opciones para el select de países (filtro)
   const countryFilterOptions = useMemo(() => {
@@ -257,6 +317,39 @@ export default function CiudadesPage() {
           </Button>
         </div>
 
+        {/* Buscador */}
+        <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] p-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre de ciudad/estado o país..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Mostrando {filteredStates.length} de {states.length} ciudades/estados
+            </p>
+          )}
+        </div>
+
         {/* Filtro por país */}
         <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] p-4">
           <div className="flex items-center gap-4">
@@ -293,7 +386,7 @@ export default function CiudadesPage() {
               </TableHeader>
 
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {filteredStates.map((state) => (
+                {paginatedStates.map((state) => (
                   <TableRow key={state.id}>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{state.id}</TableCell>
                     <TableCell className="px-5 py-4 text-start">
@@ -334,20 +427,108 @@ export default function CiudadesPage() {
               </TableBody>
             </Table>
 
-            {filteredStates.length === 0 && (
+            {paginatedStates.length === 0 && (
               <div className="px-5 py-12 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6h.008v.008H6V6z" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay ciudades/estados</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">
+                  {searchQuery || countryFilter ? "No se encontraron resultados" : "No hay ciudades/estados"}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {countryFilter ? "No se encontraron ciudades/estados para el país seleccionado." : "Comienza agregando una nueva ciudad/estado."}
+                  {searchQuery
+                    ? `No se encontraron ciudades/estados que coincidan con "${searchQuery}".`
+                    : countryFilter
+                      ? "No se encontraron ciudades/estados para el país seleccionado."
+                      : "Comienza agregando una nueva ciudad/estado."
+                  }
                 </p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Paginación */}
+        {filteredStates.length > 0 && (
+          <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                    <span className="font-medium">{Math.min(endIndex, filteredStates.length)}</span> de{' '}
+                    <span className="font-medium">{filteredStates.length}</span> resultados
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Anterior</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+
+                    {getPageNumbers().map((page, index) => (
+                      page === '...' ? (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            currentPage === page
+                              ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
+                              : 'bg-white dark:bg-white/[0.03] border-gray-300 dark:border-white/[0.05] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05]'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Siguiente</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal: Agregar Ciudad/Estado */}
