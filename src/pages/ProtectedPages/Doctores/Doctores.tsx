@@ -296,23 +296,29 @@ export default function DoctoresPage() {
     setIsLoading(true);
     setErrors({});
 
-    // Validar longitud del teléfono (sin contar el prefijo)
+    // Determinar si el teléfono tiene contenido real o solo el prefijo
+    let finalPhone = "";
     if (doctorPhone) {
-      // Obtener el país actual para validación
       const country = countries.find(c => Number(c.id) === Number(selectedCountryId));
       if (country) {
         const prefix = `+${country.phone_code} `;
-        const phoneDigits = doctorPhone.substring(prefix.length);
-        const minLength = country.phone_min_length;
-        const maxLength = country.phone_max_length;
+        const phoneDigits = doctorPhone.substring(prefix.length).trim();
 
-        if (phoneDigits.length < minLength || phoneDigits.length > maxLength) {
-          setErrors({
-            general: `El teléfono debe tener entre ${minLength} y ${maxLength} dígitos`
-          });
-          setIsLoading(false);
-          return;
+        // Si hay dígitos después del prefijo, validar
+        if (phoneDigits.length > 0) {
+          const minLength = country.phone_min_length;
+          const maxLength = country.phone_max_length;
+
+          if (phoneDigits.length < minLength || phoneDigits.length > maxLength) {
+            setErrors({
+              general: `El teléfono debe tener entre ${minLength} y ${maxLength} dígitos`
+            });
+            setIsLoading(false);
+            return;
+          }
+          finalPhone = doctorPhone; // Solo asignar si tiene dígitos válidos
         }
+        // Si no hay dígitos, finalPhone queda como "" (vacío)
       }
     }
 
@@ -322,7 +328,7 @@ export default function DoctoresPage() {
         country_id: selectedCountryId,
         specialties: selectedSpecialties,
         ...(doctorEmail && { email: doctorEmail }),
-        ...(doctorPhone && { phone: doctorPhone }),
+        ...(finalPhone && { phone: finalPhone }),
         ...(doctorLicense && { license_number: doctorLicense }),
         ...(doctorBio && { bio: doctorBio }),
       };
@@ -354,33 +360,29 @@ export default function DoctoresPage() {
     setIsLoading(true);
     setErrors({});
 
-    // Validar longitud del teléfono (sin contar el prefijo)
+    // Determinar si el teléfono tiene contenido real o solo el prefijo
+    let finalPhone = "";
     if (doctorPhone) {
-      // Obtener el país actual para validación
       const country = countries.find(c => Number(c.id) === Number(selectedCountryId));
       if (country) {
         const prefix = `+${country.phone_code} `;
-        const phoneDigits = doctorPhone.substring(prefix.length);
-        const minLength = country.phone_min_length;
-        const maxLength = country.phone_max_length;
+        const phoneDigits = doctorPhone.substring(prefix.length).trim();
 
-        console.log('handleEditDoctor - Validation:', {
-          phoneMinLength: minLength,
-          phoneMaxLength: maxLength,
-          phonePrefix: prefix,
-          doctorPhone,
-          phoneDigits,
-          phoneDigitsLength: phoneDigits.length,
-          countryId: selectedCountryId
-        });
+        // Si hay dígitos después del prefijo, validar
+        if (phoneDigits.length > 0) {
+          const minLength = country.phone_min_length;
+          const maxLength = country.phone_max_length;
 
-        if (phoneDigits.length < minLength || phoneDigits.length > maxLength) {
-          setErrors({
-            general: `El teléfono debe tener entre ${minLength} y ${maxLength} dígitos`
-          });
-          setIsLoading(false);
-          return;
+          if (phoneDigits.length < minLength || phoneDigits.length > maxLength) {
+            setErrors({
+              general: `El teléfono debe tener entre ${minLength} y ${maxLength} dígitos`
+            });
+            setIsLoading(false);
+            return;
+          }
+          finalPhone = doctorPhone; // Solo asignar si tiene dígitos válidos
         }
+        // Si no hay dígitos, finalPhone queda como "" (vacío)
       }
     }
 
@@ -390,7 +392,7 @@ export default function DoctoresPage() {
         country_id: selectedCountryId,
         specialties: selectedSpecialties,
         ...(doctorEmail && { email: doctorEmail }),
-        ...(doctorPhone && { phone: doctorPhone }),
+        ...(finalPhone && { phone: finalPhone }),
         ...(doctorLicense && { license_number: doctorLicense }),
         ...(doctorBio && { bio: doctorBio }),
       };
@@ -886,14 +888,28 @@ export default function DoctoresPage() {
                 />
               </div>
               <div>
-                <Label>Teléfono</Label>
-                <Input
-                  type="text"
-                  value={doctorPhone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  placeholder={phonePrefix ? `${phonePrefix}0000000` : "Selecciona un país primero"}
-                  disabled={!selectedCountryId}
-                />
+                <Label>Teléfono (opcional)</Label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={doctorPhone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder={phonePrefix ? `${phonePrefix}0000000` : "Selecciona un país primero"}
+                    disabled={!selectedCountryId}
+                  />
+                  {doctorPhone && selectedCountryId && (
+                    <button
+                      type="button"
+                      onClick={() => setDoctorPhone("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+                      title="Limpiar teléfono"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 {phoneMinLength > 0 && phoneMaxLength > 0 && (
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos
@@ -1056,14 +1072,28 @@ export default function DoctoresPage() {
                 />
               </div>
               <div>
-                <Label>Teléfono</Label>
-                <Input
-                  type="text"
-                  value={doctorPhone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  placeholder={phonePrefix ? `${phonePrefix}0000000` : "Selecciona un país primero"}
-                  disabled={!selectedCountryId}
-                />
+                <Label>Teléfono (opcional)</Label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={doctorPhone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder={phonePrefix ? `${phonePrefix}0000000` : "Selecciona un país primero"}
+                    disabled={!selectedCountryId}
+                  />
+                  {doctorPhone && selectedCountryId && (
+                    <button
+                      type="button"
+                      onClick={() => setDoctorPhone("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+                      title="Limpiar teléfono"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 {phoneMinLength > 0 && phoneMaxLength > 0 && (
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos
