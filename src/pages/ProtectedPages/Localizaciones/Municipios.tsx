@@ -397,8 +397,6 @@ export default function MunicipiosPage() {
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Municipio</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Código</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
@@ -411,18 +409,6 @@ export default function MunicipiosPage() {
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{municipality.id}</TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">{municipality.name}</span>
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-start">
-                      {municipality.code ? (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                          {municipality.code}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">Sin código</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {states.find(s => s.id === municipality.state_id)?.name || "N/A"}
                     </TableCell>
                     <TableCell className="px-5 py-4">
                       <Switch
