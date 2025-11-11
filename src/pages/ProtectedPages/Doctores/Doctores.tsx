@@ -110,12 +110,12 @@ export default function DoctoresPage() {
     let filtered = doctors;
 
     if (countryFilter) {
-      filtered = filtered.filter(doctor => doctor.country_id === parseInt(countryFilter));
+      filtered = filtered.filter(doctor => Number(doctor.country_id) === Number(countryFilter));
     }
 
     if (specialtyFilter) {
       filtered = filtered.filter(doctor =>
-        doctor.specialties.some(s => s.id === parseInt(specialtyFilter))
+        doctor.specialties.some(s => Number(s.id) === Number(specialtyFilter))
       );
     }
 
@@ -630,7 +630,7 @@ export default function DoctoresPage() {
                 options={countryFilterOptions}
                 placeholder="País"
                 onChange={(value) => setCountryFilter(value)}
-                defaultValue=""
+                value={countryFilter}
               />
             </div>
             <div className="flex-1 min-w-[200px]">
@@ -638,7 +638,7 @@ export default function DoctoresPage() {
                 options={specialtyFilterOptions}
                 placeholder="Especialidad"
                 onChange={(value) => setSpecialtyFilter(value)}
-                defaultValue=""
+                value={specialtyFilter}
               />
             </div>
             {hasActiveFilters && (
