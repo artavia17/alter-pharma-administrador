@@ -53,7 +53,7 @@ export default function DosisPage() {
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
   const { isOpen: isDeleteOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
 
-  // ID del producto seleccionado para crear dosis
+  // ID del producto seleccionado para crear presentación
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function DosisPage() {
         setDoses(response.data);
       }
     } catch (error) {
-      console.error("Error cargando dosis:", error);
+      console.error("Error cargando presentación:", error);
       setDoses([]);
     } finally {
       setIsLoading(false);
@@ -122,13 +122,13 @@ export default function DosisPage() {
         closeAddModal();
       }
     } catch (error: any) {
-      console.error("Error creando dosis:", error);
+      console.error("Error creando presentación:", error);
       if (error.response?.status === 422 && error.response?.data?.data) {
         setErrors(error.response.data.data);
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: "Ocurrió un error al crear la dosis" });
+        setErrors({ general: "Ocurrió un error al crear la presentación" });
       }
     } finally {
       setIsLoading(false);
@@ -161,13 +161,13 @@ export default function DosisPage() {
         closeEditModal();
       }
     } catch (error: any) {
-      console.error("Error editando dosis:", error);
+      console.error("Error editando presentación:", error);
       if (error.response?.status === 422 && error.response?.data?.data) {
         setErrors(error.response.data.data);
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: "Ocurrió un error al actualizar la dosis" });
+        setErrors({ general: "Ocurrió un error al actualizar la presentación" });
       }
     } finally {
       setIsLoading(false);
@@ -180,7 +180,7 @@ export default function DosisPage() {
       await toggleDoseStatus(selectedProductId, doseItem.id);
       await loadDosesByProduct(selectedProductId);
     } catch (error) {
-      console.error("Error cambiando estado de dosis:", error);
+      console.error("Error cambiando estado de presentación:", error);
     }
   };
 
@@ -194,10 +194,16 @@ export default function DosisPage() {
       setSelectedDose(null);
       closeDeleteModal();
     } catch (error) {
-      console.error("Error eliminando dosis:", error);
+      console.error("Error eliminando presentación:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBarcodeChange = (value: string) => {
+    // Solo permitir números y letras (alfanumérico)
+    const alphanumeric = value.replace(/[^a-zA-Z0-9]/g, '');
+    setBarcode(alphanumeric);
   };
 
   const resetForm = () => {
@@ -274,19 +280,19 @@ export default function DosisPage() {
   return (
     <>
       <PageMeta
-        title="Dosis - Medicamentos | Alter Pharma"
-        description="Gestión de dosis de productos"
+        title="Presentación - Medicamentos | Alter Pharma"
+        description="Gestión de presentación de productos"
       />
-      <PageBreadcrumb pageTitle="Dosis" />
+      <PageBreadcrumb pageTitle="Presentación" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Gestión de Dosis
+              Gestión de Presentación
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Administra las dosis de productos registrados en el sistema
+              Administra las presentación de productos registrados en el sistema
             </p>
           </div>
           <Button onClick={handleOpenAddModal} size="md" disabled={!hasProductSelected}>
@@ -300,7 +306,7 @@ export default function DosisPage() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Agregar Dosis
+            Agregar Presentación
           </Button>
         </div>
 
@@ -322,7 +328,7 @@ export default function DosisPage() {
             {hasProductSelected && (
               <div className="flex items-center gap-2 self-end pb-1">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {doses.length} dosis
+                  {doses.length} presentación
                 </span>
               </div>
             )}
@@ -335,7 +341,7 @@ export default function DosisPage() {
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Dosis</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Presentación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Promoción</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Días redención</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Canjes por mes</TableCell>
@@ -381,12 +387,12 @@ export default function DosisPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                           </svg>
                         </button>
-                        <button onClick={() => openEdit(doseItem)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar dosis">
+                        <button onClick={() => openEdit(doseItem)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar presentación">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                           </svg>
                         </button>
-                        <button onClick={() => openDelete(doseItem)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20" title="Eliminar dosis">
+                        <button onClick={() => openDelete(doseItem)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20" title="Eliminar presentación">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                           </svg>
@@ -405,7 +411,7 @@ export default function DosisPage() {
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">Selecciona un producto</h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Selecciona un producto para ver sus dosis.
+                  Selecciona un producto para ver sus presentación.
                 </p>
               </div>
             )}
@@ -415,9 +421,9 @@ export default function DosisPage() {
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay dosis</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay presentación</h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Este producto no tiene dosis registradas.
+                  Este producto no tiene presentación registradas.
                 </p>
               </div>
             )}
@@ -433,12 +439,12 @@ export default function DosisPage() {
         </div>
       </div>
 
-      {/* Modal: Agregar Dosis */}
+      {/* Modal: Agregar Presentación */}
       <Modal isOpen={isAddOpen} onClose={handleCloseAdd} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Dosis</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para registrar una nueva dosis</p>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Presentación</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para registrar una nueva presentación</p>
           </div>
           {Object.keys(errors).length > 0 && (
             <div className="px-2 mb-4">
@@ -452,7 +458,7 @@ export default function DosisPage() {
           <form onSubmit={handleAddDose} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-b border-t pt-4 border-gray-200 dark:border-white/[0.05]">
               <div>
-                <Label>Dosis *</Label>
+                <Label>Presentación *</Label>
                 <Input
                   type="text"
                   value={dose}
@@ -463,13 +469,13 @@ export default function DosisPage() {
               <div>
                 <Label>Código de barras</Label>
                 <Input
-                  type="number"
+                  type="text"
                   value={barcode || ""}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="Ej: 1234567890"
+                  onChange={(e) => handleBarcodeChange(e.target.value)}
+                  placeholder="Ej: ABC123XYZ"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Opcional - Solo números
+                  Opcional - Solo letras y números
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -538,12 +544,12 @@ export default function DosisPage() {
         </div>
       </Modal>
 
-      {/* Modal: Editar Dosis */}
+      {/* Modal: Editar Presentación */}
       <Modal isOpen={isEditOpen} onClose={handleCloseEdit} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Dosis</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la dosis seleccionada</p>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Presentación</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la presentación seleccionada</p>
           </div>
           {Object.keys(errors).length > 0 && (
             <div className="px-2 mb-4">
@@ -557,7 +563,7 @@ export default function DosisPage() {
           <form onSubmit={handleEditDose} className="flex flex-col">
             <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-b border-t pt-4 border-gray-200 dark:border-white/[0.05]">
               <div>
-                <Label>Dosis *</Label>
+                <Label>Presentación *</Label>
                 <Input
                   type="text"
                   value={dose}
@@ -568,13 +574,13 @@ export default function DosisPage() {
               <div>
                 <Label>Código de barras</Label>
                 <Input
-                  type="number"
+                  type="text"
                   value={barcode || ""}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="Ej: 1234567890"
+                  onChange={(e) => handleBarcodeChange(e.target.value)}
+                  placeholder="Ej: ABC123XYZ"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Opcional - Solo números
+                  Opcional - Solo letras y números
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -643,7 +649,7 @@ export default function DosisPage() {
         </div>
       </Modal>
 
-      {/* Modal: Ver Detalles de Dosis */}
+      {/* Modal: Ver Detalles de Presentación */}
       <Modal isOpen={isDetailOpen} onClose={handleCloseDetail} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
@@ -717,9 +723,9 @@ export default function DosisPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h4 className="mb-2 text-2xl font-semibold text-center text-gray-800 dark:text-white/90">Eliminar Dosis</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-center text-gray-800 dark:text-white/90">Eliminar Presentación</h4>
             <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-              ¿Estás seguro de que deseas eliminar la dosis "{selectedDose?.dose}"? Esta acción no se puede deshacer.
+              ¿Estás seguro de que deseas eliminar la presentación "{selectedDose?.dose}"? Esta acción no se puede deshacer.
             </p>
           </div>
           <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">

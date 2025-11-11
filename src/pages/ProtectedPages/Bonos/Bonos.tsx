@@ -238,7 +238,7 @@ export default function Bonos() {
         show: true,
         type: "error",
         title: "Error",
-        message: "Debe seleccionar un paciente y una dosis de producto",
+        message: "Debe seleccionar un paciente y una presentación de producto",
       });
       return;
     }
@@ -481,7 +481,7 @@ export default function Bonos() {
                   Producto
                 </th>
                 <th className="pb-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Dosis
+                  Presentación
                 </th>
                 <th className="pb-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Estado
@@ -706,7 +706,7 @@ export default function Bonos() {
 
                 <div className="col-span-2">
                   <Label>
-                    Dosis <span className="text-red-500">*</span>
+                    Presentación <span className="text-red-500">*</span>
                   </Label>
                   <select
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
@@ -715,7 +715,7 @@ export default function Bonos() {
                     required
                     disabled={doses.length === 0}
                   >
-                    <option value={0}>Seleccione una dosis</option>
+                    <option value={0}>Seleccione una presentación</option>
                     {doses.map((dose) => (
                       <option key={dose.id} value={dose.id}>
                         {dose.dose}
@@ -724,7 +724,7 @@ export default function Bonos() {
                   </select>
                   {doses.length === 0 && productId > 0 && (
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Este producto no tiene dosis disponibles
+                      Este producto no tiene presentación disponibles
                     </p>
                   )}
                 </div>
@@ -840,7 +840,7 @@ export default function Bonos() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Dosis</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Presentación</p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                   {selectedBonus.product_dose?.dose || "N/A"}
                 </p>

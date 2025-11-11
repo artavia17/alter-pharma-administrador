@@ -467,7 +467,7 @@ export default function Home() {
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Producto</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Dosis</TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Presentación</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Cantidad Vendida</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-right text-theme-xs dark:text-gray-400">Ingresos Totales</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Farmacias</TableCell>
@@ -608,7 +608,7 @@ export default function Home() {
                           {product.product.name}
                         </p>
                         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          Dosis: {product.product_dose.dose}
+                          Presentación: {product.product_dose.dose}
                         </p>
                         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                           Cantidad: {product.quantity} × {formatCurrency(product.unit_price)}

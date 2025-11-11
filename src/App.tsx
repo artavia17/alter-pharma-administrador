@@ -81,7 +81,7 @@ export default function App() {
 
               {/* Medicamentos */}
               <Route path="/medicamentos/productos" element={<ProductosPage />} />
-              <Route path="/medicamentos/dosis" element={<DosisPage />} />
+              <Route path="/medicamentos/presentacion" element={<DosisPage />} />
 
               {/* Pacientes */}
               <Route path="/pacientes" element={<PacientesPage />} />

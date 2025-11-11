@@ -71,7 +71,7 @@ const navItems: NavItem[] = [
     name: "Medicamentos",
     subItems: [
       { name: "Productos", path: "/medicamentos/productos" },
-      { name: "Dosis", path: "/medicamentos/dosis" },
+      { name: "Presentación", path: "/medicamentos/presentacion" },
     ],
   },
   {

@@ -285,7 +285,7 @@ export default function TransaccionesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Paciente</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacia</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Producto/Dosis</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Producto/Presentación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tipo</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Fecha</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
@@ -450,13 +450,13 @@ export default function TransaccionesPage() {
             </div>
 
             <div>
-              <Label>Producto y dosis</Label>
+              <Label>Producto y presentación</Label>
               <div className="mt-2 space-y-1">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <span className="font-medium">Producto:</span> {selectedTransaction?.product_dose?.product.name}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Dosis:</span> {selectedTransaction?.product_dose?.dose}
+                  <span className="font-medium">Presentación:</span> {selectedTransaction?.product_dose?.dose}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <span className="font-medium">Promoción:</span> Compra {selectedTransaction?.product_dose?.promotion_buy} Lleva {selectedTransaction?.product_dose?.promotion_get}
