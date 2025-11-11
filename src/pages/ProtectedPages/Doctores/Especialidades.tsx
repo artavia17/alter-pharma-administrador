@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
 import { Modal } from "../../../components/ui/modal";
@@ -24,6 +24,16 @@ export default function EspecialidadesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState<SpecialtyData | null>(null);
   const [specialtyDetail, setSpecialtyDetail] = useState<SpecialtyDetailData | null>(null);
+
+  // Search and pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Search and pagination for modal doctors list
+  const [doctorSearchQuery, setDoctorSearchQuery] = useState("");
+  const [doctorCurrentPage, setDoctorCurrentPage] = useState(1);
+  const doctorsPerPage = 5;
 
   // Form fields
   const [specialtyName, setSpecialtyName] = useState("");
@@ -61,6 +71,114 @@ export default function EspecialidadesPage() {
     } catch (error) {
       console.error("Error cargando detalle de especialidad:", error);
     }
+  };
+
+  // Filtrar especialidades por búsqueda
+  const filteredSpecialties = useMemo(() => {
+    if (!searchQuery.trim()) return specialties;
+
+    const query = searchQuery.toLowerCase();
+    return specialties.filter(specialty =>
+      specialty.name.toLowerCase().includes(query)
+    );
+  }, [specialties, searchQuery]);
+
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredSpecialties.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSpecialties = filteredSpecialties.slice(startIndex, endIndex);
+
+  // Resetear a la página 1 cuando cambia la búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  // Filtrar doctores en el modal por búsqueda
+  const filteredModalDoctors = useMemo(() => {
+    if (!specialtyDetail?.doctors) return [];
+
+    if (!doctorSearchQuery.trim()) return specialtyDetail.doctors;
+
+    const query = doctorSearchQuery.toLowerCase();
+    return specialtyDetail.doctors.filter(doctor =>
+      doctor.name.toLowerCase().includes(query) ||
+      doctor.email.toLowerCase().includes(query) ||
+      doctor.phone.toLowerCase().includes(query) ||
+      doctor.license_number.toLowerCase().includes(query) ||
+      (doctor.bio && doctor.bio.toLowerCase().includes(query))
+    );
+  }, [specialtyDetail, doctorSearchQuery]);
+
+  // Calcular paginación para doctores en el modal
+  const totalDoctorPages = Math.ceil(filteredModalDoctors.length / doctorsPerPage);
+  const doctorStartIndex = (doctorCurrentPage - 1) * doctorsPerPage;
+  const doctorEndIndex = doctorStartIndex + doctorsPerPage;
+  const paginatedModalDoctors = filteredModalDoctors.slice(doctorStartIndex, doctorEndIndex);
+
+  // Resetear página de doctores cuando cambia la búsqueda
+  useEffect(() => {
+    setDoctorCurrentPage(1);
+  }, [doctorSearchQuery]);
+
+  // Generar números de página para modal de doctores
+  const getDoctorPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalDoctorPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalDoctorPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (doctorCurrentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalDoctorPages);
+      } else if (doctorCurrentPage >= totalDoctorPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalDoctorPages - 3; i <= totalDoctorPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = doctorCurrentPage - 1; i <= doctorCurrentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalDoctorPages);
+      }
+    }
+
+    return pages;
   };
 
   const handleAddSpecialty = async (e: React.FormEvent) => {
@@ -182,6 +300,8 @@ export default function EspecialidadesPage() {
   const handleCloseDetail = () => {
     setSelectedSpecialty(null);
     setSpecialtyDetail(null);
+    setDoctorSearchQuery("");
+    setDoctorCurrentPage(1);
     closeDetailModal();
   };
 
@@ -218,6 +338,39 @@ export default function EspecialidadesPage() {
           </Button>
         </div>
 
+        {/* Buscador */}
+        <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] p-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar especialidad por nombre..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Mostrando {filteredSpecialties.length} de {specialties.length} especialidades
+            </p>
+          )}
+        </div>
+
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
           <div className="max-w-full overflow-x-auto">
             <Table>
@@ -233,7 +386,7 @@ export default function EspecialidadesPage() {
               </TableHeader>
 
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {specialties.map((specialty) => (
+                {paginatedSpecialties.map((specialty) => (
                   <TableRow key={specialty.id}>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{specialty.id}</TableCell>
                     <TableCell className="px-5 py-4 text-start">
@@ -277,20 +430,106 @@ export default function EspecialidadesPage() {
               </TableBody>
             </Table>
 
-            {specialties.length === 0 && (
+            {paginatedSpecialties.length === 0 && (
               <div className="px-5 py-12 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6h.008v.008H6V6z" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay especialidades</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">
+                  {searchQuery ? "No se encontraron resultados" : "No hay especialidades"}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Comienza agregando una nueva especialidad médica.
+                  {searchQuery
+                    ? `No se encontraron especialidades que coincidan con "${searchQuery}".`
+                    : "Comienza agregando una nueva especialidad médica."
+                  }
                 </p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Paginación */}
+        {filteredSpecialties.length > 0 && (
+          <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                    <span className="font-medium">{Math.min(endIndex, filteredSpecialties.length)}</span> de{' '}
+                    <span className="font-medium">{filteredSpecialties.length}</span> resultados
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Anterior</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+
+                    {getPageNumbers().map((page, index) => (
+                      page === '...' ? (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            currentPage === page
+                              ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
+                              : 'bg-white dark:bg-white/[0.03] border-gray-300 dark:border-white/[0.05] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05]'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Siguiente</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal: Agregar Especialidad */}
@@ -397,10 +636,47 @@ export default function EspecialidadesPage() {
               {specialtyDetail?.doctors?.length || 0} doctor{specialtyDetail?.doctors?.length !== 1 ? 'es' : ''} registrado{specialtyDetail?.doctors?.length !== 1 ? 's' : ''}
             </p>
           </div>
+
+          {/* Buscador de doctores en el modal */}
+          {specialtyDetail?.doctors && specialtyDetail.doctors.length > 0 && (
+            <div className="px-2 mb-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={doctorSearchQuery}
+                  onChange={(e) => setDoctorSearchQuery(e.target.value)}
+                  placeholder="Buscar por nombre, email, teléfono o licencia..."
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+                {doctorSearchQuery && (
+                  <button
+                    onClick={() => setDoctorSearchQuery("")}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {doctorSearchQuery && (
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Mostrando {filteredModalDoctors.length} de {specialtyDetail.doctors.length} doctores
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="px-2 pb-4">
             {specialtyDetail?.doctors && specialtyDetail.doctors.length > 0 ? (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {specialtyDetail.doctors.map((doctor) => (
+              filteredModalDoctors.length > 0 ? (
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {paginatedModalDoctors.map((doctor) => (
                   <div
                     key={doctor.id}
                     className="p-4 rounded-lg border border-gray-200 dark:border-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors"
@@ -432,6 +708,19 @@ export default function EspecialidadesPage() {
                   </div>
                 ))}
               </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">
+                    No se encontraron resultados
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    No se encontraron doctores que coincidan con "{doctorSearchQuery}".
+                  </p>
+                </div>
+              )
             ) : (
               <div className="py-12 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -446,6 +735,88 @@ export default function EspecialidadesPage() {
               </div>
             )}
           </div>
+
+          {/* Paginación de doctores en el modal */}
+          {filteredModalDoctors.length > 0 && totalDoctorPages > 1 && (
+            <div className="px-2 pb-4">
+              <div className="flex items-center justify-between border-t border-gray-200 dark:border-white/[0.05] pt-4">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => setDoctorCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={doctorCurrentPage === 1}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setDoctorCurrentPage(prev => Math.min(prev + 1, totalDoctorPages))}
+                    disabled={doctorCurrentPage === totalDoctorPages}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Mostrando <span className="font-medium">{doctorStartIndex + 1}</span> a{' '}
+                      <span className="font-medium">{Math.min(doctorEndIndex, filteredModalDoctors.length)}</span> de{' '}
+                      <span className="font-medium">{filteredModalDoctors.length}</span> resultados
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => setDoctorCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={doctorCurrentPage === 1}
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="sr-only">Anterior</span>
+                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+
+                      {getDoctorPageNumbers().map((page, index) => (
+                        page === '...' ? (
+                          <span
+                            key={`ellipsis-${index}`}
+                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={page}
+                            onClick={() => setDoctorCurrentPage(page as number)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              doctorCurrentPage === page
+                                ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
+                                : 'bg-white dark:bg-white/[0.03] border-gray-300 dark:border-white/[0.05] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05]'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      ))}
+
+                      <button
+                        onClick={() => setDoctorCurrentPage(prev => Math.min(prev + 1, totalDoctorPages))}
+                        disabled={doctorCurrentPage === totalDoctorPages}
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="sr-only">Siguiente</span>
+                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
             <Button size="sm" onClick={handleCloseDetail}>Cerrar</Button>
           </div>

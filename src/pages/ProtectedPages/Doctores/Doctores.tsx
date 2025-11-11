@@ -35,6 +35,11 @@ export default function DoctoresPage() {
   const [countryFilter, setCountryFilter] = useState<string>("");
   const [specialtyFilter, setSpecialtyFilter] = useState<string>("");
 
+  // Search and pagination for doctors table
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Form fields
   const [doctorName, setDoctorName] = useState("");
   const [doctorEmail, setDoctorEmail] = useState("");
@@ -49,6 +54,11 @@ export default function DoctoresPage() {
 
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Búsqueda y paginación de especialidades
+  const [specialtySearchQuery, setSpecialtySearchQuery] = useState("");
+  const [specialtyCurrentPage, setSpecialtyCurrentPage] = useState(1);
+  const specialtiesPerPage = 5;
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
@@ -109,8 +119,64 @@ export default function DoctoresPage() {
       );
     }
 
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(doctor =>
+        doctor.name.toLowerCase().includes(query) ||
+        doctor.email?.toLowerCase().includes(query) ||
+        doctor.phone?.toLowerCase().includes(query) ||
+        doctor.license_number?.toLowerCase().includes(query) ||
+        doctor.country.name.toLowerCase().includes(query) ||
+        doctor.specialties.some(s => s.name.toLowerCase().includes(query))
+      );
+    }
+
     return filtered;
-  }, [doctors, countryFilter, specialtyFilter]);
+  }, [doctors, countryFilter, specialtyFilter, searchQuery]);
+
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
+
+  // Resetear a la página 1 cuando cambia la búsqueda o los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, countryFilter, specialtyFilter]);
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      // Mostrar todas las páginas si son pocas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Lógica para mostrar páginas con puntos suspensivos
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   // Opciones para selects de filtros
   const countryFilterOptions = useMemo(() => {
@@ -152,7 +218,7 @@ export default function DoctoresPage() {
     setSelectedCountryId(id);
 
     // Encontrar el país seleccionado y establecer el prefijo
-    const country = countries.find(c => c.id === id);
+    const country = countries.find(c => Number(c.id) === Number(id));
     if (country) {
       const prefix = `+${country.phone_code} `;
       setPhonePrefix(prefix);
@@ -168,18 +234,50 @@ export default function DoctoresPage() {
   };
 
   const handlePhoneChange = (value: string) => {
+    console.log('handlePhoneChange called with:', value);
+
+    // Obtener el prefijo del país actual
+    if (!selectedCountryId) {
+      console.log('No selectedCountryId');
+      return;
+    }
+
+    console.log('Selected country ID:', selectedCountryId, typeof selectedCountryId);
+    console.log('Countries array:', countries);
+    console.log('Countries length:', countries.length);
+
+    // Buscar por ID, asegurando comparación numérica
+    const country = countries.find(c => Number(c.id) === Number(selectedCountryId));
+    if (!country) {
+      console.log('Country not found for id:', selectedCountryId);
+      console.log('Available country IDs:', countries.map(c => ({ id: c.id, type: typeof c.id })));
+      return;
+    }
+
+    const prefix = `+${country.phone_code} `;
+    console.log('Calculated prefix:', prefix);
+    console.log('Value starts with prefix?', value.startsWith(prefix));
+
     // Si el usuario intenta borrar el prefijo, no lo permitimos
-    if (!value.startsWith(phonePrefix)) {
+    if (!value.startsWith(prefix)) {
+      console.log('Value does not start with prefix, returning');
       return;
     }
 
     // Solo permitir números después del prefijo
-    const afterPrefix = value.substring(phonePrefix.length);
+    const afterPrefix = value.substring(prefix.length);
     const onlyNumbers = afterPrefix.replace(/\D/g, '');
 
+    console.log('After prefix:', afterPrefix);
+    console.log('Only numbers:', onlyNumbers);
+    console.log('Max length:', country.phone_max_length);
+    console.log('Within limit?', onlyNumbers.length <= country.phone_max_length);
+
     // Limitar según la longitud máxima
-    if (onlyNumbers.length <= phoneMaxLength) {
-      setDoctorPhone(phonePrefix + onlyNumbers);
+    if (onlyNumbers.length <= country.phone_max_length) {
+      const newPhone = prefix + onlyNumbers;
+      console.log('Setting phone to:', newPhone);
+      setDoctorPhone(newPhone);
     }
   };
 
@@ -200,13 +298,21 @@ export default function DoctoresPage() {
 
     // Validar longitud del teléfono (sin contar el prefijo)
     if (doctorPhone) {
-      const phoneDigits = doctorPhone.substring(phonePrefix.length);
-      if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
-        setErrors({
-          general: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
-        });
-        setIsLoading(false);
-        return;
+      // Obtener el país actual para validación
+      const country = countries.find(c => Number(c.id) === Number(selectedCountryId));
+      if (country) {
+        const prefix = `+${country.phone_code} `;
+        const phoneDigits = doctorPhone.substring(prefix.length);
+        const minLength = country.phone_min_length;
+        const maxLength = country.phone_max_length;
+
+        if (phoneDigits.length < minLength || phoneDigits.length > maxLength) {
+          setErrors({
+            general: `El teléfono debe tener entre ${minLength} y ${maxLength} dígitos`
+          });
+          setIsLoading(false);
+          return;
+        }
       }
     }
 
@@ -250,13 +356,31 @@ export default function DoctoresPage() {
 
     // Validar longitud del teléfono (sin contar el prefijo)
     if (doctorPhone) {
-      const phoneDigits = doctorPhone.substring(phonePrefix.length);
-      if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
-        setErrors({
-          general: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
+      // Obtener el país actual para validación
+      const country = countries.find(c => Number(c.id) === Number(selectedCountryId));
+      if (country) {
+        const prefix = `+${country.phone_code} `;
+        const phoneDigits = doctorPhone.substring(prefix.length);
+        const minLength = country.phone_min_length;
+        const maxLength = country.phone_max_length;
+
+        console.log('handleEditDoctor - Validation:', {
+          phoneMinLength: minLength,
+          phoneMaxLength: maxLength,
+          phonePrefix: prefix,
+          doctorPhone,
+          phoneDigits,
+          phoneDigitsLength: phoneDigits.length,
+          countryId: selectedCountryId
         });
-        setIsLoading(false);
-        return;
+
+        if (phoneDigits.length < minLength || phoneDigits.length > maxLength) {
+          setErrors({
+            general: `El teléfono debe tener entre ${minLength} y ${maxLength} dígitos`
+          });
+          setIsLoading(false);
+          return;
+        }
       }
     }
 
@@ -334,6 +458,7 @@ export default function DoctoresPage() {
   const handleCloseAdd = () => {
     resetForm();
     setSelectedDoctor(null);
+    resetSpecialtySearch();
     closeAddModal();
   };
 
@@ -347,7 +472,7 @@ export default function DoctoresPage() {
     setSelectedSpecialties(doctor.specialties.map(s => s.id));
 
     // Establecer el prefijo del teléfono basado en el país del doctor
-    const country = countries.find(c => c.id === doctor.country_id);
+    const country = countries.find(c => Number(c.id) === Number(doctor.country_id));
     if (country) {
       const prefix = `+${country.phone_code} `;
       setPhonePrefix(prefix);
@@ -367,6 +492,7 @@ export default function DoctoresPage() {
   const handleCloseEdit = () => {
     resetForm();
     setSelectedDoctor(null);
+    resetSpecialtySearch();
     closeEditModal();
   };
 
@@ -396,6 +522,35 @@ export default function DoctoresPage() {
         ? prev.filter(id => id !== specialtyId)
         : [...prev, specialtyId]
     );
+  };
+
+  // Filtrar especialidades por búsqueda
+  const filteredSpecialties = useMemo(() => {
+    const activeSpecialties = specialties.filter(s => s.status);
+
+    if (!specialtySearchQuery.trim()) return activeSpecialties;
+
+    const query = specialtySearchQuery.toLowerCase();
+    return activeSpecialties.filter(specialty =>
+      specialty.name.toLowerCase().includes(query)
+    );
+  }, [specialties, specialtySearchQuery]);
+
+  // Calcular paginación de especialidades
+  const totalSpecialtyPages = Math.ceil(filteredSpecialties.length / specialtiesPerPage);
+  const specialtyStartIndex = (specialtyCurrentPage - 1) * specialtiesPerPage;
+  const specialtyEndIndex = specialtyStartIndex + specialtiesPerPage;
+  const paginatedSpecialties = filteredSpecialties.slice(specialtyStartIndex, specialtyEndIndex);
+
+  // Resetear página cuando cambia la búsqueda
+  useEffect(() => {
+    setSpecialtyCurrentPage(1);
+  }, [specialtySearchQuery]);
+
+  // Resetear búsqueda y paginación al cerrar modales
+  const resetSpecialtySearch = () => {
+    setSpecialtySearchQuery("");
+    setSpecialtyCurrentPage(1);
   };
 
   const hasActiveFilters = countryFilter || specialtyFilter;
@@ -431,6 +586,39 @@ export default function DoctoresPage() {
             </svg>
             Agregar Doctor
           </Button>
+        </div>
+
+        {/* Buscador */}
+        <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] p-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre, email, teléfono, licencia, país o especialidad..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Mostrando {filteredDoctors.length} de {doctors.length} doctores
+            </p>
+          )}
         </div>
 
         {/* Filtros */}
@@ -487,7 +675,7 @@ export default function DoctoresPage() {
               </TableHeader>
 
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {filteredDoctors.map((doctor) => (
+                {paginatedDoctors.map((doctor) => (
                   <TableRow key={doctor.id}>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{doctor.id}</TableCell>
                     <TableCell className="px-5 py-4 text-start">
@@ -549,19 +737,107 @@ export default function DoctoresPage() {
               </TableBody>
             </Table>
 
-            {filteredDoctors.length === 0 && (
+            {paginatedDoctors.length === 0 && (
               <div className="px-5 py-12 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">No hay doctores</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">
+                  {searchQuery || hasActiveFilters ? "No se encontraron resultados" : "No hay doctores"}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {hasActiveFilters ? "No se encontraron doctores con los filtros seleccionados." : "Comienza agregando un nuevo doctor."}
+                  {searchQuery
+                    ? `No se encontraron doctores que coincidan con "${searchQuery}".`
+                    : hasActiveFilters
+                      ? "No se encontraron doctores con los filtros seleccionados."
+                      : "Comienza agregando un nuevo doctor."
+                  }
                 </p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Paginación */}
+        {filteredDoctors.length > 0 && (
+          <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-white/[0.05] px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-white/[0.03] hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                    <span className="font-medium">{Math.min(endIndex, filteredDoctors.length)}</span> de{' '}
+                    <span className="font-medium">{filteredDoctors.length}</span> resultados
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Anterior</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+
+                    {getPageNumbers().map((page, index) => (
+                      page === '...' ? (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            currentPage === page
+                              ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
+                              : 'bg-white dark:bg-white/[0.03] border-gray-300 dark:border-white/[0.05] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05]'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Siguiente</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal: Agregar Doctor */}
@@ -638,8 +914,37 @@ export default function DoctoresPage() {
               </div>
               <div>
                 <Label>Especialidades * (Selecciona al menos una)</Label>
-                <div className="space-y-2 mt-2 max-h-[200px] overflow-auto border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
-                  {specialties.filter(s => s.status).map((specialty) => (
+
+                {/* Buscador de especialidades */}
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={specialtySearchQuery}
+                    onChange={(e) => setSpecialtySearchQuery(e.target.value)}
+                    placeholder="Buscar especialidad..."
+                    className="block w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                  {specialtySearchQuery && (
+                    <button
+                      onClick={() => setSpecialtySearchQuery("")}
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Lista de especialidades */}
+                <div className="space-y-2 mt-2 border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
+                  {paginatedSpecialties.map((specialty) => (
                     <label key={specialty.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                       <input
                         type="checkbox"
@@ -650,7 +955,49 @@ export default function DoctoresPage() {
                       <span className="text-sm font-medium text-gray-800 dark:text-white/90">{specialty.name}</span>
                     </label>
                   ))}
+                  {paginatedSpecialties.length === 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                      No se encontraron especialidades
+                    </p>
+                  )}
                 </div>
+
+                {/* Paginación de especialidades */}
+                {filteredSpecialties.length > specialtiesPerPage && (
+                  <div className="flex items-center justify-between mt-2 px-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Mostrando {specialtyStartIndex + 1}-{Math.min(specialtyEndIndex, filteredSpecialties.length)} de {filteredSpecialties.length}
+                    </p>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSpecialtyCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={specialtyCurrentPage === 1}
+                        className="px-2 py-1 text-xs border border-gray-300 dark:border-white/[0.05] rounded bg-white dark:bg-white/[0.03] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Anterior
+                      </button>
+                      <span className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400">
+                        {specialtyCurrentPage} / {totalSpecialtyPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSpecialtyCurrentPage(prev => Math.min(prev + 1, totalSpecialtyPages))}
+                        disabled={specialtyCurrentPage === totalSpecialtyPages}
+                        className="px-2 py-1 text-xs border border-gray-300 dark:border-white/[0.05] rounded bg-white dark:bg-white/[0.03] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Siguiente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Contador de seleccionados */}
+                {selectedSpecialties.length > 0 && (
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
+                    {selectedSpecialties.length} especialidad{selectedSpecialties.length !== 1 ? 'es' : ''} seleccionada{selectedSpecialties.length !== 1 ? 's' : ''}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
@@ -696,7 +1043,7 @@ export default function DoctoresPage() {
                   options={countryOptions}
                   placeholder="Selecciona un país"
                   onChange={handleCountryChange}
-                  defaultValue={selectedCountryId?.toString() || ""}
+                  value={selectedCountryId?.toString() || ""}
                 />
               </div>
               <div>
@@ -737,8 +1084,37 @@ export default function DoctoresPage() {
               </div>
               <div>
                 <Label>Especialidades * (Selecciona al menos una)</Label>
-                <div className="space-y-2 mt-2 max-h-[200px] overflow-auto border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
-                  {specialties.filter(s => s.status).map((specialty) => (
+
+                {/* Buscador de especialidades */}
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={specialtySearchQuery}
+                    onChange={(e) => setSpecialtySearchQuery(e.target.value)}
+                    placeholder="Buscar especialidad..."
+                    className="block w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                  {specialtySearchQuery && (
+                    <button
+                      onClick={() => setSpecialtySearchQuery("")}
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Lista de especialidades */}
+                <div className="space-y-2 mt-2 border-t border-b border-gray-200 dark:border-white/[0.05] py-2">
+                  {paginatedSpecialties.map((specialty) => (
                     <label key={specialty.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                       <input
                         type="checkbox"
@@ -749,7 +1125,49 @@ export default function DoctoresPage() {
                       <span className="text-sm font-medium text-gray-800 dark:text-white/90">{specialty.name}</span>
                     </label>
                   ))}
+                  {paginatedSpecialties.length === 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                      No se encontraron especialidades
+                    </p>
+                  )}
                 </div>
+
+                {/* Paginación de especialidades */}
+                {filteredSpecialties.length > specialtiesPerPage && (
+                  <div className="flex items-center justify-between mt-2 px-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Mostrando {specialtyStartIndex + 1}-{Math.min(specialtyEndIndex, filteredSpecialties.length)} de {filteredSpecialties.length}
+                    </p>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSpecialtyCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={specialtyCurrentPage === 1}
+                        className="px-2 py-1 text-xs border border-gray-300 dark:border-white/[0.05] rounded bg-white dark:bg-white/[0.03] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Anterior
+                      </button>
+                      <span className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400">
+                        {specialtyCurrentPage} / {totalSpecialtyPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSpecialtyCurrentPage(prev => Math.min(prev + 1, totalSpecialtyPages))}
+                        disabled={specialtyCurrentPage === totalSpecialtyPages}
+                        className="px-2 py-1 text-xs border border-gray-300 dark:border-white/[0.05] rounded bg-white dark:bg-white/[0.03] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Siguiente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Contador de seleccionados */}
+                {selectedSpecialties.length > 0 && (
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
+                    {selectedSpecialties.length} especialidad{selectedSpecialties.length !== 1 ? 'es' : ''} seleccionada{selectedSpecialties.length !== 1 ? 's' : ''}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
