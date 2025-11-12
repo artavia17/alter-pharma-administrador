@@ -83,7 +83,7 @@ export default function ProductosPage() {
       product.description?.toLowerCase().includes(query) ||
       product.countries.some(country => country.name.toLowerCase().includes(query)) ||
       product.doses.some(dose =>
-        dose.name.toLowerCase().includes(query) ||
+        dose.name?.toLowerCase().includes(query) ||
         dose.description?.toLowerCase().includes(query)
       )
     );

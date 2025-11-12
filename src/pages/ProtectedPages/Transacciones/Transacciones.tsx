@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
 import { Modal } from "../../../components/ui/modal";
@@ -45,11 +45,6 @@ export default function TransaccionesPage() {
   // Modals
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
 
-  useEffect(() => {
-    loadPharmacies();
-    loadTransactions();
-  }, []);
-
   const loadPharmacies = async () => {
     try {
       const response = await getPharmacies();
@@ -61,7 +56,7 @@ export default function TransaccionesPage() {
     }
   };
 
-  const loadTransactions = async (page: number = 1) => {
+  const loadTransactions = useCallback(async (page: number = 1) => {
     setIsLoading(true);
     setErrors({});
 
@@ -96,7 +91,12 @@ export default function TransaccionesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [perPage, filterName, filterEmail, filterIdentification, filterPharmacyId, filterDateFrom, filterDateTo, filterEntryType]);
+
+  useEffect(() => {
+    loadPharmacies();
+    loadTransactions();
+  }, [loadTransactions]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,12 +313,23 @@ export default function TransaccionesPage() {
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <div>
-                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                          {transaction.product_dose?.product.name}
-                        </span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">
-                          {transaction.product_dose?.dose}
-                        </span>
+                        {transaction.products && transaction.products.length > 0 ? (
+                          <>
+                            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                              {transaction.products[0]?.product?.name || 'N/A'}
+                            </span>
+                            <span className="block text-xs text-gray-500 dark:text-gray-400">
+                              {transaction.products[0]?.product_dose?.dose || 'N/A'}
+                            </span>
+                            {transaction.products.length > 1 && (
+                              <span className="block text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                +{transaction.products.length - 1} más
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-gray-500 dark:text-gray-400">N/A</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="px-5 py-4">
@@ -331,7 +342,7 @@ export default function TransaccionesPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {formatDate(transaction.redemption_date)}
+                      {transaction.transaction_date ? formatDate(transaction.transaction_date) : 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-center">
                       <button onClick={() => openDetail(transaction)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
@@ -450,16 +461,41 @@ export default function TransaccionesPage() {
             </div>
 
             <div>
-              <Label>Producto y presentación</Label>
+              <Label>Productos</Label>
+              <div className="mt-2 space-y-3">
+                {selectedTransaction?.products && selectedTransaction.products.length > 0 ? (
+                  selectedTransaction.products.map((item, index) => (
+                    <div key={item.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                      <p className="text-sm font-medium text-gray-800 dark:text-white/90 mb-1">
+                        Producto {index + 1}
+                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Nombre:</span> {item.product?.name || 'N/A'}
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Presentación:</span> {item.product_dose?.dose || 'N/A'}
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Cantidad:</span> {item.quantity}
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Promoción:</span> Compra {item.product_dose?.promotion_buy} Lleva {item.product_dose?.promotion_get}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No hay productos registrados</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>Información de factura</Label>
               <div className="mt-2 space-y-1">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Producto:</span> {selectedTransaction?.product_dose?.product.name}
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Presentación:</span> {selectedTransaction?.product_dose?.dose}
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Promoción:</span> Compra {selectedTransaction?.product_dose?.promotion_buy} Lleva {selectedTransaction?.product_dose?.promotion_get}
+                  <span className="font-medium">Número de factura:</span> {selectedTransaction?.invoice_number || 'N/A'}
                 </p>
               </div>
             </div>
@@ -468,10 +504,10 @@ export default function TransaccionesPage() {
               <Label>Fechas</Label>
               <div className="mt-2 space-y-1">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Fecha de canje:</span> {selectedTransaction && formatDate(selectedTransaction.redemption_date)}
+                  <span className="font-medium">Fecha de transacción:</span> {selectedTransaction?.transaction_date ? formatDate(selectedTransaction.transaction_date) : 'N/A'}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Fecha de creación:</span> {selectedTransaction && formatDate(selectedTransaction.created_at)}
+                  <span className="font-medium">Fecha de creación:</span> {selectedTransaction?.created_at ? formatDate(selectedTransaction.created_at) : 'N/A'}
                 </p>
               </div>
             </div>
