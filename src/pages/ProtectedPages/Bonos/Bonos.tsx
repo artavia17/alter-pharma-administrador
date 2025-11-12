@@ -75,6 +75,13 @@ export default function Bonos() {
     message: string;
   }>({ show: false, type: "success", title: "", message: "" });
 
+  const [modalAlert, setModalAlert] = useState<{
+    show: boolean;
+    type: "success" | "error" | "warning" | "info";
+    title: string;
+    message: string;
+  }>({ show: false, type: "success", title: "", message: "" });
+
   useEffect(() => {
     loadData();
   }, []);
@@ -101,12 +108,15 @@ export default function Bonos() {
     }
   };
 
-  const handlePatientSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePatientSearch = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     // Validar que haya al menos un filtro
     if (!searchPatientName && !searchPatientEmail && !searchPatientPhone && !searchPatientIdentification) {
-      setAlert({
+      setModalAlert({
         show: true,
         type: "error",
         title: "Error",
@@ -117,6 +127,7 @@ export default function Bonos() {
 
     setSearchingPatients(true);
     setPatients([]);
+    setModalAlert({ show: false, type: "success", title: "", message: "" });
     try {
       const params: any = {};
       if (searchPatientName) params.name = searchPatientName;
@@ -130,7 +141,7 @@ export default function Bonos() {
         setPatients(response.data);
         setShowPatientResults(true);
         if (response.data.length === 0) {
-          setAlert({
+          setModalAlert({
             show: true,
             type: "warning",
             title: "Sin resultados",
@@ -142,7 +153,7 @@ export default function Bonos() {
       console.error("Error searching patients:", error);
       setPatients([]);
       setShowPatientResults(false);
-      setAlert({
+      setModalAlert({
         show: true,
         type: "error",
         title: "Error",
@@ -228,13 +239,14 @@ export default function Bonos() {
     setNotes("");
     setSendEmail(true);
     setDoses([]);
+    setModalAlert({ show: false, type: "success", title: "", message: "" });
   };
 
   const handleAddBonus = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (patientId === 0 || productDoseId === 0) {
-      setAlert({
+      setModalAlert({
         show: true,
         type: "error",
         title: "Error",
@@ -244,6 +256,7 @@ export default function Bonos() {
     }
 
     setIsAssigningBonus(true);
+    setModalAlert({ show: false, type: "success", title: "", message: "" });
     try {
       const response = await createBonus(patientId, {
         product_dose_id: productDoseId,
@@ -267,7 +280,7 @@ export default function Bonos() {
       }
     } catch (error: any) {
       console.error("Error creating bonus:", error);
-      setAlert({
+      setModalAlert({
         show: true,
         type: "error",
         title: "Error",
@@ -561,6 +574,15 @@ export default function Bonos() {
               Completa la información para asignar un bono a un paciente
             </p>
           </div>
+          {modalAlert.show && (
+            <div className="mb-4 px-2">
+              <Alert
+                variant={modalAlert.type}
+                title={modalAlert.title}
+                message={modalAlert.message}
+              />
+            </div>
+          )}
           <form className="flex flex-col" onSubmit={handleAddBonus}>
             <div className="custom-scrollbar max-h-[450px] overflow-y-auto border-y border-gray-200 px-2 pb-4 pt-4">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
@@ -596,63 +618,73 @@ export default function Bonos() {
                       </div>
                     ) : (
                       <>
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                          <div>
-                            <Label>Nombre</Label>
-                            <Input
-                              type="text"
-                              value={searchPatientName}
-                              onChange={(e) => setSearchPatientName(e.target.value)}
-                              placeholder="Ej: Carlos"
-                            />
+                        <div
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handlePatientSearch();
+                            }
+                          }}
+                        >
+                          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div>
+                              <Label>Nombre</Label>
+                              <Input
+                                type="text"
+                                value={searchPatientName}
+                                onChange={(e) => setSearchPatientName(e.target.value)}
+                                placeholder="Ej: Carlos"
+                              />
+                            </div>
+                            <div>
+                              <Label>Email</Label>
+                              <Input
+                                type="email"
+                                value={searchPatientEmail}
+                                onChange={(e) => setSearchPatientEmail(e.target.value)}
+                                placeholder="Ej: paciente@example.com"
+                              />
+                            </div>
+                            <div>
+                              <Label>Teléfono</Label>
+                              <Input
+                                type="text"
+                                value={searchPatientPhone}
+                                onChange={(e) => setSearchPatientPhone(e.target.value)}
+                                placeholder="Ej: +1-555-0000"
+                              />
+                            </div>
+                            <div>
+                              <Label>Número de Identificación</Label>
+                              <Input
+                                type="text"
+                                value={searchPatientIdentification}
+                                onChange={(e) => setSearchPatientIdentification(e.target.value)}
+                                placeholder="Ej: 001-123456-7"
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <Label>Email</Label>
-                            <Input
-                              type="email"
-                              value={searchPatientEmail}
-                              onChange={(e) => setSearchPatientEmail(e.target.value)}
-                              placeholder="Ej: paciente@example.com"
-                            />
-                          </div>
-                          <div>
-                            <Label>Teléfono</Label>
-                            <Input
-                              type="text"
-                              value={searchPatientPhone}
-                              onChange={(e) => setSearchPatientPhone(e.target.value)}
-                              placeholder="Ej: +1-555-0000"
-                            />
-                          </div>
-                          <div>
-                            <Label>Número de Identificación</Label>
-                            <Input
-                              type="text"
-                              value={searchPatientIdentification}
-                              onChange={(e) => setSearchPatientIdentification(e.target.value)}
-                              placeholder="Ej: 001-123456-7"
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => handlePatientSearch({ preventDefault: () => {} } as any)}
-                            disabled={searchingPatients}
-                          >
-                            {searchingPatients ? "Buscando..." : "Buscar Paciente"}
-                          </Button>
-                          {(searchPatientName || searchPatientEmail || searchPatientPhone || searchPatientIdentification) && (
+                          <div className="mt-3 flex gap-2">
                             <Button
                               type="button"
                               size="sm"
-                              variant="outline"
-                              onClick={handleResetPatientSearch}
+                              onClick={() => handlePatientSearch()}
+                              disabled={searchingPatients}
                             >
-                              Limpiar
+                              {searchingPatients ? "Buscando..." : "Buscar Paciente"}
                             </Button>
-                          )}
+                            {(searchPatientName || searchPatientEmail || searchPatientPhone || searchPatientIdentification) && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={handleResetPatientSearch}
+                              >
+                                Limpiar
+                              </Button>
+                            )}
+                          </div>
                         </div>
 
                         {/* Patient Results */}

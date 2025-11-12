@@ -29,7 +29,8 @@ import { formatDate } from "../../../helper/formatData";
 export default function DistribuidoresPage() {
   const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
-  const [states, setStates] = useState<StateData[]>([]);
+  const [allStates, setAllStates] = useState<StateData[]>([]); // Todos los estados para los filtros
+  const [states, setStates] = useState<StateData[]>([]); // Estados filtrados para el formulario
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDistributor, setSelectedDistributor] = useState<DistributorData | null>(null);
@@ -97,7 +98,7 @@ export default function DistribuidoresPage() {
     try {
       const response = await getStates();
       if (response.status === 200 && Array.isArray(response.data)) {
-        setStates(response.data); // Cargar todos los estados sin filtrar
+        setAllStates(response.data); // Cargar todos los estados sin filtrar para los filtros
       }
     } catch (error) {
       console.error("Error cargando estados:", error);
@@ -108,8 +109,8 @@ export default function DistribuidoresPage() {
     try {
       const response = await getStates();
       if (response.status === 200 && Array.isArray(response.data)) {
-        // Filtrar estados por país
-        const filteredStates = response.data.filter(state => state.country_id === countryId);
+        // Filtrar estados por país para el formulario
+        const filteredStates = response.data.filter(state => Number(state.country_id) === Number(countryId));
         setStates(filteredStates);
       }
     } catch (error) {
@@ -133,11 +134,11 @@ export default function DistribuidoresPage() {
     let filtered = distributors;
 
     if (countryFilter) {
-      filtered = filtered.filter(distributor => distributor.country_id === parseInt(countryFilter));
+      filtered = filtered.filter(distributor => Number(distributor.country_id) === Number(countryFilter));
     }
 
     if (stateFilter) {
-      filtered = filtered.filter(distributor => distributor.state_id === parseInt(stateFilter));
+      filtered = filtered.filter(distributor => Number(distributor.state_id) === Number(stateFilter));
     }
 
     return filtered;
@@ -156,14 +157,14 @@ export default function DistribuidoresPage() {
   const stateFilterOptions = useMemo(() => {
     // Si hay un país seleccionado, filtrar estados por ese país
     const filteredStates = countryFilter
-      ? states.filter(state => state.status && state.country_id === parseInt(countryFilter))
-      : states.filter(state => state.status);
+      ? allStates.filter(state => state.status && Number(state.country_id) === Number(countryFilter))
+      : allStates.filter(state => state.status);
 
     return filteredStates.map(state => ({
       value: state.id.toString(),
       label: state.name
     }));
-  }, [states, countryFilter]);
+  }, [allStates, countryFilter]);
 
   // Opciones para selects de formulario
   const countryOptions = useMemo(() => {
@@ -548,7 +549,7 @@ export default function DistribuidoresPage() {
                   setCountryFilter(value);
                   setStateFilter(""); // Limpiar el filtro de estado cuando cambia el país
                 }}
-                defaultValue=""
+                value={countryFilter}
               />
             </div>
             <div className="flex-1 min-w-[200px]">
@@ -556,7 +557,7 @@ export default function DistribuidoresPage() {
                 options={stateFilterOptions}
                 placeholder="Estado"
                 onChange={(value) => setStateFilter(value)}
-                defaultValue=""
+                value={stateFilter}
               />
             </div>
             {hasActiveFilters && (
