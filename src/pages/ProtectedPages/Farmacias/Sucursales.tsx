@@ -3,6 +3,7 @@ import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
+import Button from "../../../components/ui/button/Button";
 import {
   Table,
   TableBody,
@@ -10,11 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { getPharmaciesByCountry, getSubPharmacies } from "../../../services/protected/sub-pharmacies.services";
+import { getPharmaciesByCountry, getSubPharmacies, toggleSubPharmacyStatus, deleteSubPharmacy } from "../../../services/protected/sub-pharmacies.services";
 import { getCountries } from "../../../services/protected/countries.services";
 import { SubPharmacyData } from "../../../types/services/protected/sub-pharmacies.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
+import AddSubPharmacyModal from "../../../components/sub-pharmacies/AddSubPharmacyModal";
+import BulkUploadSubPharmacyModal from "../../../components/sub-pharmacies/BulkUploadSubPharmacyModal";
+import { useModal } from "../../../hooks/useModal";
 
 interface PharmacyOption {
   id: number;
@@ -36,6 +40,10 @@ export default function SucursalesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Modales
+  const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
+  const { isOpen: isBulkModalOpen, openModal: openBulkModal, closeModal: closeBulkModal } = useModal();
 
   useEffect(() => {
     loadCountries();
@@ -75,7 +83,9 @@ export default function SucursalesPage() {
     try {
       const response = await getPharmaciesByCountry(countryId);
       if (response.status === 200 && Array.isArray(response.data)) {
-        setPharmacies(response.data.map(p => ({
+        // Filtrar solo farmacias que son cadenas (is_chain: true)
+        const chainPharmacies = response.data.filter(p => p.is_chain === true);
+        setPharmacies(chainPharmacies.map(p => ({
           id: p.id,
           commercial_name: p.commercial_name,
           country_id: p.country_id
@@ -103,6 +113,38 @@ export default function SucursalesPage() {
       setIsLoading(false);
     }
   };
+
+  const handleToggleStatus = async (subPharmacyId: number) => {
+    if (!pharmacyFilter) return;
+
+    try {
+      await toggleSubPharmacyStatus(parseInt(pharmacyFilter), subPharmacyId);
+      loadSubPharmacies(parseInt(pharmacyFilter));
+    } catch (error) {
+      console.error("Error cambiando estado:", error);
+    }
+  };
+
+  const handleDelete = async (subPharmacyId: number) => {
+    if (!pharmacyFilter) return;
+
+    if (window.confirm("¿Estás seguro de que deseas eliminar esta sucursal?")) {
+      try {
+        await deleteSubPharmacy(parseInt(pharmacyFilter), subPharmacyId);
+        loadSubPharmacies(parseInt(pharmacyFilter));
+      } catch (error) {
+        console.error("Error eliminando sucursal:", error);
+      }
+    }
+  };
+
+  const handleModalSuccess = () => {
+    if (pharmacyFilter) {
+      loadSubPharmacies(parseInt(pharmacyFilter));
+    }
+  };
+
+  const selectedPharmacy = pharmacies.find(p => p.id === parseInt(pharmacyFilter || "0"));
 
   // Opciones para select de países
   const countryFilterOptions = useMemo(() => {
@@ -199,6 +241,22 @@ export default function SucursalesPage() {
               Visualiza las sucursales registradas por farmacia
             </p>
           </div>
+          {hasActiveFilters && (
+            <div className="flex gap-3">
+              <Button onClick={openBulkModal} size="md" variant="outline">
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Carga Masiva
+              </Button>
+              <Button onClick={openAddModal} size="md">
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Agregar Sucursal
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Filtros */}
@@ -280,6 +338,7 @@ export default function SucursalesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Administrador</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
               </TableHeader>
 
@@ -316,6 +375,38 @@ export default function SucursalesPage() {
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
                       {formatDate(subPharmacy.created_at)}
+                    </TableCell>
+                    <TableCell className="px-5 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleToggleStatus(subPharmacy.id)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            subPharmacy.status
+                              ? "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                              : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                          }`}
+                          title={subPharmacy.status ? "Desactivar" : "Activar"}
+                        >
+                          {subPharmacy.status ? (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(subPharmacy.id)}
+                          className="p-2 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                          title="Eliminar"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -441,6 +532,27 @@ export default function SucursalesPage() {
           </div>
         )}
       </div>
+
+      {/* Modales */}
+      {selectedPharmacy && (
+        <>
+          <AddSubPharmacyModal
+            isOpen={isAddModalOpen}
+            onClose={closeAddModal}
+            onSuccess={handleModalSuccess}
+            pharmacyId={selectedPharmacy.id}
+            countryId={selectedPharmacy.country_id}
+          />
+          <BulkUploadSubPharmacyModal
+            isOpen={isBulkModalOpen}
+            onClose={closeBulkModal}
+            onSuccess={handleModalSuccess}
+            pharmacyId={selectedPharmacy.id}
+            pharmacyName={selectedPharmacy.commercial_name}
+            countryId={selectedPharmacy.country_id}
+          />
+        </>
+      )}
     </>
   );
 }

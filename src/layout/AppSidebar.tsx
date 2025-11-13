@@ -62,7 +62,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     name: "Farmacias",
     subItems: [
-      { name: "Cadenas", path: "/farmaceuticas" },
+      { name: "Cadenas/Independientes", path: "/farmaceuticas" },
       { name: "Sucursales", path: "/farmaceuticas/sucursales" },
     ],
   },

@@ -25,6 +25,7 @@ import { CountryData } from "../../../types/services/protected/countries.types";
 import { StateData } from "../../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../../types/services/protected/municipalities.types";
 import { formatDate } from "../../../helper/formatData";
+import BulkUploadModal from "../../../components/pharmacies/BulkUploadModal";
 
 export default function FarmaceuticasPage() {
   const [pharmacies, setPharmacies] = useState<PharmacyData[]>([]);
@@ -63,8 +64,9 @@ export default function FarmaceuticasPage() {
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
-  const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+  const { isOpen: isEditOpen, closeModal: closeEditModal } = useModal();
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
+  const { isOpen: isBulkUploadOpen, openModal: openBulkUploadModal, closeModal: closeBulkUploadModal } = useModal();
 
   useEffect(() => {
     loadPharmacies();
@@ -425,41 +427,6 @@ export default function FarmaceuticasPage() {
     closeAddModal();
   };
 
-  // @ts-ignore - Function reserved for future edit functionality
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const openEdit = async (pharmacy: PharmacyData) => {
-    setSelectedPharmacy(pharmacy);
-    setLegalName(pharmacy.legal_name);
-    setCommercialName(pharmacy.commercial_name);
-    setIdentificationNumber(pharmacy.identification_number);
-    setStreetAddress(pharmacy.street_address);
-    setPhone(pharmacy.phone);
-    setEmail(pharmacy.email);
-    setAdministratorName(pharmacy.administrator_name);
-    setIsChain(pharmacy.is_chain);
-    setSelectedCountryId(pharmacy.country_id);
-    setSelectedStateId(pharmacy.state_id);
-    setSelectedMunicipalityId(pharmacy.municipality_id);
-
-    // Establecer prefijo y longitudes actuales desde el país
-    const prefix = `+${pharmacy.country.phone_code} `;
-    setPhonePrefix(prefix);
-    setPhoneMinLength(pharmacy.country.phone_min_length);
-    setPhoneMaxLength(pharmacy.country.phone_max_length);
-
-    // Cargar municipios del estado
-    try {
-      const response = await getMunicipalities(pharmacy.state_id);
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setMunicipalities(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando municipios:", error);
-      setMunicipalities([]);
-    }
-
-    openEditModal();
-  };
 
   const handleCloseEdit = () => {
     resetForm();
@@ -482,34 +449,49 @@ export default function FarmaceuticasPage() {
   return (
     <>
       <PageMeta
-        title="Cadenas | Alter Pharma"
+        title="Cadenas/Independientes | Alter Pharma"
         description="Gestión de cadenas en el sistema"
       />
-      <PageBreadcrumb pageTitle="Cadenas" />
+      <PageBreadcrumb pageTitle="Cadenas/Independientes" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Gestión de Cadenas
+              Gestión de Cadenas/Independientes
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Administra las farmacéuticas registradas en el sistema
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Cadena
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={openBulkUploadModal} size="md" variant="outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Carga Masiva
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Cadena
+            </Button>
+          </div>
         </div>
 
         {/* Buscador */}
@@ -625,12 +607,6 @@ export default function FarmaceuticasPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                           </svg>
                         </button>
-                        {/* Esta opcion se remueve porque no se agrego */}
-                        {/* <button onClick={() => openEdit(pharmacy)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar farmacéutica">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                          </svg>
-                        </button> */}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -1143,6 +1119,13 @@ export default function FarmaceuticasPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Modal: Carga Masiva */}
+      <BulkUploadModal
+        isOpen={isBulkUploadOpen}
+        onClose={closeBulkUploadModal}
+        onSuccess={loadPharmacies}
+      />
     </>
   );
 }

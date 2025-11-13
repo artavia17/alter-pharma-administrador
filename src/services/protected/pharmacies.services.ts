@@ -39,10 +39,50 @@ const togglePharmacyStatus = async (id: number) => {
     return response.data;
 };
 
+interface BulkPharmacyData {
+    country_id: number;
+    state_id: number;
+    municipality_id: number;
+    legal_name: string;
+    commercial_name: string;
+    identification_number: string;
+    street_address: string;
+    phone: string;
+    email: string;
+    administrator_name: string;
+    is_chain: boolean;
+}
+
+interface BulkCreatePharmaciesParams {
+    pharmacies: BulkPharmacyData[];
+}
+
+interface BulkCreatePharmaciesResponse {
+    status: number;
+    message: string;
+    data: {
+        success: any[];
+        errors: any[];
+        summary: {
+            total: number;
+            created: number;
+            failed: number;
+        };
+    };
+}
+
+const bulkCreatePharmacies = async (params: BulkCreatePharmaciesParams) => {
+    const response = await api.post<BulkCreatePharmaciesResponse>("/administrator/pharmacies/bulk", params);
+    return response.data;
+};
+
 export {
     getPharmacies,
     getPharmacy,
     createPharmacy,
     updatePharmacy,
-    togglePharmacyStatus
+    togglePharmacyStatus,
+    bulkCreatePharmacies
 };
+
+export type { BulkPharmacyData, BulkCreatePharmaciesParams, BulkCreatePharmaciesResponse };
