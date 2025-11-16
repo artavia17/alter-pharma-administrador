@@ -103,8 +103,26 @@ export default function UsuariosPage() {
     setErrors({});
 
     try {
-      const response = await updateUser(selectedUser.id, userName, userEmail, selectedModules);
+      // Actualizar nombre del usuario (sin módulos)
+      const response = await updateUser(selectedUser.id, userName);
       if (response.status === 200) {
+        // Gestionar permisos por separado
+        const currentModuleIds = selectedUser.user_modules.map(m => m.id);
+
+        // Módulos a agregar
+        const modulesToAdd = selectedModules.filter(id => !currentModuleIds.includes(id));
+
+        // Módulos a eliminar
+        const modulesToRemove = currentModuleIds.filter(id => !selectedModules.includes(id));
+
+        if (modulesToAdd.length > 0) {
+          await addPermissions(selectedUser.id, modulesToAdd);
+        }
+
+        if (modulesToRemove.length > 0) {
+          await removePermissions(selectedUser.id, modulesToRemove);
+        }
+
         await loadUsers();
         setUserName("");
         setUserEmail("");

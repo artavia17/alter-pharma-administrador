@@ -105,6 +105,7 @@ export default function SignInForm() {
         setCookieHelper('user_updated_at', user.updated_at);
         setCookieHelper('user_created_at', user.created_at);
         setCookieHelper('user_email_verified_at', user.email_verified_at || '');
+        setCookieHelper('user_modules', JSON.stringify(user.user_modules));
 
         // Redirect to the page the user was trying to access, or home page by default
         const redirectPath = searchParams.get('redirect') || '/';

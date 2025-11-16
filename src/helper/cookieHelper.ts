@@ -37,5 +37,6 @@ const clearCookies = () => {
 export {
   setCookieHelper,
   getCookie,
+  getCookie as getCookieHelper,
   clearCookies
 }

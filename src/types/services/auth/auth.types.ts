@@ -2,6 +2,12 @@ import { ApiResponse } from "../api.types";
 
 // Iniciar sesión
 
+export interface UserModule {
+  id: number;
+  name: string;
+  description: string;
+}
+
 export interface LoginSuccessData {
   token: string;
   user: {
@@ -10,8 +16,10 @@ export interface LoginSuccessData {
     email: string;
     profile_image: string | null;
     email_verified_at: string | null;
+    status: boolean;
     created_at: string;
     updated_at: string;
+    user_modules: UserModule[];
   };
 }
 

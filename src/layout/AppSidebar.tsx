@@ -15,12 +15,14 @@ import {
   GroupIcon
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+import { hasAnyModuleAccess } from "../helper/permissionsHelper";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  requiredModules?: string[]; // Módulos requeridos para mostrar este item
 };
 
 const navItems: NavItem[] = [
@@ -32,6 +34,7 @@ const navItems: NavItem[] = [
       { name: "Reportes de Canjes", path: "/reportes/canjes" },
       { name: "Pacientes - Productos", path: "/reportes/pacientes-productos" },
     ],
+    // Inicio siempre visible para todos
   },
   {
     icon: <UserIcon />,
@@ -40,6 +43,7 @@ const navItems: NavItem[] = [
       { name: "Modulos", path: "/modulos" },
       { name: "Usuarios", path: "/modulos/usuarios" },
     ],
+    requiredModules: ["users"], // Requiere módulo de usuarios
   },
   {
     icon: <GlobeAmericas />,
@@ -49,6 +53,7 @@ const navItems: NavItem[] = [
       { name: "Ciudades/Provincias", path: "/localizaciones/ciudades" },
       { name: "Municipios/Cantones", path: "/localizaciones/municipios" },
     ],
+    requiredModules: ["countries"], // Requiere módulo de países
   },
   {
     icon: <DocumentCurrency />,
@@ -57,6 +62,7 @@ const navItems: NavItem[] = [
       { name: "Nuestros doctores", path: "/doctores" },
       { name: "Especialidades", path: "/doctores/especialidades" },
     ],
+    requiredModules: ["doctors"], // Requiere módulo de doctores
   },
   {
     icon: <TableIcon />,
@@ -65,6 +71,7 @@ const navItems: NavItem[] = [
       { name: "Cadenas/Independientes", path: "/farmaceuticas" },
       { name: "Sucursales", path: "/farmaceuticas/sucursales" },
     ],
+    requiredModules: ["pharmacies"], // Requiere módulo de farmacias
   },
   {
     icon: <BoxCubeIcon />,
@@ -73,26 +80,31 @@ const navItems: NavItem[] = [
       { name: "Productos", path: "/medicamentos/productos" },
       { name: "Presentación", path: "/medicamentos/presentacion" },
     ],
+    requiredModules: ["products"], // Requiere módulo de productos
   },
   {
     icon: <GroupIcon />,
     name: "Pacientes",
     path: "/pacientes",
+    requiredModules: ["users"], // Requiere módulo de usuarios
   },
   {
     icon: <ListIcon />,
     name: "Transacciones",
     path: "/transacciones",
+    requiredModules: ["users"], // Requiere módulo de usuarios
   },
   {
     icon: <BoxCubeIcon />,
     name: "Distribuidores",
     path: "/distribuidores",
+    requiredModules: ["users"], // Requiere módulo de usuarios
   },
   {
     icon: <DocumentCurrency />,
     name: "Bonos",
     path: "/bonos",
+    requiredModules: ["users"], // Requiere módulo de usuarios
   },
   // {
   //   icon: <CalenderIcon />,
@@ -148,7 +160,7 @@ const AppSidebar: React.FC = () => {
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
-    index: number;
+    name: string;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {}
@@ -165,13 +177,13 @@ const AppSidebar: React.FC = () => {
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
       const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
+      items.forEach((nav) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
               setOpenSubmenu({
                 type: menuType as "main" | "others",
-                index,
+                name: nav.name,
               });
               submenuMatched = true;
             }
@@ -187,7 +199,7 @@ const AppSidebar: React.FC = () => {
 
   useEffect(() => {
     if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
+      const key = `${openSubmenu.type}-${openSubmenu.name}`;
       if (subMenuRefs.current[key]) {
         setSubMenuHeight((prevHeights) => ({
           ...prevHeights,
@@ -197,28 +209,39 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+  const handleSubmenuToggle = (name: string, menuType: "main" | "others") => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
         prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
+        prevOpenSubmenu.name === name
       ) {
         return null;
       }
-      return { type: menuType, index };
+      return { type: menuType, name };
     });
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
-    <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => (
-        <li key={nav.name}>
+  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => {
+    // Filtrar items según permisos del usuario
+    const filteredItems = items.filter(nav => {
+      // Si no requiere módulos, siempre mostrar (ej: Inicio)
+      if (!nav.requiredModules || nav.requiredModules.length === 0) {
+        return true;
+      }
+      // Verificar si el usuario tiene acceso a alguno de los módulos requeridos
+      return hasAnyModuleAccess(nav.requiredModules);
+    });
+
+    return (
+      <ul className="flex flex-col gap-4">
+        {filteredItems.map((nav) => (
+          <li key={nav.name}>
           {nav.subItems ? (
             <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
+              onClick={() => handleSubmenuToggle(nav.name, menuType)}
               className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+                openSubmenu?.type === menuType && openSubmenu?.name === nav.name
                   ? "menu-item-active"
                   : "menu-item-inactive"
               } cursor-pointer ${
@@ -229,7 +252,7 @@ const AppSidebar: React.FC = () => {
             >
               <span
                 className={`menu-item-icon-size  ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                  openSubmenu?.type === menuType && openSubmenu?.name === nav.name
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
                 }`}
@@ -243,7 +266,7 @@ const AppSidebar: React.FC = () => {
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
+                    openSubmenu?.name === nav.name
                       ? "rotate-180 text-brand-500"
                       : ""
                   }`}
@@ -276,13 +299,13 @@ const AppSidebar: React.FC = () => {
           {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
             <div
               ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
+                subMenuRefs.current[`${menuType}-${nav.name}`] = el;
               }}
               className="overflow-hidden transition-all duration-300"
               style={{
                 height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
+                  openSubmenu?.type === menuType && openSubmenu?.name === nav.name
+                    ? `${subMenuHeight[`${menuType}-${nav.name}`]}px`
                     : "0px",
               }}
             >
@@ -305,9 +328,10 @@ const AppSidebar: React.FC = () => {
             </div>
           )}
         </li>
-      ))}
-    </ul>
-  );
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <aside
