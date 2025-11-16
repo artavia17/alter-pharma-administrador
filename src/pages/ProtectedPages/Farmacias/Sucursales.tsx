@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
+import { Modal } from "../../../components/ui/modal";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
 import Button from "../../../components/ui/button/Button";
@@ -44,6 +45,10 @@ export default function SucursalesPage() {
   // Modales
   const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isBulkModalOpen, openModal: openBulkModal, closeModal: closeBulkModal } = useModal();
+  const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
+
+  // Estado para la sucursal a eliminar
+  const [subPharmacyToDelete, setSubPharmacyToDelete] = useState<SubPharmacyData | null>(null);
 
   useEffect(() => {
     loadCountries();
@@ -125,16 +130,29 @@ export default function SucursalesPage() {
     }
   };
 
-  const handleDelete = async (subPharmacyId: number) => {
-    if (!pharmacyFilter) return;
+  const openDelete = (subPharmacy: SubPharmacyData) => {
+    setSubPharmacyToDelete(subPharmacy);
+    openDeleteModal();
+  };
 
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta sucursal?")) {
-      try {
-        await deleteSubPharmacy(parseInt(pharmacyFilter), subPharmacyId);
-        loadSubPharmacies(parseInt(pharmacyFilter));
-      } catch (error) {
-        console.error("Error eliminando sucursal:", error);
-      }
+  const handleCloseDelete = () => {
+    setSubPharmacyToDelete(null);
+    closeDeleteModal();
+  };
+
+  const handleDeleteSubPharmacy = async () => {
+    if (!pharmacyFilter || !subPharmacyToDelete) return;
+    setIsLoading(true);
+
+    try {
+      await deleteSubPharmacy(parseInt(pharmacyFilter), subPharmacyToDelete.id);
+      await loadSubPharmacies(parseInt(pharmacyFilter));
+      setSubPharmacyToDelete(null);
+      closeDeleteModal();
+    } catch (error) {
+      console.error("Error eliminando sucursal:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -398,7 +416,7 @@ export default function SucursalesPage() {
                           )}
                         </button>
                         <button
-                          onClick={() => handleDelete(subPharmacy.id)}
+                          onClick={() => openDelete(subPharmacy)}
                           className="p-2 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
                           title="Eliminar"
                         >
@@ -553,6 +571,32 @@ export default function SucursalesPage() {
           />
         </>
       )}
+
+      {/* Modal: Eliminar Sucursal */}
+      <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDelete} className="max-w-[500px] m-4">
+        <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+          <div className="px-2 pr-14 mb-6">
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Eliminar Sucursal</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              ¿Estás seguro de que deseas eliminar la sucursal <strong>{subPharmacyToDelete?.commercial_name}</strong>?
+            </p>
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+              Esta acción no se puede deshacer.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+            <Button size="sm" variant="outline" onClick={handleCloseDelete}>Cancelar</Button>
+            <Button
+              size="sm"
+              onClick={handleDeleteSubPharmacy}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+            >
+              {isLoading ? 'Eliminando...' : 'Eliminar'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
