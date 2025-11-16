@@ -199,7 +199,7 @@ export default function Home() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reportes de Compras</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reportes de compras</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Visualiza estadísticas y reportes de transacciones, farmacias y productos
           </p>
@@ -302,7 +302,7 @@ export default function Home() {
         {/* Purchase Report Table */}
         <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div className="border-b border-gray-200 p-4 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reporte de Compras</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reporte de compras</h2>
           </div>
 
           {loadingPurchase ? (

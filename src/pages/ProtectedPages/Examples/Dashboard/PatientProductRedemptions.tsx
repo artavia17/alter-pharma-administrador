@@ -183,7 +183,7 @@ export default function PatientProductRedemptions() {
         {/* Report Table */}
         <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div className="border-b border-gray-200 p-4 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reporte de Canjes</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reporte de canjes</h2>
           </div>
 
           {loading ? (

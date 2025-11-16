@@ -32,7 +32,7 @@ export default function DefaultInputs() {
           <Label>Select Input</Label>
           <Select
             options={options}
-            placeholder="Select an option"
+            placeholder="Seleccione una opción"
             onChange={handleSelectChange}
             className="dark:bg-dark-900"
           />

@@ -30,8 +30,8 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Inicio",
     subItems: [
-      { name: "Reportes de Compras", path: "/" },
-      { name: "Reportes de Canjes", path: "/reportes/canjes" },
+      { name: "Reportes de compras", path: "/" },
+      { name: "Reportes de canjes", path: "/reportes/canjes" },
       { name: "Pacientes - Productos", path: "/reportes/pacientes-productos" },
     ],
     // Inicio siempre visible para todos
@@ -40,7 +40,7 @@ const navItems: NavItem[] = [
     icon: <UserIcon />,
     name: "Accesos",
     subItems: [
-      { name: "Modulos", path: "/modulos" },
+      { name: "Módulos", path: "/modulos" },
       { name: "Usuarios", path: "/modulos/usuarios" },
     ],
     requiredModules: ["users"], // Requiere módulo de usuarios
