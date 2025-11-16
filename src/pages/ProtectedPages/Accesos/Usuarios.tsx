@@ -383,8 +383,8 @@ export default function UsuariosPage() {
                 <Input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Ej: Juan Pérez" />
               </div>
               <div>
-                <Label>Correo electrónico (Opcional)</Label>
-                <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="Ej: juan.perez@empresa.com" />
+                <Label>Correo electrónico</Label>
+                <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="Ej: juan.perez@empresa.com" disabled/>
               </div>
               <div>
                 <Label>Módulos de acceso</Label>
