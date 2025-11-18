@@ -20,6 +20,7 @@ import { getPharmacies } from "../../../services/protected/pharmacies.services";
 import { TransactionData, TransactionsPagination } from "../../../types/services/protected/transactions.types";
 import { PharmacyData } from "../../../types/services/protected/pharmacies.types";
 import { formatDate } from "../../../helper/formatData";
+import * as XLSX from 'xlsx';
 
 export default function TransaccionesPage() {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
@@ -161,6 +162,64 @@ export default function TransaccionesPage() {
 
   const hasActiveFilters = filterName || filterEmail || filterIdentification || filterPharmacyId || filterDateFrom || filterDateTo || filterEntryType;
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Preparar los datos para exportar
+      const dataToExport = transactions.map(transaction => {
+        const fullName = transaction.patient
+          ? `${transaction.patient.first_name} ${transaction.patient.last_name}${transaction.patient.second_last_name ? ' ' + transaction.patient.second_last_name : ''}`
+          : 'N/A';
+
+        // Obtener productos de la transacción con cantidad
+        const productsList = transaction.products && transaction.products.length > 0
+          ? transaction.products.map(p => `${p.product?.name || 'N/A'} - ${p.product_dose?.dose || 'N/A'} (Cant: ${p.quantity})`).join('; ')
+          : 'N/A';
+
+        return {
+          'ID': transaction.id,
+          'No. Factura': transaction.invoice_number || 'N/A',
+          'Paciente': fullName,
+          'Email': transaction.patient?.email || 'N/A',
+          'Teléfono': transaction.patient?.phone || 'N/A',
+          'Identificación': transaction.patient?.identification_number || 'N/A',
+          'Farmacia': transaction.pharmacy?.commercial_name || 'N/A',
+          'Productos': productsList,
+          'Total': transaction.total || 'N/A',
+          'Tipo de Entrada': transaction.entry_type === 'automatic' ? 'Automático' : 'Manual',
+          'Fecha de Transacción': formatDate(transaction.created_at)
+        };
+      });
+
+      // Crear libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Transacciones');
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // ID
+        { wch: 20 },  // No. Factura
+        { wch: 40 },  // Paciente
+        { wch: 30 },  // Email
+        { wch: 15 },  // Teléfono
+        { wch: 20 },  // Identificación
+        { wch: 35 },  // Farmacia
+        { wch: 60 },  // Productos
+        { wch: 15 },  // Total
+        { wch: 15 },  // Tipo de Entrada
+        { wch: 20 }   // Fecha de Transacción
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generar archivo Excel
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Transacciones_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+    }
+  };
+
   return (
     <>
       <PageMeta title="Transacciones | Alter Pharma" description="Gestión de transacciones en el sistema" />
@@ -174,6 +233,21 @@ export default function TransaccionesPage() {
               Listado de todas las transacciones del sistema
             </p>
           </div>
+          {transactions.length > 0 && (
+            <Button onClick={handleExportToExcel} size="md" variant="outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
+          )}
         </div>
 
         {/* Filtros */}

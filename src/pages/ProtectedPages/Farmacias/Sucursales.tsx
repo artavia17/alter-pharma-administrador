@@ -20,6 +20,7 @@ import { formatDate } from "../../../helper/formatData";
 import AddSubPharmacyModal from "../../../components/sub-pharmacies/AddSubPharmacyModal";
 import BulkUploadSubPharmacyModal from "../../../components/sub-pharmacies/BulkUploadSubPharmacyModal";
 import { useModal } from "../../../hooks/useModal";
+import * as XLSX from 'xlsx';
 
 interface PharmacyOption {
   id: number;
@@ -241,6 +242,47 @@ export default function SucursalesPage() {
 
   const hasActiveFilters = countryFilter && pharmacyFilter;
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    // Preparar los datos para exportar
+    const dataToExport = filteredSubPharmacies.map(subPharmacy => ({
+      'ID': subPharmacy.id,
+      'Nombre Comercial': subPharmacy.commercial_name,
+      'Farmacéutica': subPharmacy.pharmacy.commercial_name,
+      'Dirección Física': subPharmacy.physical_address || 'N/A',
+      'País': subPharmacy.pharmacy.country.name,
+      'Teléfono': subPharmacy.phone || 'N/A',
+      'Email': subPharmacy.email || 'N/A',
+      'Administrador': subPharmacy.administrator_name || 'N/A',
+      'Estado': subPharmacy.status ? 'Activo' : 'Inactivo',
+      'Fecha de Creación': formatDate(subPharmacy.created_at)
+    }));
+
+    // Crear libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sucursales');
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 5 },   // ID
+      { wch: 30 },  // Nombre Comercial
+      { wch: 35 },  // Farmacéutica
+      { wch: 40 },  // Dirección Física
+      { wch: 25 },  // País
+      { wch: 15 },  // Teléfono
+      { wch: 30 },  // Email
+      { wch: 30 },  // Administrador
+      { wch: 12 },  // Estado
+      { wch: 18 }   // Fecha de Creación
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generar archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Sucursales_${timestamp}.xlsx`);
+  };
+
   return (
     <>
       <PageMeta
@@ -260,7 +302,20 @@ export default function SucursalesPage() {
             </p>
           </div>
           {hasActiveFilters && (
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
+              <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredSubPharmacies.length === 0}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 mr-2"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Exportar a Excel
+              </Button>
               <Button onClick={openBulkModal} size="md" variant="outline">
                 <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />

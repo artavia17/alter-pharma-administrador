@@ -24,6 +24,7 @@ import { CountryData } from "../../../types/services/protected/countries.types";
 import { SpecialtyData } from "../../../types/services/protected/specialties.types";
 import { formatDate } from "../../../helper/formatData";
 import BulkUploadDoctorModal from "../../../components/doctors/BulkUploadDoctorModal";
+import * as XLSX from 'xlsx';
 
 export default function DoctoresPage() {
   const [doctors, setDoctors] = useState<DoctorData[]>([]);
@@ -559,6 +560,47 @@ export default function DoctoresPage() {
 
   const hasActiveFilters = countryFilter || specialtyFilter;
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    // Preparar los datos para exportar
+    const dataToExport = filteredDoctors.map(doctor => ({
+      'ID': doctor.id,
+      'Nombre': doctor.name,
+      'Email': doctor.email || 'N/A',
+      'Teléfono': doctor.phone || 'N/A',
+      'Número de Licencia': doctor.license_number || 'N/A',
+      'País': doctor.country.name,
+      'Código de País': doctor.country.code,
+      'Especialidades': doctor.specialties.map(s => s.name).join(', '),
+      'Estado': doctor.status ? 'Activo' : 'Inactivo',
+      'Fecha de Creación': formatDate(doctor.created_at)
+    }));
+
+    // Crear libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Doctores');
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 5 },   // ID
+      { wch: 30 },  // Nombre
+      { wch: 30 },  // Email
+      { wch: 15 },  // Teléfono
+      { wch: 15 },  // Licencia
+      { wch: 25 },  // País
+      { wch: 18 },  // Código de País
+      { wch: 40 },  // Especialidades
+      { wch: 12 },  // Estado
+      { wch: 18 }   // Fecha de Creación
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generar archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Doctores_${timestamp}.xlsx`);
+  };
+
   return (
     <>
       <PageMeta
@@ -577,7 +619,20 @@ export default function DoctoresPage() {
               Administra los doctores y sus especialidades
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredDoctors.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
             <Button onClick={openBulkUploadModal} size="md" variant="outline">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

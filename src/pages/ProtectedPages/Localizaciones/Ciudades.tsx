@@ -22,6 +22,7 @@ import { StateData } from "../../../types/services/protected/states.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
 import BulkUploadStateModal from "../../../components/states/BulkUploadStateModal";
+import * as XLSX from 'xlsx';
 
 export default function CiudadesPage() {
   const [states, setStates] = useState<StateData[]>([]);
@@ -286,6 +287,39 @@ export default function CiudadesPage() {
     closeDeleteModal();
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    // Preparar los datos para exportar
+    const dataToExport = filteredStates.map(state => ({
+      'ID': state.id,
+      'Ciudad/Provincia': state.name,
+      'País': state.country.name,
+      'Código de País': state.country.code,
+      'Estado': state.status ? 'Activo' : 'Inactivo',
+      'Fecha de Creación': formatDate(state.created_at)
+    }));
+
+    // Crear libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ciudades');
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 5 },   // ID
+      { wch: 30 },  // Ciudad/Provincia
+      { wch: 25 },  // País
+      { wch: 18 },  // Código de País
+      { wch: 12 },  // Estado
+      { wch: 18 }   // Fecha de Creación
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generar archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Ciudades_${timestamp}.xlsx`);
+  };
+
   return (
     <>
       <PageMeta
@@ -304,7 +338,20 @@ export default function CiudadesPage() {
               Administra las ciudades y ciudades por país
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredStates.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
             <Button onClick={openBulkUploadModal} size="md" variant="outline">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

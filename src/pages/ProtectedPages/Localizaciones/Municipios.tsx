@@ -23,6 +23,7 @@ import { MunicipalityData } from "../../../types/services/protected/municipaliti
 import { CountryData, StateData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
 import BulkUploadMunicipalityModal from "../../../components/municipalities/BulkUploadMunicipalityModal";
+import * as XLSX from 'xlsx';
 
 export default function MunicipiosPage() {
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
@@ -299,6 +300,47 @@ export default function MunicipiosPage() {
     closeDeleteModal();
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    // Obtener el estado seleccionado del filtro
+    const selectedState = states.find(s => s.id.toString() === stateFilter);
+    const selectedCountry = countries.find(c => c.id.toString() === countryFilter);
+
+    // Preparar los datos para exportar
+    const dataToExport = filteredMunicipalities.map(municipality => {
+      return {
+        'ID': municipality.id,
+        'Municipio/Cantón': municipality.name,
+        'Ciudad/Provincia': selectedState?.name || 'N/A',
+        'País': selectedCountry?.name || 'N/A',
+        'Código de País': selectedCountry?.code || 'N/A',
+        'Estado': municipality.status ? 'Activo' : 'Inactivo',
+        'Fecha de Creación': formatDate(municipality.created_at)
+      };
+    });
+
+    // Crear libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Municipios');
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 5 },   // ID
+      { wch: 30 },  // Municipio/Cantón
+      { wch: 25 },  // Ciudad/Provincia
+      { wch: 25 },  // País
+      { wch: 18 },  // Código de País
+      { wch: 12 },  // Estado
+      { wch: 18 }   // Fecha de Creación
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generar archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Municipios_${timestamp}.xlsx`);
+  };
+
   // Filtrar municipios por búsqueda
   const filteredMunicipalities = useMemo(() => {
     if (!searchQuery.trim()) return municipalities;
@@ -409,7 +451,20 @@ export default function MunicipiosPage() {
               Administra los municipios por ciudad y país
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredMunicipalities.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
             <Button onClick={openBulkUploadModal} size="md" variant="outline">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

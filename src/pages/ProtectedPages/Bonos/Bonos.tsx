@@ -23,6 +23,7 @@ import { BonusData, BonusStatistics } from "../../../types/services/protected/bo
 import { PatientData } from "../../../types/services/protected/patients.types";
 import { ProductData } from "../../../types/services/protected/products.types";
 import { DoseData } from "../../../types/services/protected/doses.types";
+import * as XLSX from 'xlsx';
 
 export default function Bonos() {
   useTitle("Bonos");
@@ -350,6 +351,68 @@ export default function Bonos() {
     });
   }, [bonuses, searchTerm, statusFilter]);
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Preparar los datos para exportar
+      const dataToExport = filteredBonuses.map(bonus => {
+        const fullName = bonus.patient
+          ? `${bonus.patient.first_name} ${bonus.patient.last_name}${bonus.patient.second_last_name ? ' ' + bonus.patient.second_last_name : ''}`
+          : 'N/A';
+
+        const statusText = bonus.status === 'available' ? 'Disponible'
+          : bonus.status === 'redeemed' ? 'Canjeado'
+          : bonus.status === 'expired' ? 'Expirado'
+          : bonus.status;
+
+        return {
+          'ID': bonus.id,
+          'Paciente': fullName,
+          'Email': bonus.patient?.email || 'N/A',
+          'Producto': bonus.product?.name || 'N/A',
+          'Presentación': bonus.product_dose?.dose || 'N/A',
+          'Estado': statusText,
+          'Fecha de Compra': bonus.purchase_date || 'N/A',
+          'Fecha de Expiración': bonus.expiration_date || 'N/A',
+          'Fecha de Canje': bonus.redeemed_at || 'N/A',
+          'Días para Canje': bonus.redemption_days,
+          'Fuente': bonus.source || 'N/A',
+          'Notas': bonus.notes || 'N/A',
+          'Fecha de Creación': formatDate(bonus.created_at)
+        };
+      });
+
+      // Crear libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Bonos');
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // ID
+        { wch: 40 },  // Paciente
+        { wch: 30 },  // Email
+        { wch: 40 },  // Producto
+        { wch: 25 },  // Presentación
+        { wch: 15 },  // Estado
+        { wch: 18 },  // Fecha de Compra
+        { wch: 18 },  // Fecha de Expiración
+        { wch: 18 },  // Fecha de Canje
+        { wch: 18 },  // Días para Canje
+        { wch: 15 },  // Fuente
+        { wch: 50 },  // Notas
+        { wch: 18 }   // Fecha de Creación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generar archivo Excel
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Bonos_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "available":
@@ -440,22 +503,40 @@ export default function Bonos() {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
             Lista de Bonos
           </h3>
-          <Button size="sm" onClick={openAddModal}>
-            <svg
-              className="size-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Asignar Bono
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button size="sm" variant="outline" onClick={handleExportToExcel} disabled={filteredBonuses.length === 0}>
+              <svg
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                />
+              </svg>
+              Exportar a Excel
+            </Button>
+            <Button size="sm" onClick={openAddModal}>
+              <svg
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Asignar Bono
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

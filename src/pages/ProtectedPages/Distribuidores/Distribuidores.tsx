@@ -25,6 +25,7 @@ import { CountryData } from "../../../types/services/protected/countries.types";
 import { StateData } from "../../../types/services/protected/states.types";
 import { MunicipalityData } from "../../../types/services/protected/municipalities.types";
 import { formatDate } from "../../../helper/formatData";
+import * as XLSX from 'xlsx';
 
 export default function DistribuidoresPage() {
   const [distributors, setDistributors] = useState<DistributorData[]>([]);
@@ -502,6 +503,55 @@ export default function DistribuidoresPage() {
     closeDetailModal();
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Preparar los datos para exportar
+      const dataToExport = filteredDistributors.map(distributor => ({
+        'ID': distributor.id,
+        'Razón Social': distributor.business_name,
+        'Número de Identificación': distributor.identification_number,
+        'Dirección': distributor.street_address || 'N/A',
+        'País': distributor.country?.name || 'N/A',
+        'Ciudad/Provincia': distributor.state?.name || 'N/A',
+        'Municipio/Cantón': distributor.municipality?.name || 'N/A',
+        'Teléfono': distributor.phone || 'N/A',
+        'Email': distributor.email || 'N/A',
+        'Persona de Contacto': distributor.contact_person_name || 'N/A',
+        'Estado': distributor.status ? 'Activo' : 'Inactivo',
+        'Fecha de Creación': formatDate(distributor.created_at)
+      }));
+
+      // Crear libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Distribuidores');
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // ID
+        { wch: 40 },  // Razón Social
+        { wch: 25 },  // Número de Identificación
+        { wch: 45 },  // Dirección
+        { wch: 25 },  // País
+        { wch: 25 },  // Ciudad/Provincia
+        { wch: 25 },  // Municipio/Cantón
+        { wch: 15 },  // Teléfono
+        { wch: 30 },  // Email
+        { wch: 35 },  // Persona de Contacto
+        { wch: 12 },  // Estado
+        { wch: 18 }   // Fecha de Creación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generar archivo Excel
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Distribuidores_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+    }
+  };
+
   const hasActiveFilters = countryFilter || stateFilter;
 
   return (
@@ -522,19 +572,34 @@ export default function DistribuidoresPage() {
               Administra los distribuidores del sistema
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Distribuidor
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredDistributors.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Distribuidor
+            </Button>
+          </div>
         </div>
 
         {/* Filtros */}

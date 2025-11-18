@@ -26,6 +26,7 @@ import { StateData } from "../../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../../types/services/protected/municipalities.types";
 import { formatDate } from "../../../helper/formatData";
 import BulkUploadModal from "../../../components/pharmacies/BulkUploadModal";
+import * as XLSX from 'xlsx';
 
 export default function FarmaceuticasPage() {
   const [pharmacies, setPharmacies] = useState<PharmacyData[]>([]);
@@ -444,6 +445,61 @@ export default function FarmaceuticasPage() {
     closeDetailModal();
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    // Preparar los datos para exportar
+    const dataToExport = filteredPharmacies.map(pharmacy => {
+      // Buscar el estado y municipio
+      const state = states.find(s => s.id === pharmacy.state_id);
+      const municipality = municipalities.find(m => m.id === pharmacy.municipality_id);
+
+      return {
+        'ID': pharmacy.id,
+        'Razón Social': pharmacy.legal_name,
+        'Nombre Comercial': pharmacy.commercial_name || 'N/A',
+        'Número de Identificación': pharmacy.identification_number,
+        'Tipo': pharmacy.is_chain ? 'Cadena' : 'Independiente',
+        'Dirección': pharmacy.street_address || 'N/A',
+        'País': pharmacy.country.name,
+        'Ciudad/Provincia': state?.name || 'N/A',
+        'Municipio/Cantón': municipality?.name || 'N/A',
+        'Teléfono': pharmacy.phone || 'N/A',
+        'Email': pharmacy.email || 'N/A',
+        'Administrador': pharmacy.administrator_name || 'N/A',
+        'Estado': pharmacy.status ? 'Activo' : 'Inactivo',
+        'Fecha de Creación': formatDate(pharmacy.created_at)
+      };
+    });
+
+    // Crear libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Farmacéuticas');
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 5 },   // ID
+      { wch: 35 },  // Razón Social
+      { wch: 30 },  // Nombre Comercial
+      { wch: 20 },  // Número de Identificación
+      { wch: 15 },  // Tipo
+      { wch: 40 },  // Dirección
+      { wch: 25 },  // País
+      { wch: 25 },  // Ciudad/Provincia
+      { wch: 25 },  // Municipio/Cantón
+      { wch: 15 },  // Teléfono
+      { wch: 30 },  // Email
+      { wch: 30 },  // Administrador
+      { wch: 12 },  // Estado
+      { wch: 18 }   // Fecha de Creación
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generar archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Farmaceuticas_${timestamp}.xlsx`);
+  };
+
   const hasActiveFilters = !!countryFilter;
 
   return (
@@ -464,7 +520,20 @@ export default function FarmaceuticasPage() {
               Administra las farmacéuticas registradas en el sistema
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredPharmacies.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
             <Button onClick={openBulkUploadModal} size="md" variant="outline">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

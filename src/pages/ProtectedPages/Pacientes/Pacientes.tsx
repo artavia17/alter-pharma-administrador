@@ -17,6 +17,7 @@ import {
 import { searchPatients } from "../../../services/protected/patients.services";
 import { PatientData } from "../../../types/services/protected/patients.types";
 import { formatDate } from "../../../helper/formatData";
+import * as XLSX from 'xlsx';
 
 export default function PacientesPage() {
   const [patients, setPatients] = useState<PatientData[]>([]);
@@ -96,6 +97,65 @@ export default function PacientesPage() {
     closeDetailModal();
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Preparar los datos para exportar
+      const dataToExport = patients.map(patient => {
+        const fullName = `${patient.first_name} ${patient.last_name}${patient.second_last_name ? ' ' + patient.second_last_name : ''}`;
+
+        return {
+          'ID': patient.id,
+          'Nombre Completo': fullName,
+          'Email': patient.email || 'N/A',
+          'Teléfono': patient.phone || 'N/A',
+          'Tipo de Identificación': patient.identification_type || 'N/A',
+          'Número de Identificación': patient.identification_number || 'N/A',
+          'País': patient.country?.name || 'N/A',
+          'Estado/Ciudad': patient.state?.name || 'N/A',
+          'Municipio': patient.municipality?.name || 'N/A',
+          'Fecha de Nacimiento': patient.date_of_birth || 'N/A',
+          'Género': patient.gender || 'N/A',
+          'Tipo': patient.type || 'N/A',
+          'Registrado': patient.is_registered ? 'Sí' : 'No',
+          'Estado': patient.status || 'N/A',
+          'Fecha de Creación': formatDate(patient.created_at)
+        };
+      });
+
+      // Crear libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Pacientes');
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // ID
+        { wch: 40 },  // Nombre Completo
+        { wch: 30 },  // Email
+        { wch: 15 },  // Teléfono
+        { wch: 25 },  // Tipo de Identificación
+        { wch: 25 },  // Número de Identificación
+        { wch: 25 },  // País
+        { wch: 25 },  // Estado/Ciudad
+        { wch: 25 },  // Municipio
+        { wch: 18 },  // Fecha de Nacimiento
+        { wch: 12 },  // Género
+        { wch: 15 },  // Tipo
+        { wch: 12 },  // Registrado
+        { wch: 12 },  // Estado
+        { wch: 18 }   // Fecha de Creación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generar archivo Excel
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Pacientes_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+    }
+  };
+
   return (
     <>
       <PageMeta title="Pacientes | Alter Pharma" description="Gestión de pacientes en el sistema" />
@@ -109,6 +169,21 @@ export default function PacientesPage() {
               Busca pacientes por nombre, email, teléfono o número de identificación
             </p>
           </div>
+          {hasSearched && patients.length > 0 && (
+            <Button onClick={handleExportToExcel} size="md" variant="outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
+          )}
         </div>
 
         {/* Formulario de búsqueda */}

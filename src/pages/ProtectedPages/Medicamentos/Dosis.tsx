@@ -20,6 +20,7 @@ import { getDoses, createDose, updateDose, toggleDoseStatus, deleteDose } from "
 import { getProducts } from "../../../services/protected/products.services";
 import { DoseData } from "../../../types/services/protected/doses.types";
 import { formatDate } from "../../../helper/formatData";
+import * as XLSX from 'xlsx';
 
 interface ProductOption {
   id: number;
@@ -334,6 +335,56 @@ export default function DosisPage() {
 
   const hasProductSelected = !!productFilter;
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Obtener el producto seleccionado del filtro
+      const selectedProduct = products.find(p => p.id.toString() === productFilter);
+
+      // Preparar los datos para exportar
+      const dataToExport = filteredDoses.map(dose => {
+        return {
+          'ID': dose.id,
+          'Producto': selectedProduct?.name || 'N/A',
+          'Presentación': dose.dose,
+          'Código de Barras': dose.barcode || 'N/A',
+          'Promoción': `${dose.promotion_buy}x${dose.promotion_get}`,
+          'Días de Canje': dose.redemption_days,
+          'Max. Canjes/Mes': dose.max_redemptions_per_month,
+          'Max. Canjes/Año': dose.max_redemptions_per_year,
+          'Estado': dose.status ? 'Activo' : 'Inactivo',
+          'Fecha de Creación': formatDate(dose.created_at)
+        };
+      });
+
+      // Crear libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Presentaciones');
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // ID
+        { wch: 40 },  // Producto
+        { wch: 25 },  // Presentación
+        { wch: 20 },  // Código de Barras
+        { wch: 15 },  // Promoción
+        { wch: 18 },  // Días de Canje
+        { wch: 18 },  // Max. Canjes/Mes
+        { wch: 18 },  // Max. Canjes/Año
+        { wch: 12 },  // Estado
+        { wch: 18 }   // Fecha de Creación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generar archivo Excel
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Presentaciones_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+    }
+  };
+
   return (
     <>
       <PageMeta
@@ -352,19 +403,34 @@ export default function DosisPage() {
               Administra las presentación de productos registrados en el sistema
             </p>
           </div>
-          <Button onClick={handleOpenAddModal} size="md" disabled={!hasProductSelected}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Presentación
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredDoses.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
+            <Button onClick={handleOpenAddModal} size="md" disabled={!hasProductSelected}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Presentación
+            </Button>
+          </div>
         </div>
 
         {/* Filtros */}

@@ -18,6 +18,7 @@ import {
 import { getCountries, createCountry, updateCountry, toggleCountryStatus } from "../../../services/protected/countries.services";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
+import * as XLSX from 'xlsx';
 
 export default function PaisesPage() {
   const [countries, setCountries] = useState<CountryData[]>([]);
@@ -282,6 +283,49 @@ export default function PaisesPage() {
     return pages;
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    // Preparar los datos para exportar
+    const dataToExport = filteredCountries.map(country => ({
+      'ID': country.id,
+      'País': country.name,
+      'Código': country.code,
+      'Código Telefónico': `+${country.phone_code}`,
+      'Long. Mín. Identificación': country.identification_min_length,
+      'Long. Máx. Identificación': country.identification_max_length,
+      'Long. Mín. Teléfono': country.phone_min_length,
+      'Long. Máx. Teléfono': country.phone_max_length,
+      'Cantidad de Ciudades': country.states?.length || 0,
+      'Estado': country.status ? 'Activo' : 'Inactivo',
+      'Fecha de Creación': formatDate(country.created_at)
+    }));
+
+    // Crear libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Países');
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 5 },   // ID
+      { wch: 25 },  // País
+      { wch: 10 },  // Código
+      { wch: 18 },  // Código Telefónico
+      { wch: 25 },  // Long. Mín. Identificación
+      { wch: 25 },  // Long. Máx. Identificación
+      { wch: 20 },  // Long. Mín. Teléfono
+      { wch: 20 },  // Long. Máx. Teléfono
+      { wch: 20 },  // Cantidad de Ciudades
+      { wch: 12 },  // Estado
+      { wch: 18 }   // Fecha de Creación
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generar archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Paises_${timestamp}.xlsx`);
+  };
+
   return (
     <>
       <PageMeta
@@ -300,19 +344,34 @@ export default function PaisesPage() {
               Administra los países y sus códigos en el sistema
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar País
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredCountries.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar País
+            </Button>
+          </div>
         </div>
 
         {/* Buscador */}

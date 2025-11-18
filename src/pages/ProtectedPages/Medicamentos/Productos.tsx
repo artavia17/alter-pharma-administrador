@@ -20,6 +20,7 @@ import { getCountries } from "../../../services/protected/countries.services";
 import { ProductData } from "../../../types/services/protected/products.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
+import * as XLSX from 'xlsx';
 
 export default function ProductosPage() {
   const [products, setProducts] = useState<ProductData[]>([]);
@@ -296,6 +297,45 @@ export default function ProductosPage() {
     return text.substring(0, maxLength) + "...";
   };
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Preparar los datos para exportar
+      const dataToExport = filteredProducts.map(product => ({
+        'ID': product.id,
+        'Nombre': product.name,
+        'Descripción': product.description || 'N/A',
+        'Países': product.countries && product.countries.length > 0
+          ? product.countries.map(c => c.name).join(', ')
+          : 'N/A',
+        'Estado': product.status ? 'Activo' : 'Inactivo',
+        'Fecha de Creación': formatDate(product.created_at)
+      }));
+
+      // Crear libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // ID
+        { wch: 40 },  // Nombre
+        { wch: 60 },  // Descripción
+        { wch: 50 },  // Países
+        { wch: 12 },  // Estado
+        { wch: 18 }   // Fecha de Creación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generar archivo Excel
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Productos_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+    }
+  };
+
   return (
     <>
       <PageMeta
@@ -314,19 +354,34 @@ export default function ProductosPage() {
               Administra los productos registrados en el sistema
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Producto
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={filteredProducts.length === 0}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Exportar a Excel
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Producto
+            </Button>
+          </div>
         </div>
 
         {/* Buscador */}
