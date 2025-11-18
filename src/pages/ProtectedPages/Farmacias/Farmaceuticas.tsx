@@ -103,7 +103,7 @@ export default function FarmaceuticasPage() {
         setStates(response.data);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -198,7 +198,7 @@ export default function FarmaceuticasPage() {
       }));
   }, [countries]);
 
-  // Opciones para select de estados (filtradas por país seleccionado)
+  // Opciones para select de ciudades (filtradas por país seleccionado)
   const stateOptions = useMemo(() => {
     if (!selectedCountryId) return [];
     return states
@@ -209,7 +209,7 @@ export default function FarmaceuticasPage() {
       }));
   }, [states, selectedCountryId]);
 
-  // Opciones para select de municipios (filtradas por estado seleccionado)
+  // Opciones para select de municipios (filtradas por ciudad seleccionado)
   const municipalityOptions = useMemo(() => {
     if (!selectedStateId) return [];
     return municipalities
@@ -224,7 +224,7 @@ export default function FarmaceuticasPage() {
   const handleCountryChange = (countryId: string) => {
     const id = parseInt(countryId);
     setSelectedCountryId(id);
-    setSelectedStateId(null); // Resetear estado cuando cambia el país
+    setSelectedStateId(null); // Resetear ciudad cuando cambia el país
     setSelectedMunicipalityId(null); // Resetear municipio cuando cambia el país
     setMunicipalities([]); // Limpiar municipios
 
@@ -239,13 +239,13 @@ export default function FarmaceuticasPage() {
     }
   };
 
-  // Cargar municipios cuando cambia el estado
+  // Cargar municipios cuando cambia el ciudad
   const handleStateChange = async (stateId: string) => {
     const id = parseInt(stateId);
     setSelectedStateId(id);
-    setSelectedMunicipalityId(null); // Resetear municipio cuando cambia el estado
+    setSelectedMunicipalityId(null); // Resetear municipio cuando cambia el ciudad
 
-    // Cargar municipios del estado seleccionado
+    // Cargar municipios del ciudad seleccionado
     try {
       const response = await getMunicipalities(id);
       if (response.status === 200 && Array.isArray(response.data)) {
@@ -398,7 +398,7 @@ export default function FarmaceuticasPage() {
       await togglePharmacyStatus(pharmacy.id);
       await loadPharmacies();
     } catch (error) {
-      console.error("Error cambiando estado de farmacéutica:", error);
+      console.error("Error cambiando ciudad de farmacéutica:", error);
     }
   };
 
@@ -489,7 +489,7 @@ export default function FarmaceuticasPage() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
-              Agregar Cadena
+              Agregar Farmacia
             </Button>
           </div>
         </div>
@@ -556,7 +556,7 @@ export default function FarmaceuticasPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">País</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Identificación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tipo</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
               </TableHeader>
@@ -771,20 +771,20 @@ export default function FarmaceuticasPage() {
                 )}
               </div>
               <div>
-                <Label>Estado/Provincia *</Label>
+                <Label>Ciudad/Provincia *</Label>
                 <Select
                   options={stateOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   defaultValue=""
                   disabled={!selectedCountryId}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalityOptions}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   defaultValue=""
                   disabled={!selectedStateId}
@@ -930,20 +930,20 @@ export default function FarmaceuticasPage() {
                 )}
               </div>
               <div>
-                <Label>Estado/Provincia *</Label>
+                <Label>Ciudad/Provincia *</Label>
                 <Select
                   options={stateOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   value={selectedStateId?.toString() || ""}
                   disabled={!selectedCountryId}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalityOptions}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   value={selectedMunicipalityId?.toString() || ""}
                   disabled={!selectedStateId}

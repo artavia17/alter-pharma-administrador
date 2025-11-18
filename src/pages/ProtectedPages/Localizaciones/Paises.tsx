@@ -185,7 +185,7 @@ export default function PaisesPage() {
       await toggleCountryStatus(country.id);
       await loadCountries();
     } catch (error) {
-      console.error("Error cambiando estado del país:", error);
+      console.error("Error cambiando ciudad del país:", error);
     }
   };
 
@@ -359,8 +359,8 @@ export default function PaisesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Cód. Tel.</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Long. Identificación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Long. Teléfono</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estados</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudades</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
@@ -388,7 +388,7 @@ export default function PaisesPage() {
                       {country.phone_min_length} - {country.phone_max_length}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {country.states?.length || 0} estado(s)
+                      {country.states?.length || 0} ciudad(s)
                     </TableCell>
                     <TableCell className="px-5 py-4">
                       <Switch

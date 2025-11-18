@@ -98,7 +98,7 @@ export default function UserInfoCard() {
       if (response.status === 200) {
         const user: MyaccountSuccessData = response.data as MyaccountSuccessData;
 
-        // Actualizar el estado con los nuevos datos
+        // Actualizar el ciudad con los nuevos datos
         setName(user.name);
         setEmail(user.email);
 

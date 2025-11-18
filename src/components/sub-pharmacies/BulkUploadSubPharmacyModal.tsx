@@ -50,7 +50,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         setStates(filteredStates);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -125,6 +125,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         setPreviewData(parsedData);
         setErrors([]);
       } catch (error) {
+        console.error(error);
         setErrors(['Error al leer el archivo Excel. Por favor verifica que el formato sea correcto.']);
       }
     };
@@ -257,19 +258,19 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
             </h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Estado/Provincia *</Label>
+                <Label>Ciudad/Provincia *</Label>
                 <Select
                   options={states.filter(s => s.status).map(s => ({ value: s.id.toString(), label: s.name }))}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   value={selectedStateId?.toString() || ""}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalities.filter(m => m.status).map(m => ({ value: m.id.toString(), label: m.name }))}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   value={selectedMunicipalityId?.toString() || ""}
                   disabled={!selectedStateId}

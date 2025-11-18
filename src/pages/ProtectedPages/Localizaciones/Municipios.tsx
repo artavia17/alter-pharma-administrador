@@ -89,7 +89,7 @@ export default function MunicipiosPage() {
         setStates(response.data);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     } finally {
       setIsLoadingStates(false);
     }
@@ -117,7 +117,7 @@ export default function MunicipiosPage() {
       }));
   }, [countries]);
 
-  // Opciones de filtro de estados (filtrados por país)
+  // Opciones de filtro de ciudades (filtrados por país)
   const stateFilterOptions = useMemo(() => {
     if (!countryFilter) return [];
     // Comparar como strings para evitar problemas de tipo
@@ -140,7 +140,7 @@ export default function MunicipiosPage() {
       }));
   }, [countries]);
 
-  // Opciones para el formulario (estados filtrados por país seleccionado)
+  // Opciones para el formulario (ciudades filtrados por país seleccionado)
   const stateFormOptions = useMemo(() => {
     if (!selectedCountryIdForm) return [];
     // Comparar como strings para evitar problemas de tipo
@@ -155,12 +155,12 @@ export default function MunicipiosPage() {
 
   const handleCountryFilterChange = (value: string) => {
     setCountryFilter(value);
-    setStateFilter(""); // Resetear estado cuando cambia el país
+    setStateFilter(""); // Resetear ciudad cuando cambia el país
   };
 
   const handleCountryFormChange = (value: string) => {
     setSelectedCountryIdForm(parseInt(value));
-    setSelectedStateId(null); // Resetear estado cuando cambia el país
+    setSelectedStateId(null); // Resetear ciudad cuando cambia el país
   };
 
   const handleAddMunicipality = async (e: React.FormEvent) => {
@@ -233,7 +233,7 @@ export default function MunicipiosPage() {
         await loadMunicipalities(parseInt(stateFilter));
       }
     } catch (error) {
-      console.error("Error cambiando estado del municipio:", error);
+      console.error("Error cambiando ciudad del municipio:", error);
     }
   };
 
@@ -269,7 +269,7 @@ export default function MunicipiosPage() {
     setMunicipalityName(municipality.name);
     setSelectedStateId(municipality.state_id);
 
-    // Encontrar el país del estado seleccionado
+    // Encontrar el país del ciudad seleccionado
     const state = states.find(s => s.id === municipality.state_id);
     if (state) {
       setSelectedCountryIdForm(state.country_id);
@@ -360,7 +360,7 @@ export default function MunicipiosPage() {
           </svg>
         ),
         title: "Selecciona un país",
-        description: "Por favor selecciona un país para ver los estados disponibles."
+        description: "Por favor selecciona un país para ver los ciudades disponibles."
       };
     }
 
@@ -371,8 +371,8 @@ export default function MunicipiosPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
         ),
-        title: "Selecciona un estado",
-        description: "Por favor selecciona un estado para ver los municipios disponibles."
+        title: "Selecciona una ciudad",
+        description: "Por favor selecciona una ciudad para ver los municipios disponibles."
       };
     }
 
@@ -383,7 +383,7 @@ export default function MunicipiosPage() {
         </svg>
       ),
       title: "No hay municipios",
-      description: "No se encontraron municipios para el estado seleccionado. Comienza agregando un nuevo municipio."
+      description: "No se encontraron municipios para el ciudad seleccionado. Comienza agregando un nuevo municipio."
     };
   };
 
@@ -404,7 +404,7 @@ export default function MunicipiosPage() {
               Gestión de Municipios/Cantones
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Administra los municipios por estado y país
+              Administra los municipios por ciudad y país
             </p>
           </div>
           <Button onClick={openAddModal} size="md">
@@ -418,7 +418,7 @@ export default function MunicipiosPage() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Agregar Municipio
+            Agregar Municipio/Cantón
           </Button>
         </div>
 
@@ -436,10 +436,10 @@ export default function MunicipiosPage() {
               />
             </div>
             <div>
-              <Label>Filtrar por estado:</Label>
+              <Label>Filtrar por ciudad:</Label>
               <Select
                 options={stateFilterOptions}
-                placeholder={isLoadingStates ? "Cargando estados..." : "Selecciona un estado"}
+                placeholder={isLoadingStates ? "Cargando ciudades..." : "Selecciona una ciudad"}
                 value={stateFilter}
                 onChange={(value) => setStateFilter(value)}
                 disabled={!countryFilter || isLoadingStates}
@@ -489,8 +489,8 @@ export default function MunicipiosPage() {
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Municipio</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Municipio/Cantón</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
@@ -629,12 +629,15 @@ export default function MunicipiosPage() {
         )}
       </div>
 
-      {/* Modal: Agregar Municipio */}
+      {/* Modal: Agregar Municipio/Cantón */}
       <Modal isOpen={isAddOpen} onClose={handleCloseAdd} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nuevo Municipio</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nuevo Municipio/Cantón</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear un nuevo municipio</p>
+          </div>
+          <div className="mb-6">
+            <Alert variant="warning" title="Importante" message="Para crear un nuevo municipio, asegúrate de que ya existan un país y una ciudad registrados." showLink={false} />
           </div>
           {Object.keys(errors).length > 0 && (
             <div className="px-2 mb-4">
@@ -658,10 +661,10 @@ export default function MunicipiosPage() {
                 />
               </div>
               <div>
-                <Label>Estado *</Label>
+                <Label>Ciudad *</Label>
                 <Select
                   options={stateFormOptions}
-                  placeholder={isLoadingStates ? "Cargando estados..." : "Selecciona un estado"}
+                  placeholder={isLoadingStates ? "Cargando ciudades..." : "Selecciona una ciudad"}
                   onChange={(value) => setSelectedStateId(parseInt(value))}
                   value={selectedStateId !== null ? selectedStateId.toString() : ""}
                   disabled={!selectedCountryIdForm || isLoadingStates}
@@ -679,17 +682,17 @@ export default function MunicipiosPage() {
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !municipalityName || !selectedStateId}>{isLoading ? 'Guardando...' : 'Guardar Municipio'}</Button>
+              <Button size="sm" type="submit" disabled={isLoading || !municipalityName || !selectedStateId}>{isLoading ? 'Guardando...' : 'Guardar Municipio/Cantón'}</Button>
             </div>
           </form>
         </div>
       </Modal>
 
-      {/* Modal: Editar Municipio */}
+      {/* Modal: Editar Municipio/Cantón */}
       <Modal isOpen={isEditOpen} onClose={handleCloseEdit} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Municipio</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Municipio/Cantón</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos del municipio seleccionado</p>
           </div>
           {Object.keys(errors).length > 0 && (
@@ -721,11 +724,11 @@ export default function MunicipiosPage() {
         </div>
       </Modal>
 
-      {/* Modal: Eliminar Municipio */}
+      {/* Modal: Eliminar Municipio/Cantón */}
       <Modal isOpen={isDeleteOpen} onClose={handleCloseDelete} className="max-w-[500px] m-4">
         <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Eliminar Municipio</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Eliminar Municipio/Cantón</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">¿Estás seguro de que deseas eliminar este municipio?</p>
           </div>
           <div className="px-2 pb-4">

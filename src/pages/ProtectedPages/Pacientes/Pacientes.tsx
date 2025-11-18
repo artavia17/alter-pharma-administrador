@@ -184,7 +184,7 @@ export default function PacientesPage() {
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Identificación</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ubicación</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contacto</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                   </TableRow>
                 </TableHeader>
@@ -311,10 +311,10 @@ export default function PacientesPage() {
                   <span className="font-medium">País:</span> {selectedPatient?.country.name}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Estado:</span> {selectedPatient?.state.name}
+                  <span className="font-medium">Ciudad:</span> {selectedPatient?.state.name}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Municipio:</span> {selectedPatient?.municipality.name}
+                  <span className="font-medium">Municipio/Cantón:</span> {selectedPatient?.municipality.name}
                 </p>
               </div>
             </div>

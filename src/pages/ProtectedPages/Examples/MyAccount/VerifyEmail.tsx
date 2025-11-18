@@ -69,7 +69,7 @@ const VerifyEmail = () => {
         }
     };
 
-    // Estado de carga
+    // Ciudad de carga
     if (status === "loading") {
         return (
             <>

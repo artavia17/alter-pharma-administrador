@@ -56,7 +56,7 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
         setStates(filteredStates);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -102,7 +102,7 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
         show: true,
         type: "error",
         title: "Error de validación",
-        message: "Debes seleccionar estado y municipio"
+        message: "Debes seleccionar ciudad y municipio"
       });
       return;
     }
@@ -183,19 +183,19 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
             {/* Ubicación */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Estado/Provincia *</Label>
+                <Label>Ciudad/Provincia *</Label>
                 <Select
                   options={stateOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   value={formData.state_id?.toString() || ""}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalityOptions}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setFormData({ ...formData, municipality_id: parseInt(value) })}
                   value={formData.municipality_id?.toString() || ""}
                   disabled={!formData.state_id}

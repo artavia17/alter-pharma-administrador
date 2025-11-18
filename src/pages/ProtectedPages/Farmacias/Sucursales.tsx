@@ -47,7 +47,7 @@ export default function SucursalesPage() {
   const { isOpen: isBulkModalOpen, openModal: openBulkModal, closeModal: closeBulkModal } = useModal();
   const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
 
-  // Estado para la sucursal a eliminar
+  // Ciudad para la sucursal a eliminar
   const [subPharmacyToDelete, setSubPharmacyToDelete] = useState<SubPharmacyData | null>(null);
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function SucursalesPage() {
       await toggleSubPharmacyStatus(parseInt(pharmacyFilter), subPharmacyId);
       loadSubPharmacies(parseInt(pharmacyFilter));
     } catch (error) {
-      console.error("Error cambiando estado:", error);
+      console.error("Error cambiando ciudad:", error);
     }
   };
 
@@ -354,7 +354,7 @@ export default function SucursalesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacia Matriz</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contacto</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Administrador</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>

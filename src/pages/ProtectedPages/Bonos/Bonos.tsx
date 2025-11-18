@@ -474,7 +474,7 @@ export default function Bonos() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">Todos los estados</option>
+              <option value="">Todos los ciudades</option>
               <option value="available">Disponible</option>
               <option value="redeemed">Canjeado</option>
               <option value="expired">Expirado</option>
@@ -497,7 +497,7 @@ export default function Bonos() {
                   Presentación
                 </th>
                 <th className="pb-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Estado
+                  Ciudad
                 </th>
                 <th className="pb-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Fecha de compra
@@ -878,7 +878,7 @@ export default function Bonos() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Estado</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Ciudad</p>
                 <div className="mt-1">{getStatusBadge(selectedBonus.status)}</div>
               </div>
               <div>

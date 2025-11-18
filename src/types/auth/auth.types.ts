@@ -51,7 +51,7 @@ export interface SignInOptions {
 }
 
 /**
- * Estado de autenticación
+ * Ciudad de autenticación
  */
 export interface AuthState {
   user: AuthUser | null;

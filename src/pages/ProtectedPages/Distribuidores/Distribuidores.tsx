@@ -29,8 +29,8 @@ import { formatDate } from "../../../helper/formatData";
 export default function DistribuidoresPage() {
   const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
-  const [allStates, setAllStates] = useState<StateData[]>([]); // Todos los estados para los filtros
-  const [states, setStates] = useState<StateData[]>([]); // Estados filtrados para el formulario
+  const [allStates, setAllStates] = useState<StateData[]>([]); // Todos los ciudades para los filtros
+  const [states, setStates] = useState<StateData[]>([]); // Ciudades filtrados para el formulario
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDistributor, setSelectedDistributor] = useState<DistributorData | null>(null);
@@ -69,7 +69,7 @@ export default function DistribuidoresPage() {
   useEffect(() => {
     loadDistributors();
     loadCountries();
-    loadAllStates(); // Cargar todos los estados al inicio para los filtros
+    loadAllStates(); // Cargar todos los ciudades al inicio para los filtros
   }, []);
 
   const loadDistributors = async () => {
@@ -98,10 +98,10 @@ export default function DistribuidoresPage() {
     try {
       const response = await getStates();
       if (response.status === 200 && Array.isArray(response.data)) {
-        setAllStates(response.data); // Cargar todos los estados sin filtrar para los filtros
+        setAllStates(response.data); // Cargar todos los ciudades sin filtrar para los filtros
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -109,12 +109,12 @@ export default function DistribuidoresPage() {
     try {
       const response = await getStates();
       if (response.status === 200 && Array.isArray(response.data)) {
-        // Filtrar estados por país para el formulario
+        // Filtrar ciudades por país para el formulario
         const filteredStates = response.data.filter(state => Number(state.country_id) === Number(countryId));
         setStates(filteredStates);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -155,7 +155,7 @@ export default function DistribuidoresPage() {
   }, [countries]);
 
   const stateFilterOptions = useMemo(() => {
-    // Si hay un país seleccionado, filtrar estados por ese país
+    // Si hay un país seleccionado, filtrar ciudades por ese país
     const filteredStates = countryFilter
       ? allStates.filter(state => state.status && Number(state.country_id) === Number(countryFilter))
       : allStates.filter(state => state.status);
@@ -202,7 +202,7 @@ export default function DistribuidoresPage() {
     setStates([]);
     setMunicipalities([]);
 
-    // Cargar estados del país seleccionado
+    // Cargar ciudades del país seleccionado
     if (id) {
       loadStates(id);
     }
@@ -235,7 +235,7 @@ export default function DistribuidoresPage() {
     setSelectedMunicipalityId(null);
     setMunicipalities([]);
 
-    // Cargar municipios del estado seleccionado
+    // Cargar municipios del ciudad seleccionado
     if (id) {
       loadMunicipalities(id);
     }
@@ -393,7 +393,7 @@ export default function DistribuidoresPage() {
       await toggleDistributorStatus(distributor.id);
       await loadDistributors();
     } catch (error) {
-      console.error("Error cambiando estado del distribuidor:", error);
+      console.error("Error cambiando ciudad del distribuidor:", error);
     }
   };
 
@@ -450,7 +450,7 @@ export default function DistribuidoresPage() {
     setSelectedStateId(distributor.state_id);
     setSelectedMunicipalityId(distributor.municipality_id);
 
-    // Cargar estados y municipios
+    // Cargar ciudades y municipios
     await loadStates(distributor.country_id);
     await loadMunicipalities(distributor.state_id);
 
@@ -547,7 +547,7 @@ export default function DistribuidoresPage() {
                 placeholder="País"
                 onChange={(value) => {
                   setCountryFilter(value);
-                  setStateFilter(""); // Limpiar el filtro de estado cuando cambia el país
+                  setStateFilter(""); // Limpiar el filtro de ciudad cuando cambia el país
                 }}
                 value={countryFilter}
               />
@@ -555,7 +555,7 @@ export default function DistribuidoresPage() {
             <div className="flex-1 min-w-[200px]">
               <Select
                 options={stateFilterOptions}
-                placeholder="Estado"
+                placeholder="Ciudad"
                 onChange={(value) => setStateFilter(value)}
                 value={stateFilter}
               />
@@ -588,7 +588,7 @@ export default function DistribuidoresPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Distribuidor</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ubicación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contacto</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
               </TableHeader>
@@ -700,20 +700,20 @@ export default function DistribuidoresPage() {
                 />
               </div>
               <div>
-                <Label>Estado *</Label>
+                <Label>Ciudad *</Label>
                 <Select
                   options={stateOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   defaultValue=""
                   disabled={!selectedCountryId}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalityOptions}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   defaultValue=""
                   disabled={!selectedStateId}
@@ -824,20 +824,20 @@ export default function DistribuidoresPage() {
                 />
               </div>
               <div>
-                <Label>Estado *</Label>
+                <Label>Ciudad *</Label>
                 <Select
                   options={stateOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   defaultValue={selectedStateId?.toString() || ""}
                   disabled={!selectedCountryId}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalityOptions}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   defaultValue={selectedMunicipalityId?.toString() || ""}
                   disabled={!selectedStateId}
@@ -962,10 +962,10 @@ export default function DistribuidoresPage() {
                   <span className="font-medium">País:</span> {selectedDistributor?.country.name}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Estado:</span> {selectedDistributor?.state.name}
+                  <span className="font-medium">Ciudad:</span> {selectedDistributor?.state.name}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Municipio:</span> {selectedDistributor?.municipality.name}
+                  <span className="font-medium">Municipio/Cantón:</span> {selectedDistributor?.municipality.name}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <span className="font-medium">Dirección:</span> {selectedDistributor?.street_address}

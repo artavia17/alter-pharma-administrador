@@ -59,7 +59,7 @@ export default function CiudadesPage() {
         setStates(response.data);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -77,7 +77,7 @@ export default function CiudadesPage() {
     }
   };
 
-  // Filtrar estados por país y búsqueda
+  // Filtrar ciudades por país y búsqueda
   const filteredStates = useMemo(() => {
     let filtered = states;
 
@@ -182,13 +182,13 @@ export default function CiudadesPage() {
         closeAddModal();
       }
     } catch (error: any) {
-      console.error("Error creando estado:", error);
+      console.error("Error creando ciudad:", error);
       if (error.response?.status === 422 && error.response?.data?.data) {
         setErrors(error.response.data.data);
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: "Ocurrió un error al crear la ciudad/estado" });
+        setErrors({ general: "Ocurrió un error al crear la ciudad/provincia" });
       }
     } finally {
       setIsLoading(false);
@@ -212,13 +212,13 @@ export default function CiudadesPage() {
         closeEditModal();
       }
     } catch (error: any) {
-      console.error("Error editando estado:", error);
+      console.error("Error editando ciudad:", error);
       if (error.response?.status === 422 && error.response?.data?.data) {
         setErrors(error.response.data.data);
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: "Ocurrió un error al actualizar la ciudad/estado" });
+        setErrors({ general: "Ocurrió un error al actualizar la ciudad/provincia" });
       }
     } finally {
       setIsLoading(false);
@@ -230,7 +230,7 @@ export default function CiudadesPage() {
       await toggleStateStatus(state.id);
       await loadStates();
     } catch (error) {
-      console.error("Error cambiando estado del estado:", error);
+      console.error("Error cambiando ciudad del ciudad:", error);
     }
   };
 
@@ -244,7 +244,7 @@ export default function CiudadesPage() {
       setSelectedState(null);
       closeDeleteModal();
     } catch (error) {
-      console.error("Error eliminando estado:", error);
+      console.error("Error eliminando ciudad:", error);
     } finally {
       setIsLoading(false);
     }
@@ -287,19 +287,19 @@ export default function CiudadesPage() {
   return (
     <>
       <PageMeta
-        title="Ciudades/Estados - Localización | Alter Pharma"
-        description="Gestión de ciudades y estados en el sistema"
+        title="Ciudades/Provincias - Localización | Alter Pharma"
+        description="Gestión de ciudades y provincias en el sistema"
       />
-      <PageBreadcrumb pageTitle="Ciudades/Estados/Provincias" />
+      <PageBreadcrumb pageTitle="Ciudades/Provincias" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Gestión de Ciudades/Estados/Provincias
+              Gestión de Ciudades/Provincias
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Administra las ciudades y estados por país
+              Administra las ciudades y ciudades por país
             </p>
           </div>
           <Button onClick={openAddModal} size="md">
@@ -313,7 +313,7 @@ export default function CiudadesPage() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Agregar Ciudad/Estado
+            Agregar Ciudad/Provincias
           </Button>
         </div>
 
@@ -329,7 +329,7 @@ export default function CiudadesPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre de ciudad/estado o país..."
+              placeholder="Buscar por nombre de ciudad/provincia o país..."
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-white/[0.05] rounded-lg bg-white dark:bg-white/[0.03] text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
             {searchQuery && (
@@ -345,7 +345,7 @@ export default function CiudadesPage() {
           </div>
           {searchQuery && (
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Mostrando {filteredStates.length} de {states.length} ciudades/estados
+              Mostrando {filteredStates.length} de {states.length} ciudades/provincias
             </p>
           )}
         </div>
@@ -365,7 +365,7 @@ export default function CiudadesPage() {
             </div>
             {countryFilter && !isLoadingCountries && (
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Mostrando {filteredStates.length} de {states.length} ciudades/estados
+                Mostrando {filteredStates.length} de {states.length} ciudades/provincias
               </span>
             )}
           </div>
@@ -377,9 +377,9 @@ export default function CiudadesPage() {
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad/Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad/Provincia</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">País</TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
@@ -410,12 +410,12 @@ export default function CiudadesPage() {
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{formatDate(state.created_at)}</TableCell>
                     <TableCell className="px-5 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => openEdit(state)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar ciudad/estado">
+                        <button onClick={() => openEdit(state)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar ciudad/provincia">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                           </svg>
                         </button>
-                        <button onClick={() => openDelete(state)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20" title="Eliminar ciudad/estado">
+                        <button onClick={() => openDelete(state)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20" title="Eliminar ciudad/provincia">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                           </svg>
@@ -434,14 +434,14 @@ export default function CiudadesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6h.008v.008H6V6z" />
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">
-                  {searchQuery || countryFilter ? "No se encontraron resultados" : "No hay ciudades/estados"}
+                  {searchQuery || countryFilter ? "No se encontraron resultados" : "No hay ciudades/provincias"}
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {searchQuery
-                    ? `No se encontraron ciudades/estados que coincidan con "${searchQuery}".`
+                    ? `No se encontraron ciudades/provincias que coincidan con "${searchQuery}".`
                     : countryFilter
-                      ? "No se encontraron ciudades/estados para el país seleccionado."
-                      : "Comienza agregando una nueva ciudad/estado."
+                      ? "No se encontraron ciudades/provincias para el país seleccionado."
+                      : "Comienza agregando una nueva ciudad/provincia."
                   }
                 </p>
               </div>
@@ -531,12 +531,12 @@ export default function CiudadesPage() {
         )}
       </div>
 
-      {/* Modal: Agregar Ciudad/Estado */}
+      {/* Modal: Agregar Ciudad/Provincia */}
       <Modal isOpen={isAddOpen} onClose={handleCloseAdd} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Ciudad/Estado</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear una nueva ciudad/estado</p>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Ciudad/Provincia</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para crear una nueva ciudad/provincia</p>
           </div>
           {Object.keys(errors).length > 0 && (
             <div className="px-2 mb-4">
@@ -559,7 +559,7 @@ export default function CiudadesPage() {
                 />
               </div>
               <div>
-                <Label>Nombre de la ciudad/estado</Label>
+                <Label>Nombre de la ciudad/provincia</Label>
                 <Input
                   type="text"
                   value={stateName}
@@ -576,12 +576,12 @@ export default function CiudadesPage() {
         </div>
       </Modal>
 
-      {/* Modal: Editar Ciudad/Estado */}
+      {/* Modal: Editar Ciudad/Provincia */}
       <Modal isOpen={isEditOpen} onClose={handleCloseEdit} className="max-w-[600px] m-4">
         <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Ciudad/Estado</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la ciudad/estado seleccionada</p>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Editar Ciudad/Provincia</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Modifica los datos de la ciudad/provincia seleccionada</p>
           </div>
           {Object.keys(errors).length > 0 && (
             <div className="px-2 mb-4">
@@ -604,7 +604,7 @@ export default function CiudadesPage() {
                 />
               </div>
               <div>
-                <Label>Nombre de la ciudad/estado</Label>
+                <Label>Nombre de la ciudad/provincia</Label>
                 <Input
                   type="text"
                   value={stateName}
@@ -621,13 +621,13 @@ export default function CiudadesPage() {
         </div>
       </Modal>
 
-      {/* Modal: Eliminar Ciudad/Estado */}
+      {/* Modal: Eliminar Ciudad/Provincia */}
       <Modal isOpen={isDeleteOpen} onClose={handleCloseDelete} className="max-w-[500px] m-4">
         <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Eliminar Ciudad/Estado</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Eliminar Ciudad/Provincia</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ¿Estás seguro de que deseas eliminar la ciudad/estado <strong>{selectedState?.name}</strong>?
+              ¿Estás seguro de que deseas eliminar la ciudad/provincia <strong>{selectedState?.name}</strong>?
             </p>
             <p className="mt-2 text-sm text-red-600 dark:text-red-400">
               Esta acción no se puede deshacer.

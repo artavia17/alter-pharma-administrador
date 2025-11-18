@@ -3,7 +3,7 @@
  */
 
 /**
- * Estado de validación de un campo
+ * Ciudad de validación de un campo
  */
 export interface FieldValidation {
   isValid: boolean;
@@ -18,14 +18,14 @@ export type FormErrors<T> = {
 };
 
 /**
- * Estado de campos tocados en un formulario
+ * Ciudad de campos tocados en un formulario
  */
 export type TouchedFields<T> = {
   [K in keyof T]?: boolean;
 };
 
 /**
- * Estado de formulario genérico
+ * Ciudad de formulario genérico
  */
 export interface FormState<T> {
   data: T;

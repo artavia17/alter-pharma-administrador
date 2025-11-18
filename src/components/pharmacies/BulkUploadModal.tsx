@@ -39,7 +39,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   useEffect(() => {
     if (isOpen) {
       loadCountries();
-      // Limpiar todo el estado cuando se abre el modal
+      // Limpiar todo el ciudad cuando se abre el modal
       setFile(null);
       setPreviewData([]);
       setErrors([]);
@@ -81,7 +81,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
         setStates(filteredStates);
       }
     } catch (error) {
-      console.error("Error cargando estados:", error);
+      console.error("Error cargando ciudades:", error);
     }
   };
 
@@ -138,7 +138,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Limpiar todo el estado de la carga anterior
+      // Limpiar todo el ciudad de la carga anterior
       clearUploadState();
       setFile(selectedFile);
 
@@ -182,7 +182,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
 
   const handleUpload = async () => {
     if (!selectedCountryId || !selectedStateId || !selectedMunicipalityId) {
-      setErrors(['Debes seleccionar país, estado y municipio']);
+      setErrors(['Debes seleccionar país, ciudad y municipio']);
       return;
     }
 
@@ -350,20 +350,20 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 />
               </div>
               <div>
-                <Label>Estado/Provincia *</Label>
+                <Label>Ciudad/Provincia *</Label>
                 <Select
                   options={stateOptions}
-                  placeholder="Selecciona un estado"
+                  placeholder="Selecciona una ciudad"
                   onChange={handleStateChange}
                   value={selectedStateId?.toString() || ""}
                   disabled={!selectedCountryId}
                 />
               </div>
               <div>
-                <Label>Municipio *</Label>
+                <Label>Municipio/Cantón *</Label>
                 <Select
                   options={municipalityOptions}
-                  placeholder="Selecciona un municipio"
+                  placeholder="Selecciona un municipio/cantón"
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   value={selectedMunicipalityId?.toString() || ""}
                   disabled={!selectedStateId}
