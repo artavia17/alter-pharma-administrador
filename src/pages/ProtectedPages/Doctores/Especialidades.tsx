@@ -18,6 +18,7 @@ import {
 import { getSpecialties, createSpecialty, updateSpecialty, toggleSpecialtyStatus, deleteSpecialty, getSpecialty } from "../../../services/protected/specialties.services";
 import { SpecialtyData, SpecialtyDetailData } from "../../../types/services/protected/specialties.types";
 import { formatDate } from "../../../helper/formatData";
+import BulkUploadSpecialtyModal from "../../../components/specialties/BulkUploadSpecialtyModal";
 
 export default function EspecialidadesPage() {
   const [specialties, setSpecialties] = useState<SpecialtyData[]>([]);
@@ -46,6 +47,7 @@ export default function EspecialidadesPage() {
   const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isDeleteOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
+  const { isOpen: isBulkUploadOpen, openModal: openBulkUploadModal, closeModal: closeBulkUploadModal } = useModal();
 
   useEffect(() => {
     loadSpecialties();
@@ -323,19 +325,34 @@ export default function EspecialidadesPage() {
               Administra las especialidades médicas disponibles
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Especialidad
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={openBulkUploadModal} size="md" variant="outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Carga Masiva
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Especialidad
+            </Button>
+          </div>
         </div>
 
         {/* Buscador */}
@@ -822,6 +839,13 @@ export default function EspecialidadesPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Modal: Carga Masiva de Especialidades */}
+      <BulkUploadSpecialtyModal
+        isOpen={isBulkUploadOpen}
+        onClose={closeBulkUploadModal}
+        onSuccess={loadSpecialties}
+      />
     </>
   );
 }

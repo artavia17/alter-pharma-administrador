@@ -1,6 +1,42 @@
 import { StatesResponse, SingleStateResponse } from "../../types/services/protected/states.types";
 import api from "../api";
 
+export interface BulkStateData {
+    country_id: number;
+    name: string;
+    code: string;
+}
+
+export interface BulkStateResponse {
+    status: number;
+    message: string;
+    data: {
+        success: Array<{
+            index: number;
+            state: {
+                id: number;
+                country_id: number;
+                name: string;
+                code: string;
+                created_at: string;
+                updated_at: string;
+            };
+            name: string;
+        }>;
+        errors: Array<{
+            index: number;
+            name?: string;
+            error?: string;
+            errors?: any;
+        }>;
+        summary: {
+            total: number;
+            created: number;
+            failed: number;
+        };
+    };
+}
+
 const getStates = async () => {
     const response = await api.get<StatesResponse>("/administrator/states");
     return response.data;
@@ -37,11 +73,17 @@ const deleteState = async (id: number) => {
     return response.data;
 };
 
+const bulkCreateStates = async (data: { states: BulkStateData[] }) => {
+    const response = await api.post<BulkStateResponse>("/administrator/states/bulk", data);
+    return response.data;
+};
+
 export {
     getStates,
     getState,
     createState,
     updateState,
     toggleStateStatus,
-    deleteState
+    deleteState,
+    bulkCreateStates
 };

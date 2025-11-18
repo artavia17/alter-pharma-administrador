@@ -35,11 +35,45 @@ const deleteSpecialty = async (id: number) => {
     return response.data;
 };
 
+export interface BulkSpecialtyData {
+    name: string;
+    description?: string;
+}
+
+export interface BulkSpecialtyResponse {
+    status: number;
+    message: string;
+    data: {
+        success: Array<{
+            index: number;
+            specialty: any;
+            name: string;
+        }>;
+        errors: Array<{
+            index: number;
+            data?: any;
+            error?: string;
+            errors?: any;
+        }>;
+        summary: {
+            total: number;
+            created: number;
+            failed: number;
+        };
+    };
+}
+
+const bulkCreateSpecialties = async (data: { specialties: BulkSpecialtyData[] }): Promise<BulkSpecialtyResponse> => {
+    const response = await api.post<BulkSpecialtyResponse>("/administrator/specialties/bulk", data);
+    return response.data;
+};
+
 export {
     getSpecialties,
     getSpecialty,
     createSpecialty,
     updateSpecialty,
     toggleSpecialtyStatus,
-    deleteSpecialty
+    deleteSpecialty,
+    bulkCreateSpecialties
 };

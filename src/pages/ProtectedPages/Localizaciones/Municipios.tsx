@@ -22,6 +22,7 @@ import { getStates } from "../../../services/protected/states.services";
 import { MunicipalityData } from "../../../types/services/protected/municipalities.types";
 import { CountryData, StateData } from "../../../types/services/protected/countries.types";
 import { formatDate } from "../../../helper/formatData";
+import BulkUploadMunicipalityModal from "../../../components/municipalities/BulkUploadMunicipalityModal";
 
 export default function MunicipiosPage() {
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
@@ -53,6 +54,7 @@ export default function MunicipiosPage() {
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isDeleteOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
+  const { isOpen: isBulkUploadOpen, openModal: openBulkUploadModal, closeModal: closeBulkUploadModal } = useModal();
 
   useEffect(() => {
     loadCountries();
@@ -407,19 +409,34 @@ export default function MunicipiosPage() {
               Administra los municipios por ciudad y país
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Municipio/Cantón
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={openBulkUploadModal} size="md" variant="outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Carga Masiva
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Municipio/Cantón
+            </Button>
+          </div>
         </div>
 
         {/* Filtros */}
@@ -744,6 +761,20 @@ export default function MunicipiosPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Modal: Carga Masiva */}
+      <BulkUploadMunicipalityModal
+        isOpen={isBulkUploadOpen}
+        onClose={closeBulkUploadModal}
+        onSuccess={(stateId) => {
+          if (stateFilter) {
+            loadMunicipalities(parseInt(stateFilter));
+          } else {
+            loadMunicipalities(stateId);
+            setStateFilter(stateId.toString());
+          }
+        }}
+      />
     </>
   );
 }

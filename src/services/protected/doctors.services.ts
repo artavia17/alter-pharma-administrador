@@ -41,11 +41,50 @@ const deleteDoctor = async (id: number) => {
     return response.data;
 };
 
+export interface BulkDoctorData {
+    country_id: number;
+    name: string;
+    email?: string;
+    phone?: string;
+    license_number?: string;
+    bio?: string;
+    specialties: number[];
+}
+
+export interface BulkDoctorResponse {
+    status: number;
+    message: string;
+    data: {
+        success: Array<{
+            index: number;
+            doctor: any;
+            name: string;
+        }>;
+        errors: Array<{
+            index: number;
+            name?: string;
+            error?: string;
+            errors?: any;
+        }>;
+        summary: {
+            total: number;
+            created: number;
+            failed: number;
+        };
+    };
+}
+
+const bulkCreateDoctors = async (data: { doctors: BulkDoctorData[] }): Promise<BulkDoctorResponse> => {
+    const response = await api.post<BulkDoctorResponse>("/administrator/doctors/bulk", data);
+    return response.data;
+};
+
 export {
     getDoctors,
     getDoctor,
     createDoctor,
     updateDoctor,
     toggleDoctorStatus,
-    deleteDoctor
+    deleteDoctor,
+    bulkCreateDoctors
 };

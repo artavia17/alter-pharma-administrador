@@ -23,6 +23,7 @@ import { DoctorData } from "../../../types/services/protected/doctors.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { SpecialtyData } from "../../../types/services/protected/specialties.types";
 import { formatDate } from "../../../helper/formatData";
+import BulkUploadDoctorModal from "../../../components/doctors/BulkUploadDoctorModal";
 
 export default function DoctoresPage() {
   const [doctors, setDoctors] = useState<DoctorData[]>([]);
@@ -65,6 +66,7 @@ export default function DoctoresPage() {
   const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isDeleteOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
+  const { isOpen: isBulkUploadOpen, openModal: openBulkUploadModal, closeModal: closeBulkUploadModal } = useModal();
 
   useEffect(() => {
     loadDoctors();
@@ -575,19 +577,34 @@ export default function DoctoresPage() {
               Administra los doctores y sus especialidades
             </p>
           </div>
-          <Button onClick={openAddModal} size="md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Agregar Doctor
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={openBulkUploadModal} size="md" variant="outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Carga Masiva
+            </Button>
+            <Button onClick={openAddModal} size="md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 mr-2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Agregar Doctor
+            </Button>
+          </div>
         </div>
 
         {/* Buscador */}
@@ -813,11 +830,10 @@ export default function DoctoresPage() {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page as number)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                            currentPage === page
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
                               ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
                               : 'bg-white dark:bg-white/[0.03] border-gray-300 dark:border-white/[0.05] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05]'
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
@@ -1246,11 +1262,10 @@ export default function DoctoresPage() {
                 {selectedDoctor?.country.code}
               </span>
               <span
-                className={`ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  selectedDoctor?.status
+                className={`ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedDoctor?.status
                     ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                     : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                }`}
+                  }`}
               >
                 {selectedDoctor?.status ? "Activo" : "Inactivo"}
               </span>
@@ -1309,6 +1324,15 @@ export default function DoctoresPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Modal: Carga Masiva */}
+      <BulkUploadDoctorModal
+        isOpen={isBulkUploadOpen}
+        onClose={closeBulkUploadModal}
+        onSuccess={() => {
+          loadDoctors();
+        }}
+      />
     </>
   );
 }
