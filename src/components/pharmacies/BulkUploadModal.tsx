@@ -185,7 +185,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
           email: row['Email'] || row['email'] || '',
           administrator_name: row['Administrador'] || row['administrator_name'] || '',
           is_chain: row['Es Cadena'] === 'SI' || row['Es Cadena'] === 'TRUE' || row['Es Cadena'] === 'true' || row['is_chain'] === true || row['is_chain'] === 'true' || false,
-          distributor_id: selectedDistributorId,
+          distributor_id: selectedDistributorId!,
         }));
 
         setPreviewData(parsedData);

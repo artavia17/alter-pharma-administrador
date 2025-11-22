@@ -10,7 +10,7 @@ import { getStates } from "../../services/protected/states.services";
 import { getMunicipalities } from "../../services/protected/municipalities.services";
 import { getDistributors } from "../../services/protected/distributors.services";
 import { createSubPharmacy, type CreateSubPharmacyParams } from "../../services/protected/sub-pharmacies.services";
-import { CountryData, StateData } from "../../types/services/protected/countries.types";
+import { StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
 import { DistributorData } from "../../types/services/protected/distributors.types";
 
