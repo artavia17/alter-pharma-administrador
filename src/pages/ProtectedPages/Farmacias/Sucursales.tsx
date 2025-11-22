@@ -249,6 +249,7 @@ export default function SucursalesPage() {
       'ID': subPharmacy.id,
       'Nombre Comercial': subPharmacy.commercial_name,
       'Farmacéutica': subPharmacy.pharmacy.commercial_name,
+      'Distribuidor': subPharmacy.default_distributor?.business_name || 'N/A',
       'Dirección Física': subPharmacy.physical_address || 'N/A',
       'País': subPharmacy.pharmacy.country.name,
       'Teléfono': subPharmacy.phone || 'N/A',
@@ -268,6 +269,7 @@ export default function SucursalesPage() {
       { wch: 5 },   // ID
       { wch: 30 },  // Nombre Comercial
       { wch: 35 },  // Farmacéutica
+      { wch: 30 },  // Distribuidor
       { wch: 40 },  // Dirección Física
       { wch: 25 },  // País
       { wch: 15 },  // Teléfono
@@ -407,6 +409,7 @@ export default function SucursalesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Sucursal</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacia Matriz</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Distribuidor</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contacto</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Administrador</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
@@ -427,6 +430,9 @@ export default function SucursalesPage() {
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">{subPharmacy.pharmacy.commercial_name}</span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">{subPharmacy.pharmacy.legal_name}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {subPharmacy.default_distributor?.business_name || 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <div>

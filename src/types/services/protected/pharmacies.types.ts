@@ -12,6 +12,43 @@ export interface CountryBasic {
     updated_at: string;
 }
 
+export interface StateBasic {
+    id: number;
+    country_id: number;
+    name: string;
+    code: string | null;
+    status: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface MunicipalityBasic {
+    id: number;
+    state_id: number;
+    name: string;
+    code: string | null;
+    status: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DistributorBasic {
+    id: number;
+    country_id: number;
+    state_id: number;
+    municipality_id: number;
+    business_name: string;
+    identification_number: string;
+    street_address: string;
+    phone: string;
+    email: string;
+    contact_person_name: string;
+    status: boolean;
+    last_login: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface PharmacyData {
     id: number;
     country_id: number;
@@ -30,6 +67,9 @@ export interface PharmacyData {
     created_at: string;
     updated_at: string;
     country: CountryBasic;
+    state?: StateBasic;
+    municipality?: MunicipalityBasic;
+    default_distributor?: DistributorBasic | null;
 }
 
 export interface PharmaciesErrorData {

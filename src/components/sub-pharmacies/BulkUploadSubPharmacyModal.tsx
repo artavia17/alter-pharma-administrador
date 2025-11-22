@@ -6,9 +6,11 @@ import Select from "../form/Select";
 import Alert from "../ui/alert/Alert";
 import { getStates } from "../../services/protected/states.services";
 import { getMunicipalities } from "../../services/protected/municipalities.services";
+import { getDistributors } from "../../services/protected/distributors.services";
 import { bulkCreateSubPharmacies, type BulkSubPharmacyData } from "../../services/protected/sub-pharmacies.services";
 import { StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
+import { DistributorData } from "../../types/services/protected/distributors.types";
 import * as XLSX from 'xlsx';
 
 interface BulkUploadSubPharmacyModalProps {
@@ -23,8 +25,10 @@ interface BulkUploadSubPharmacyModalProps {
 export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess, pharmacyId, pharmacyName, countryId }: BulkUploadSubPharmacyModalProps) {
   const [states, setStates] = useState<StateData[]>([]);
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
+  const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
+  const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<BulkSubPharmacyData[]>([]);
@@ -38,6 +42,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
   useEffect(() => {
     if (isOpen) {
       loadStates();
+      loadDistributors();
       clearUploadState();
     }
   }, [isOpen]);
@@ -65,6 +70,17 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
     }
   };
 
+  const loadDistributors = async () => {
+    try {
+      const response = await getDistributors();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setDistributors(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando distribuidores:", error);
+    }
+  };
+
   const handleStateChange = (stateId: string) => {
     const id = parseInt(stateId);
     setSelectedStateId(id);
@@ -86,6 +102,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
     setIsUploading(false);
     setSelectedStateId(null);
     setSelectedMunicipalityId(null);
+    setSelectedDistributorId(null);
     setMunicipalities([]);
 
     const fileInput = document.getElementById('excel-upload-subpharmacy') as HTMLInputElement;
@@ -120,6 +137,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
           phone: String(row['Teléfono'] || row['phone'] || ''),
           email: row['Email'] || row['email'] || '',
           administrator_name: row['Administrador'] || row['administrator_name'] || '',
+          distributor_id: selectedDistributorId!,
         }));
 
         setPreviewData(parsedData);
@@ -133,6 +151,11 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
   };
 
   const handleUpload = async () => {
+    if (!selectedStateId || !selectedMunicipalityId || !selectedDistributorId) {
+      setErrors(['Debes seleccionar ciudad, municipio y distribuidor antes de cargar el archivo']);
+      return;
+    }
+
     if (previewData.length === 0) {
       setErrors(['No hay datos para cargar']);
       return;
@@ -254,7 +277,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
           {/* Paso 1: Ubicación */}
           <div>
             <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 1: Selecciona la ubicación
+              Paso 1: Selecciona la ubicación y distribuidor
             </h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -276,7 +299,19 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
                   disabled={!selectedStateId}
                 />
               </div>
+              <div className="md:col-span-2">
+                <Label>Distribuidor *</Label>
+                <Select
+                  options={distributors.filter(d => d.status).map(d => ({ value: d.id.toString(), label: d.business_name }))}
+                  placeholder="Selecciona un distribuidor"
+                  onChange={(value) => setSelectedDistributorId(parseInt(value))}
+                  value={selectedDistributorId?.toString() || ""}
+                />
+              </div>
             </div>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              * Campos obligatorios. El distribuidor seleccionado se asignará a todas las sucursales del archivo Excel
+            </p>
           </div>
 
           {/* Paso 2: Template */}
@@ -305,7 +340,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
           </div>
 
           {/* Paso 3: Cargar archivo */}
-          {selectedStateId && selectedMunicipalityId && (
+          {selectedStateId && selectedMunicipalityId && selectedDistributorId && (
             <div>
               <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
                 Paso 3: Carga el archivo Excel
@@ -429,7 +464,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
             <Button
               size="sm"
               onClick={handleUpload}
-              disabled={isUploading || !selectedStateId || !selectedMunicipalityId}
+              disabled={isUploading || !selectedStateId || !selectedMunicipalityId || !selectedDistributorId}
             >
               {isUploading ? 'Procesando...' : `Cargar ${previewData.length} Sucursales`}
             </Button>

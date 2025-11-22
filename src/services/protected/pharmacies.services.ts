@@ -51,6 +51,7 @@ interface BulkPharmacyData {
     email: string;
     administrator_name: string;
     is_chain: boolean;
+    distributor_id: number;
 }
 
 interface BulkCreatePharmaciesParams {

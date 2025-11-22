@@ -5,11 +5,14 @@ import Label from "../form/Label";
 import InputField from "../form/input/InputField";
 import Select from "../form/Select";
 import Alert from "../ui/alert/Alert";
+import { getCountries } from "../../services/protected/countries.services";
 import { getStates } from "../../services/protected/states.services";
 import { getMunicipalities } from "../../services/protected/municipalities.services";
+import { getDistributors } from "../../services/protected/distributors.services";
 import { createSubPharmacy, type CreateSubPharmacyParams } from "../../services/protected/sub-pharmacies.services";
-import { StateData } from "../../types/services/protected/countries.types";
+import { CountryData, StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
+import { DistributorData } from "../../types/services/protected/distributors.types";
 
 interface AddSubPharmacyModalProps {
   isOpen: boolean;
@@ -22,7 +25,13 @@ interface AddSubPharmacyModalProps {
 export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharmacyId, countryId }: AddSubPharmacyModalProps) {
   const [states, setStates] = useState<StateData[]>([]);
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
+  const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Estados para validación de teléfono
+  const [phonePrefix, setPhonePrefix] = useState("");
+  const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
+  const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
 
   const [formData, setFormData] = useState<CreateSubPharmacyParams>({
     state_id: 0,
@@ -31,7 +40,8 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     street_address: "",
     phone: "",
     email: "",
-    administrator_name: ""
+    administrator_name: "",
+    distributor_id: 0
   });
 
   const [alert, setAlert] = useState<{
@@ -44,9 +54,29 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
   useEffect(() => {
     if (isOpen) {
       loadStates();
+      loadDistributors();
+      loadCountryPhoneSettings();
       resetForm();
     }
   }, [isOpen]);
+
+  const loadCountryPhoneSettings = async () => {
+    try {
+      const response = await getCountries();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        const country = response.data.find(c => Number(c.id) === Number(countryId));
+        if (country) {
+          const prefix = `+${country.phone_code} `;
+          setPhonePrefix(prefix);
+          setPhoneMinLength(country.phone_min_length);
+          setPhoneMaxLength(country.phone_max_length);
+          setFormData(prev => ({ ...prev, phone: prefix }));
+        }
+      }
+    } catch (error) {
+      console.error("Error cargando configuración de teléfono:", error);
+    }
+  };
 
   const loadStates = async () => {
     try {
@@ -71,6 +101,17 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     }
   };
 
+  const loadDistributors = async () => {
+    try {
+      const response = await getDistributors();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setDistributors(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando distribuidores:", error);
+    }
+  };
+
   const handleStateChange = (stateId: string) => {
     const id = parseInt(stateId);
     setFormData({ ...formData, state_id: id, municipality_id: 0 });
@@ -80,29 +121,60 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     }
   };
 
-  const resetForm = () => {
+  const handlePhoneChange = (value: string) => {
+    // Asegurar que el teléfono siempre comience con el prefijo del país
+    if (phonePrefix && !value.startsWith(phonePrefix)) {
+      return; // No permitir eliminar el prefijo
+    }
+
+    // Solo permitir números después del prefijo
+    const afterPrefix = value.substring(phonePrefix.length);
+    const onlyNumbers = afterPrefix.replace(/\D/g, '');
+
+    // Limitar según la longitud máxima
+    if (onlyNumbers.length <= phoneMaxLength) {
+      setFormData({ ...formData, phone: phonePrefix + onlyNumbers });
+    }
+  };
+
+  const resetForm = (clearAlert: boolean = true) => {
     setFormData({
       state_id: 0,
       municipality_id: 0,
       commercial_name: "",
       street_address: "",
-      phone: "",
+      phone: phonePrefix || "",
       email: "",
-      administrator_name: ""
+      administrator_name: "",
+      distributor_id: 0
     });
     setMunicipalities([]);
-    setAlert({ show: false, type: "success", title: "", message: "" });
+    if (clearAlert) {
+      setAlert({ show: false, type: "success", title: "", message: "" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.state_id || !formData.municipality_id) {
+    if (!formData.state_id || !formData.municipality_id || !formData.distributor_id) {
       setAlert({
         show: true,
         type: "error",
         title: "Error de validación",
-        message: "Debes seleccionar ciudad y municipio"
+        message: "Debes seleccionar ciudad, municipio y distribuidor"
+      });
+      return;
+    }
+
+    // Validar longitud del teléfono (sin contar el prefijo)
+    const phoneDigits = formData.phone.substring(phonePrefix.length);
+    if (phoneDigits.length < phoneMinLength || phoneDigits.length > phoneMaxLength) {
+      setAlert({
+        show: true,
+        type: "error",
+        title: "Error de validación",
+        message: `El teléfono debe tener entre ${phoneMinLength} y ${phoneMaxLength} dígitos`
       });
       return;
     }
@@ -120,10 +192,8 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
           message: response.message || "Sucursal creada exitosamente. Credenciales enviadas por email."
         });
         onSuccess();
-        setTimeout(() => {
-          onClose();
-          resetForm();
-        }, 2000);
+        // Limpiar formulario para agregar otra sucursal, pero no cerrar el modal ni la alerta de éxito
+        resetForm(false);
       }
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || "Error al crear la sucursal";
@@ -155,6 +225,10 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
   const municipalityOptions = municipalities
     .filter(m => m.status)
     .map(m => ({ value: m.id.toString(), label: m.name }));
+
+  const distributorOptions = distributors
+    .filter(d => d.status)
+    .map(d => ({ value: d.id.toString(), label: d.business_name }));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl m-4">
@@ -203,6 +277,17 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
               </div>
             </div>
 
+            {/* Distribuidor */}
+            <div>
+              <Label>Distribuidor *</Label>
+              <Select
+                options={distributorOptions}
+                placeholder="Selecciona un distribuidor"
+                onChange={(value) => setFormData({ ...formData, distributor_id: parseInt(value) })}
+                value={formData.distributor_id?.toString() || ""}
+              />
+            </div>
+
             {/* Información básica */}
             <div>
               <Label>Nombre Comercial *</Label>
@@ -230,10 +315,15 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
                 <Label>Teléfono *</Label>
                 <InputField
                   type="text"
-                  placeholder="Ej: 555-1234"
+                  placeholder={phonePrefix ? `${phonePrefix}${"X".repeat(phoneMinLength)}` : "Teléfono"}
                   value={formData.phone}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePhoneChange(e.target.value)}
                 />
+                {phonePrefix && phoneMinLength > 0 && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    El prefijo {phonePrefix.trim()} no se puede eliminar. Debe tener entre {phoneMinLength} y {phoneMaxLength} dígitos.
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Email *</Label>

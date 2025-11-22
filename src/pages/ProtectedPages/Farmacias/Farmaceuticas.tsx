@@ -20,10 +20,12 @@ import { getPharmacies, createPharmacy, updatePharmacy, togglePharmacyStatus } f
 import { getCountries } from "../../../services/protected/countries.services";
 import { getStates } from "../../../services/protected/states.services";
 import { getMunicipalities } from "../../../services/protected/municipalities.services";
+import { getDistributors } from "../../../services/protected/distributors.services";
 import { PharmacyData } from "../../../types/services/protected/pharmacies.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
 import { StateData } from "../../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../../types/services/protected/municipalities.types";
+import { DistributorData } from "../../../types/services/protected/distributors.types";
 import { formatDate } from "../../../helper/formatData";
 import BulkUploadModal from "../../../components/pharmacies/BulkUploadModal";
 import * as XLSX from 'xlsx';
@@ -33,6 +35,7 @@ export default function FarmaceuticasPage() {
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [states, setStates] = useState<StateData[]>([]);
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
+  const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<PharmacyData | null>(null);
 
@@ -56,6 +59,7 @@ export default function FarmaceuticasPage() {
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
+  const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -73,6 +77,7 @@ export default function FarmaceuticasPage() {
     loadPharmacies();
     loadCountries();
     loadStates();
+    loadDistributors();
   }, []);
 
   const loadPharmacies = async () => {
@@ -105,6 +110,17 @@ export default function FarmaceuticasPage() {
       }
     } catch (error) {
       console.error("Error cargando ciudades:", error);
+    }
+  };
+
+  const loadDistributors = async () => {
+    try {
+      const response = await getDistributors();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setDistributors(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando distribuidores:", error);
     }
   };
 
@@ -221,6 +237,16 @@ export default function FarmaceuticasPage() {
       }));
   }, [municipalities, selectedStateId]);
 
+  // Opciones para select de distribuidores
+  const distributorOptions = useMemo(() => {
+    return distributors
+      .filter(distributor => distributor.status)
+      .map(distributor => ({
+        value: distributor.id.toString(),
+        label: distributor.business_name
+      }));
+  }, [distributors]);
+
   // Actualizar prefijo de teléfono cuando cambia el país
   const handleCountryChange = (countryId: string) => {
     const id = parseInt(countryId);
@@ -319,6 +345,7 @@ export default function FarmaceuticasPage() {
         email: email,
         administrator_name: administratorName,
         is_chain: isChain,
+        distributor_id: selectedDistributorId,
       };
 
       const response = await createPharmacy(params);
@@ -371,6 +398,7 @@ export default function FarmaceuticasPage() {
         email: email,
         administrator_name: administratorName,
         is_chain: isChain,
+        distributor_id: selectedDistributorId,
       };
 
       const response = await updatePharmacy(selectedPharmacy.id, params);
@@ -415,6 +443,7 @@ export default function FarmaceuticasPage() {
     setSelectedCountryId(null);
     setSelectedStateId(null);
     setSelectedMunicipalityId(null);
+    setSelectedDistributorId(null);
     setMunicipalities([]);
     setPhonePrefix("");
     setPhoneMinLength(0);
@@ -459,6 +488,7 @@ export default function FarmaceuticasPage() {
         'Nombre Comercial': pharmacy.commercial_name || 'N/A',
         'Número de Identificación': pharmacy.identification_number,
         'Tipo': pharmacy.is_chain ? 'Cadena' : 'Independiente',
+        'Distribuidor': pharmacy.default_distributor?.business_name || 'N/A',
         'Dirección': pharmacy.street_address || 'N/A',
         'País': pharmacy.country.name,
         'Ciudad/Provincia': state?.name || 'N/A',
@@ -483,6 +513,7 @@ export default function FarmaceuticasPage() {
       { wch: 30 },  // Nombre Comercial
       { wch: 20 },  // Número de Identificación
       { wch: 15 },  // Tipo
+      { wch: 30 },  // Distribuidor
       { wch: 40 },  // Dirección
       { wch: 25 },  // País
       { wch: 25 },  // Ciudad/Provincia
@@ -625,6 +656,7 @@ export default function FarmaceuticasPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">País</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Identificación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tipo</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Distribuidor</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
@@ -660,6 +692,9 @@ export default function FarmaceuticasPage() {
                       }`}>
                         {pharmacy.is_chain ? "Cadena" : "Independiente"}
                       </span>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {pharmacy.default_distributor?.business_name || 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4">
                       <Switch
@@ -790,7 +825,7 @@ export default function FarmaceuticasPage() {
       <Modal isOpen={isAddOpen} onClose={handleCloseAdd} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
           <div className="px-2 pr-14 mb-6">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Cadena</h4>
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Agregar Nueva Farmacia</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para registrar una nueva farmacéutica</p>
           </div>
           {Object.keys(errors).length > 0 && (
@@ -857,6 +892,15 @@ export default function FarmaceuticasPage() {
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   defaultValue=""
                   disabled={!selectedStateId}
+                />
+              </div>
+              <div>
+                <Label>Distribuidor</Label>
+                <Select
+                  options={distributorOptions}
+                  placeholder="Selecciona un distribuidor (opcional)"
+                  onChange={(value) => setSelectedDistributorId(value ? parseInt(value) : null)}
+                  defaultValue=""
                 />
               </div>
               <div>
@@ -1016,6 +1060,15 @@ export default function FarmaceuticasPage() {
                   onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
                   value={selectedMunicipalityId?.toString() || ""}
                   disabled={!selectedStateId}
+                />
+              </div>
+              <div>
+                <Label>Distribuidor</Label>
+                <Select
+                  options={distributorOptions}
+                  placeholder="Selecciona un distribuidor (opcional)"
+                  onChange={(value) => setSelectedDistributorId(value ? parseInt(value) : null)}
+                  value={selectedDistributorId?.toString() || ""}
                 />
               </div>
               <div>

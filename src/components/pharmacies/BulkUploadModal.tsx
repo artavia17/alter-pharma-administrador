@@ -7,10 +7,12 @@ import Alert from "../ui/alert/Alert";
 import { getCountries } from "../../services/protected/countries.services";
 import { getStates } from "../../services/protected/states.services";
 import { getMunicipalities } from "../../services/protected/municipalities.services";
+import { getDistributors } from "../../services/protected/distributors.services";
 import { bulkCreatePharmacies, type BulkPharmacyData } from "../../services/protected/pharmacies.services";
 import { CountryData } from "../../types/services/protected/countries.types";
 import { StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
+import { DistributorData } from "../../types/services/protected/distributors.types";
 import * as XLSX from 'xlsx';
 
 interface BulkUploadModalProps {
@@ -23,9 +25,11 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [states, setStates] = useState<StateData[]>([]);
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
+  const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
+  const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<BulkPharmacyData[]>([]);
@@ -39,6 +43,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   useEffect(() => {
     if (isOpen) {
       loadCountries();
+      loadDistributors();
       // Limpiar todo el ciudad cuando se abre el modal
       setFile(null);
       setPreviewData([]);
@@ -51,6 +56,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
       setSelectedCountryId(null);
       setSelectedStateId(null);
       setSelectedMunicipalityId(null);
+      setSelectedDistributorId(null);
       setStates([]);
       setMunicipalities([]);
 
@@ -93,6 +99,17 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
       }
     } catch (error) {
       console.error("Error cargando municipios:", error);
+    }
+  };
+
+  const loadDistributors = async () => {
+    try {
+      const response = await getDistributors();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setDistributors(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando distribuidores:", error);
     }
   };
 
@@ -168,6 +185,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
           email: row['Email'] || row['email'] || '',
           administrator_name: row['Administrador'] || row['administrator_name'] || '',
           is_chain: row['Es Cadena'] === 'SI' || row['Es Cadena'] === 'TRUE' || row['Es Cadena'] === 'true' || row['is_chain'] === true || row['is_chain'] === 'true' || false,
+          distributor_id: selectedDistributorId,
         }));
 
         setPreviewData(parsedData);
@@ -181,8 +199,8 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   };
 
   const handleUpload = async () => {
-    if (!selectedCountryId || !selectedStateId || !selectedMunicipalityId) {
-      setErrors(['Debes seleccionar país, ciudad y municipio']);
+    if (!selectedCountryId || !selectedStateId || !selectedMunicipalityId || !selectedDistributorId) {
+      setErrors(['Debes seleccionar país, ciudad, municipio y distribuidor antes de cargar el archivo']);
       return;
     }
 
@@ -279,6 +297,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
     setSelectedCountryId(null);
     setSelectedStateId(null);
     setSelectedMunicipalityId(null);
+    setSelectedDistributorId(null);
     setStates([]);
     setMunicipalities([]);
     setErrors([]);
@@ -300,6 +319,10 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   const municipalityOptions = municipalities
     .filter(m => m.status)
     .map(m => ({ value: m.id.toString(), label: m.name }));
+
+  const distributorOptions = distributors
+    .filter(d => d.status)
+    .map(d => ({ value: d.id.toString(), label: d.business_name }));
 
   return (
     <Modal isOpen={isOpen} onClose={resetModal} className="max-w-4xl m-4">
@@ -337,9 +360,9 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
           {/* Paso 1: Ubicación */}
           <div>
             <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 1: Selecciona la ubicación
+              Paso 1: Selecciona la ubicación y distribuidor
             </h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>País *</Label>
                 <Select
@@ -369,7 +392,19 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                   disabled={!selectedStateId}
                 />
               </div>
+              <div>
+                <Label>Distribuidor *</Label>
+                <Select
+                  options={distributorOptions}
+                  placeholder="Selecciona un distribuidor"
+                  onChange={(value) => setSelectedDistributorId(parseInt(value))}
+                  value={selectedDistributorId?.toString() || ""}
+                />
+              </div>
             </div>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              * Campos obligatorios. El distribuidor seleccionado se asignará a todas las farmacias del archivo Excel
+            </p>
           </div>
 
           {/* Paso 2: Template */}
@@ -401,7 +436,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
           </div>
 
           {/* Paso 3: Cargar archivo */}
-          {selectedCountryId && selectedStateId && selectedMunicipalityId && (
+          {selectedCountryId && selectedStateId && selectedMunicipalityId && selectedDistributorId && (
             <div>
               <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
                 Paso 3: Carga el archivo Excel
@@ -535,7 +570,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
             <Button
               size="sm"
               onClick={handleUpload}
-              disabled={isUploading || !selectedCountryId || !selectedStateId || !selectedMunicipalityId}
+              disabled={isUploading || !selectedCountryId || !selectedStateId || !selectedMunicipalityId || !selectedDistributorId}
             >
               {isUploading ? 'Procesando...' : `Cargar ${previewData.length} Farmacias`}
             </Button>
