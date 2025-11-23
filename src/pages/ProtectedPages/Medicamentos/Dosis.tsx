@@ -752,7 +752,7 @@ export default function DosisPage() {
                 </div>
               </div>
               <div>
-                <Label>Días de redención *</Label>
+                <Label>Días disponibles para canje *</Label>
                 <Input
                   type="number"
                   value={redemptionDays}
@@ -857,7 +857,7 @@ export default function DosisPage() {
                 </div>
               </div>
               <div>
-                <Label>Días de redención *</Label>
+                <Label>Días disponibles para canje *</Label>
                 <Input
                   type="number"
                   value={redemptionDays}
@@ -930,7 +930,7 @@ export default function DosisPage() {
                   <span className="font-medium">Promoción Lleva:</span> {selectedDose?.promotion_get}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Días de redención:</span> {selectedDose?.redemption_days} días
+                  <span className="font-medium">Días disponibles para canje:</span> {selectedDose?.redemption_days} días
                 </p>
               </div>
             </div>
