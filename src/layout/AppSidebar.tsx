@@ -21,6 +21,7 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
+  externalUrl?: string; // URL externa para abrir en nueva pestaña
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
   requiredModules?: string[]; // Módulos requeridos para mostrar este item
 };
@@ -105,6 +106,12 @@ const navItems: NavItem[] = [
     name: "Bonos",
     path: "/bonos",
     requiredModules: ["users"], // Requiere módulo de usuarios
+  },
+  {
+    icon: <TableIcon />,
+    name: "Portal Distribuidores",
+    externalUrl: "https://alter-pharma-distribuidores.vercel.app/auth/sign-in",
+    requiredModules: ["distributors"], // Requiere módulo de distribuidores
   },
   // {
   //   icon: <CalenderIcon />,
@@ -273,6 +280,35 @@ const AppSidebar: React.FC = () => {
                 />
               )}
             </button>
+          ) : nav.externalUrl ? (
+            <a
+              href={nav.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="menu-item group menu-item-inactive"
+            >
+              <span className="menu-item-icon-size menu-item-icon-inactive">
+                {nav.icon}
+              </span>
+              {(isExpanded || isHovered || isMobileOpen) && (
+                <>
+                  <span className="menu-item-text">{nav.name}</span>
+                  <svg
+                    className="ml-auto w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </>
+              )}
+            </a>
           ) : (
             nav.path && (
               <Link
