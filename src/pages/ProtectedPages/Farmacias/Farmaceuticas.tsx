@@ -898,7 +898,7 @@ export default function FarmaceuticasPage() {
                 <Label>Distribuidor</Label>
                 <Select
                   options={distributorOptions}
-                  placeholder="Selecciona un distribuidor (opcional)"
+                  placeholder="Selecciona un distribuidor"
                   onChange={(value) => setSelectedDistributorId(value ? parseInt(value) : null)}
                   defaultValue=""
                 />
@@ -1066,7 +1066,7 @@ export default function FarmaceuticasPage() {
                 <Label>Distribuidor</Label>
                 <Select
                   options={distributorOptions}
-                  placeholder="Selecciona un distribuidor (opcional)"
+                  placeholder="Selecciona un distribuidor"
                   onChange={(value) => setSelectedDistributorId(value ? parseInt(value) : null)}
                   value={selectedDistributorId?.toString() || ""}
                 />
