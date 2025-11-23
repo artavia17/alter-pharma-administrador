@@ -71,6 +71,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Cadenas/Independientes", path: "/farmaceuticas" },
       { name: "Sucursales", path: "/farmaceuticas/sucursales" },
+      { name: "Solicitudes", path: "/farmaceuticas/solicitudes" },
     ],
     requiredModules: ["pharmacies"], // Requiere módulo de farmacias
   },
