@@ -774,3 +774,11 @@ span.flatpickr-weekday,
   max-height: 95vh;
   overflow: auto;
 }
+
+.modal.moved{
+  overflow: hidden;
+}
+
+.modal.moved .resize-content{
+  overflow: auto;
+}
