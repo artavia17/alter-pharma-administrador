@@ -25,7 +25,19 @@ const searchPatients = async (params: SearchPatientsParams) => {
     return response.data;
 };
 
+interface TogglePatientStatusResponse {
+    status: number;
+    message: string;
+    data: any;
+}
+
+const togglePatientStatus = async (patientId: number) => {
+    const response = await api.patch<TogglePatientStatusResponse>(`/administrator/patients/${patientId}/toggle-status`);
+    return response.data;
+};
+
 export {
     getAllPatients,
-    searchPatients
+    searchPatients,
+    togglePatientStatus
 };

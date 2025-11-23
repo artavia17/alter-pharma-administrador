@@ -6,6 +6,7 @@ import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Alert from "../../../components/ui/alert/Alert";
+import Switch from "../../../components/form/switch/Switch";
 import { useModal } from "../../../hooks/useModal";
 import {
   Table,
@@ -14,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { searchPatients } from "../../../services/protected/patients.services";
+import { searchPatients, togglePatientStatus } from "../../../services/protected/patients.services";
 import { PatientData } from "../../../types/services/protected/patients.types";
 import { formatDate } from "../../../helper/formatData";
 import * as XLSX from 'xlsx';
@@ -95,6 +96,24 @@ export default function PacientesPage() {
   const handleCloseDetail = () => {
     setSelectedPatient(null);
     closeDetailModal();
+  };
+
+  const handleToggleStatus = async (patient: PatientData) => {
+    try {
+      const response = await togglePatientStatus(patient.id);
+      if (response.status === 200) {
+        // Actualizar el estado del paciente en la lista
+        setPatients(prevPatients =>
+          prevPatients.map(p =>
+            p.id === patient.id
+              ? { ...p, status: response.data.status }
+              : p
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error al cambiar el estado del paciente:", error);
+    }
   };
 
   // Función para exportar a Excel
@@ -259,7 +278,7 @@ export default function PacientesPage() {
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Identificación</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ubicación</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contacto</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ciudad</TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                   </TableRow>
                 </TableHeader>
@@ -294,13 +313,11 @@ export default function PacientesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="px-5 py-4">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          patient.status === 'active'
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                        }`}>
-                          {patient.status === 'active' ? 'Activo' : 'Inactivo'}
-                        </span>
+                        <Switch
+                          label={patient.status === 'active' ? "Activo" : "Inactivo"}
+                          defaultChecked={patient.status === 'active'}
+                          onChange={() => handleToggleStatus(patient)}
+                        />
                       </TableCell>
                       <TableCell className="px-5 py-4 text-center">
                         <button onClick={() => openDetail(patient)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
