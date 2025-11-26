@@ -16,15 +16,36 @@ interface UpdatePharmacyRequestStatusParams {
     distributor_id?: number;
 }
 
+interface UpdatePharmacyRequestParams {
+    country_id: number;
+    state_id: number;
+    municipality_id: number;
+    distributor_id: number;
+    legal_name: string;
+    commercial_name: string;
+    identification_number: string;
+    street_address: string;
+    phone: string;
+    email: string;
+    administrator_name: string;
+    is_chain: boolean;
+}
+
 const updatePharmacyRequestStatus = async (id: number, params: UpdatePharmacyRequestStatusParams) => {
     const response = await api.post<SinglePharmacyRequestResponse>(`/administrator/pharmacy-registration-requests/${id}/status`, params);
+    return response.data;
+};
+
+const updatePharmacyRequest = async (id: number, params: UpdatePharmacyRequestParams) => {
+    const response = await api.post<SinglePharmacyRequestResponse>(`/administrator/pharmacy-registration-requests/${id}`, params);
     return response.data;
 };
 
 export {
     getPharmacyRequests,
     getPharmacyRequest,
-    updatePharmacyRequestStatus
+    updatePharmacyRequestStatus,
+    updatePharmacyRequest
 };
 
-export type { UpdatePharmacyRequestStatusParams };
+export type { UpdatePharmacyRequestStatusParams, UpdatePharmacyRequestParams };

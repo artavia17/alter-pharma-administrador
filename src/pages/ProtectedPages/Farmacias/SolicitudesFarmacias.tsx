@@ -19,6 +19,7 @@ import { getDistributors } from "../../../services/protected/distributors.servic
 import { PharmacyRequestData, PharmacyRequestStatus } from "../../../types/services/protected/pharmacy-requests.types";
 import { DistributorData } from "../../../types/services/protected/distributors.types";
 import { formatDate } from "../../../helper/formatData";
+import EditRequestModal from "../../../components/pharmacy-requests/EditRequestModal";
 
 export default function SolicitudesFarmaciasPage() {
   const [requests, setRequests] = useState<PharmacyRequestData[]>([]);
@@ -45,6 +46,7 @@ export default function SolicitudesFarmaciasPage() {
   // Modals
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
   const { isOpen: isUpdateStatusOpen, openModal: openUpdateStatusModal, closeModal: closeUpdateStatusModal } = useModal();
+  const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
 
   useEffect(() => {
     loadRequests();
@@ -376,6 +378,31 @@ export default function SolicitudesFarmaciasPage() {
                             />
                           </svg>
                         </button>
+                        {/* Editar solicitud - solo si no está aprobado */}
+                        {request.status !== "approved" && (
+                        <button
+                          onClick={() => {
+                            setSelectedRequest(request);
+                            openEditModal();
+                          }}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-800 dark:hover:text-blue-400"
+                          title="Editar solicitud"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
+                          </svg>
+                        </button>
+                        )}
                         {/* Actualizar estado - solo si no está aprobado */}
                         {request.status !== "approved" && (
                         <button
@@ -393,7 +420,7 @@ export default function SolicitudesFarmaciasPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth="2"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                           </svg>
                         </button>
@@ -463,7 +490,7 @@ export default function SolicitudesFarmaciasPage() {
                         onClick={() => setCurrentPage(page as number)}
                         className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                           currentPage === page
-                            ? 'z-10 bg-brand-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+                            ? 'z-10 bg-brand-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
                             : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-gray-800'
                         }`}
                       >
@@ -601,6 +628,17 @@ export default function SolicitudesFarmaciasPage() {
           )}
         </div>
       </Modal>
+
+      {/* Modal de edición */}
+      <EditRequestModal
+        isOpen={isEditOpen}
+        onClose={closeEditModal}
+        onSuccess={() => {
+          loadRequests();
+          closeEditModal();
+        }}
+        request={selectedRequest}
+      />
 
       {/* Modal de actualizar estado */}
       <Modal isOpen={isUpdateStatusOpen} onClose={closeUpdateStatusModal} className="max-w-md m-4">

@@ -628,7 +628,6 @@ export default function SucursalesPage() {
             onSuccess={handleModalSuccess}
             pharmacyId={selectedPharmacy.id}
             pharmacyName={selectedPharmacy.commercial_name}
-            countryId={selectedPharmacy.country_id}
           />
         </>
       )}

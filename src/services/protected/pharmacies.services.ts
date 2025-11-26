@@ -40,9 +40,9 @@ const togglePharmacyStatus = async (id: number) => {
 };
 
 interface BulkPharmacyData {
-    country_id: number;
-    state_id: number;
-    municipality_id: number;
+    country_name: string;
+    state_name: string;
+    municipality_name: string;
     legal_name: string;
     commercial_name: string;
     identification_number: string;

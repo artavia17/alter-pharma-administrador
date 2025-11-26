@@ -4,12 +4,8 @@ import Button from "../ui/button/Button";
 import Label from "../form/Label";
 import Select from "../form/Select";
 import Alert from "../ui/alert/Alert";
-import { getStates } from "../../services/protected/states.services";
-import { getMunicipalities } from "../../services/protected/municipalities.services";
 import { getDistributors } from "../../services/protected/distributors.services";
 import { bulkCreateSubPharmacies, type BulkSubPharmacyData } from "../../services/protected/sub-pharmacies.services";
-import { StateData } from "../../types/services/protected/countries.types";
-import { MunicipalityData } from "../../types/services/protected/municipalities.types";
 import { DistributorData } from "../../types/services/protected/distributors.types";
 import * as XLSX from 'xlsx';
 
@@ -19,15 +15,10 @@ interface BulkUploadSubPharmacyModalProps {
   onSuccess: () => void;
   pharmacyId: number;
   pharmacyName: string;
-  countryId: number;
 }
 
-export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess, pharmacyId, pharmacyName, countryId }: BulkUploadSubPharmacyModalProps) {
-  const [states, setStates] = useState<StateData[]>([]);
-  const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
+export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess, pharmacyId, pharmacyName }: BulkUploadSubPharmacyModalProps) {
   const [distributors, setDistributors] = useState<DistributorData[]>([]);
-  const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
-  const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
   const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -41,34 +32,10 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
 
   useEffect(() => {
     if (isOpen) {
-      loadStates();
       loadDistributors();
       clearUploadState();
     }
   }, [isOpen]);
-
-  const loadStates = async () => {
-    try {
-      const response = await getStates();
-      if (response.status === 200 && Array.isArray(response.data)) {
-        const filteredStates = response.data.filter(state => Number(state.country_id) === Number(countryId));
-        setStates(filteredStates);
-      }
-    } catch (error) {
-      console.error("Error cargando ciudades:", error);
-    }
-  };
-
-  const loadMunicipalities = async (stateId: number) => {
-    try {
-      const response = await getMunicipalities(stateId);
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setMunicipalities(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando municipios:", error);
-    }
-  };
 
   const loadDistributors = async () => {
     try {
@@ -81,16 +48,6 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
     }
   };
 
-  const handleStateChange = (stateId: string) => {
-    const id = parseInt(stateId);
-    setSelectedStateId(id);
-    setSelectedMunicipalityId(null);
-    setMunicipalities([]);
-    if (id) {
-      loadMunicipalities(id);
-    }
-  };
-
   const clearUploadState = () => {
     setFile(null);
     setPreviewData([]);
@@ -100,10 +57,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
     setUploadProgress(0);
     setShowResults(false);
     setIsUploading(false);
-    setSelectedStateId(null);
-    setSelectedMunicipalityId(null);
     setSelectedDistributorId(null);
-    setMunicipalities([]);
 
     const fileInput = document.getElementById('excel-upload-subpharmacy') as HTMLInputElement;
     if (fileInput) {
@@ -130,8 +84,8 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
         const parsedData: BulkSubPharmacyData[] = jsonData.map((row: any) => ({
-          state_id: selectedStateId!,
-          municipality_id: selectedMunicipalityId!,
+          state_name: row['Estado/Provincia'] || row['state_name'] || '',
+          municipality_name: row['Municipio/Cantón'] || row['municipality_name'] || '',
           commercial_name: row['Nombre Comercial'] || row['commercial_name'] || '',
           street_address: row['Dirección'] || row['street_address'] || '',
           phone: String(row['Teléfono'] || row['phone'] || ''),
@@ -151,8 +105,8 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
   };
 
   const handleUpload = async () => {
-    if (!selectedStateId || !selectedMunicipalityId || !selectedDistributorId) {
-      setErrors(['Debes seleccionar ciudad, municipio y distribuidor antes de cargar el archivo']);
+    if (!selectedDistributorId) {
+      setErrors(['Debes seleccionar un distribuidor antes de cargar el archivo']);
       return;
     }
 
@@ -189,8 +143,9 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         if (response.data.errors.length > 0) {
           allErrors.push(...response.data.errors.map((err: any) => {
             const rowNumber = start + err.index + 1;
+            const subPharmacyName = err.data?.commercial_name || `Fila ${rowNumber}`;
             const errorMessage = err.error || (Array.isArray(err.errors) ? err.errors.join(', ') : JSON.stringify(err.errors || err));
-            return `Fila ${rowNumber}: ${errorMessage}`;
+            return `${subPharmacyName} (Fila ${rowNumber}): ${errorMessage}`;
           }));
         }
 
@@ -200,9 +155,30 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
       } catch (error: any) {
         console.error("Error en lote (catch):", error);
         console.error("Error response:", error?.response);
-        const errorMessage = error?.response?.data?.message || error?.message || 'Error desconocido';
-        allErrors.push(`Error en lote ${i + 1}: ${errorMessage}`);
-        allFailed += batch.length;
+
+        // Verificar si el error tiene datos de respuesta con errores detallados
+        if (error?.response?.data?.data?.errors && Array.isArray(error.response.data.data.errors)) {
+          const responseData = error.response.data.data;
+
+          // Actualizar contadores
+          allSuccess += responseData.summary?.created || 0;
+          allFailed += responseData.summary?.failed || 0;
+
+          // Procesar errores detallados
+          allErrors.push(...responseData.errors.map((err: any) => {
+            const rowNumber = start + err.index + 1;
+            const subPharmacyName = err.data?.commercial_name || `Fila ${rowNumber}`;
+            const errorMessage = err.error || (Array.isArray(err.errors) ? err.errors.join(', ') : JSON.stringify(err.errors || err));
+            return `${subPharmacyName} (Fila ${rowNumber}): ${errorMessage}`;
+          }));
+        } else {
+          // Error genérico sin detalles
+          const errorMessage = error?.response?.data?.message || error?.message || 'Error desconocido';
+          allErrors.push(`Error en lote ${i + 1}: ${errorMessage}`);
+          allFailed += batch.length;
+        }
+
+        setSuccessCount(allSuccess);
         setFailedCount(allFailed);
       }
 
@@ -221,6 +197,8 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
   const downloadTemplate = () => {
     const templateData = [
       {
+        'Estado/Provincia': 'Santo Domingo',
+        'Municipio/Cantón': 'Distrito Nacional',
         'Nombre Comercial': 'Sucursal Centro',
         'Dirección': 'Calle Principal #123',
         'Teléfono': '555-1234',
@@ -274,44 +252,23 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         )}
 
         <div className="px-2 space-y-6">
-          {/* Paso 1: Ubicación */}
+          {/* Paso 1: Seleccionar Distribuidor */}
           <div>
             <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 1: Selecciona la ubicación y distribuidor
+              Paso 1: Selecciona el distribuidor
             </h5>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Ciudad/Provincia *</Label>
-                <Select
-                  options={states.filter(s => s.status).map(s => ({ value: s.id.toString(), label: s.name }))}
-                  placeholder="Selecciona una ciudad"
-                  onChange={handleStateChange}
-                  value={selectedStateId?.toString() || ""}
-                />
-              </div>
-              <div>
-                <Label>Municipio/Cantón *</Label>
-                <Select
-                  options={municipalities.filter(m => m.status).map(m => ({ value: m.id.toString(), label: m.name }))}
-                  placeholder="Selecciona un municipio/cantón"
-                  onChange={(value) => setSelectedMunicipalityId(parseInt(value))}
-                  value={selectedMunicipalityId?.toString() || ""}
-                  disabled={!selectedStateId}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label>Distribuidor *</Label>
-                <Select
-                  options={distributors.filter(d => d.status).map(d => ({ value: d.id.toString(), label: d.business_name }))}
-                  placeholder="Selecciona un distribuidor"
-                  onChange={(value) => setSelectedDistributorId(parseInt(value))}
-                  value={selectedDistributorId?.toString() || ""}
-                />
-              </div>
+            <div className="max-w-md">
+              <Label>Distribuidor *</Label>
+              <Select
+                options={distributors.filter(d => d.status).map(d => ({ value: d.id.toString(), label: d.business_name }))}
+                placeholder="Selecciona un distribuidor"
+                onChange={(value) => setSelectedDistributorId(parseInt(value))}
+                value={selectedDistributorId?.toString() || ""}
+              />
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                El distribuidor seleccionado se asignará a todas las sucursales del archivo Excel
+              </p>
             </div>
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              * Campos obligatorios. El distribuidor seleccionado se asignará a todas las sucursales del archivo Excel
-            </p>
           </div>
 
           {/* Paso 2: Template */}
@@ -324,6 +281,8 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
                 Descarga la plantilla Excel con el formato correcto para cargar las sucursales:
               </p>
               <ul className="text-sm text-gray-600 dark:text-gray-400 mb-3 space-y-1 list-disc list-inside">
+                <li><strong>Estado/Provincia:</strong> Nombre del estado o provincia</li>
+                <li><strong>Municipio/Cantón:</strong> Nombre del municipio o cantón</li>
                 <li><strong>Nombre Comercial:</strong> Nombre de la sucursal</li>
                 <li><strong>Dirección:</strong> Dirección física de la sucursal</li>
                 <li><strong>Teléfono:</strong> Número de contacto</li>
@@ -340,7 +299,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
           </div>
 
           {/* Paso 3: Cargar archivo */}
-          {selectedStateId && selectedMunicipalityId && selectedDistributorId && (
+          {selectedDistributorId && (
             <div>
               <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
                 Paso 3: Carga el archivo Excel
@@ -464,7 +423,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
             <Button
               size="sm"
               onClick={handleUpload}
-              disabled={isUploading || !selectedStateId || !selectedMunicipalityId || !selectedDistributorId}
+              disabled={isUploading || !selectedDistributorId}
             >
               {isUploading ? 'Procesando...' : `Cargar ${previewData.length} Sucursales`}
             </Button>

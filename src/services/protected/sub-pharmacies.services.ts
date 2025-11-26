@@ -88,8 +88,8 @@ interface CreateSubPharmacyResponse {
 }
 
 interface BulkSubPharmacyData {
-  state_id: number;
-  municipality_id: number;
+  state_name: string;
+  municipality_name: string;
   commercial_name: string;
   street_address: string;
   phone: string;
