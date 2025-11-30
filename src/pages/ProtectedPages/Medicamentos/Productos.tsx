@@ -80,14 +80,17 @@ export default function ProductosPage() {
 
     const query = searchQuery.toLowerCase();
     return products.filter(product =>
-      product.name.toLowerCase().includes(query) ||
+      product.name?.toLowerCase().includes(query) ||
       product.description?.toLowerCase().includes(query) ||
-      product.countries.some(country => country.name.toLowerCase().includes(query)) ||
-      product.doses.some(dose =>
+      product.countries?.some(country =>
+        country.name?.toLowerCase().includes(query)
+      ) ||
+      product.doses?.some(dose =>
         dose.name?.toLowerCase().includes(query) ||
         dose.description?.toLowerCase().includes(query)
       )
     );
+
   }, [products, searchQuery]);
 
   // Calcular paginación
@@ -565,11 +568,10 @@ export default function ProductosPage() {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page as number)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                            currentPage === page
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
                               ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
                               : 'bg-white dark:bg-white/[0.03] border-gray-300 dark:border-white/[0.05] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05]'
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
@@ -747,11 +749,10 @@ export default function ProductosPage() {
             </h4>
             <div className="flex items-center gap-2 mt-2">
               <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  selectedProduct?.status
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedProduct?.status
                     ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                     : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                }`}
+                  }`}
               >
                 {selectedProduct?.status ? "Activo" : "Inactivo"}
               </span>
@@ -798,11 +799,10 @@ export default function ProductosPage() {
                           </div>
                         </div>
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            dose.status
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${dose.status
                               ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                               : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                          }`}
+                            }`}
                         >
                           {dose.status ? "Activo" : "Inactivo"}
                         </span>
