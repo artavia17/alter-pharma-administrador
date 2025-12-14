@@ -518,7 +518,7 @@ export default function DosisPage() {
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Compra {doseItem.promotion_buy} Lleva {doseItem.promotion_get}
+                        Compra {doseItem.promotion_buy} Obtiene {doseItem.promotion_get}
                       </span>
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
@@ -741,7 +741,7 @@ export default function DosisPage() {
                   />
                 </div>
                 <div>
-                  <Label>Promoción: Lleva *</Label>
+                  <Label>Promoción: Obtiene *</Label>
                   <Input
                     type="number"
                     value={promotionGet}
@@ -846,7 +846,7 @@ export default function DosisPage() {
                   />
                 </div>
                 <div>
-                  <Label>Promoción: Lleva *</Label>
+                  <Label>Promoción: Obtiene *</Label>
                   <Input
                     type="number"
                     value={promotionGet}
@@ -927,7 +927,7 @@ export default function DosisPage() {
                   <span className="font-medium">Promoción Compra:</span> {selectedDose?.promotion_buy}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Promoción Lleva:</span> {selectedDose?.promotion_get}
+                  <span className="font-medium">Promoción Obtiene:</span> {selectedDose?.promotion_get}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <span className="font-medium">Días disponibles para canje:</span> {selectedDose?.redemption_days} días

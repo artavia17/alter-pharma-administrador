@@ -554,7 +554,7 @@ export default function TransaccionesPage() {
                           <span className="font-medium">Cantidad:</span> {item.quantity}
                         </p>
                         <p className="text-sm text-gray-700 dark:text-gray-300">
-                          <span className="font-medium">Promoción:</span> Compra {item.product_dose?.promotion_buy} Lleva {item.product_dose?.promotion_get}
+                          <span className="font-medium">Promoción:</span> Compra {item.product_dose?.promotion_buy} Obtiene {item.product_dose?.promotion_get}
                         </p>
                       </div>
                     </div>

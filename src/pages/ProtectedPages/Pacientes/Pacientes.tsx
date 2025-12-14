@@ -434,7 +434,7 @@ export default function PacientesPage() {
                     <div key={dose.id} className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                       <p className="text-sm font-medium text-gray-800 dark:text-white/90">{dose.product.name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Presentación: {dose.dose}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Promoción: Compra {dose.promotion_buy} Lleva {dose.promotion_get}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Promoción: Compra {dose.promotion_buy} Obtiene {dose.promotion_get}</p>
                     </div>
                   ))}
                 </div>
