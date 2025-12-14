@@ -93,7 +93,10 @@ const navItems: NavItem[] = [
   {
     icon: <ListIcon />,
     name: "Transacciones",
-    path: "/transacciones",
+    subItems: [
+      { name: "Transacciones", path: "/transacciones" },
+      { name: "Control de Ingresos", path: "/transacciones/saltos-facturacion" },
+    ],
     requiredModules: ["users"], // Requiere módulo de usuarios
   },
   {
