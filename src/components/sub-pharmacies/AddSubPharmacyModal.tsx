@@ -8,11 +8,9 @@ import Alert from "../ui/alert/Alert";
 import { getCountries } from "../../services/protected/countries.services";
 import { getStates } from "../../services/protected/states.services";
 import { getMunicipalities } from "../../services/protected/municipalities.services";
-import { getDistributors } from "../../services/protected/distributors.services";
 import { createSubPharmacy, type CreateSubPharmacyParams } from "../../services/protected/sub-pharmacies.services";
 import { StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
-import { DistributorData } from "../../types/services/protected/distributors.types";
 
 interface AddSubPharmacyModalProps {
   isOpen: boolean;
@@ -25,7 +23,6 @@ interface AddSubPharmacyModalProps {
 export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharmacyId, countryId }: AddSubPharmacyModalProps) {
   const [states, setStates] = useState<StateData[]>([]);
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
-  const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Estados para validación de teléfono
@@ -40,8 +37,7 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     street_address: "",
     phone: "",
     email: "",
-    administrator_name: "",
-    distributor_id: 0
+    administrator_name: ""
   });
 
   const [alert, setAlert] = useState<{
@@ -54,7 +50,6 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
   useEffect(() => {
     if (isOpen) {
       loadStates();
-      loadDistributors();
       loadCountryPhoneSettings();
       resetForm();
     }
@@ -101,16 +96,6 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     }
   };
 
-  const loadDistributors = async () => {
-    try {
-      const response = await getDistributors();
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setDistributors(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando distribuidores:", error);
-    }
-  };
 
   const handleStateChange = (stateId: string) => {
     const id = parseInt(stateId);
@@ -145,8 +130,7 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
       street_address: "",
       phone: phonePrefix || "",
       email: "",
-      administrator_name: "",
-      distributor_id: 0
+      administrator_name: ""
     });
     setMunicipalities([]);
     if (clearAlert) {
@@ -157,12 +141,12 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.state_id || !formData.municipality_id || !formData.distributor_id) {
+    if (!formData.state_id || !formData.municipality_id) {
       setAlert({
         show: true,
         type: "error",
         title: "Error de validación",
-        message: "Debes seleccionar ciudad, municipio y distribuidor"
+        message: "Debes seleccionar ciudad y municipio"
       });
       return;
     }
@@ -226,9 +210,6 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     .filter(m => m.status)
     .map(m => ({ value: m.id.toString(), label: m.name }));
 
-  const distributorOptions = distributors
-    .filter(d => d.status)
-    .map(d => ({ value: d.id.toString(), label: d.business_name }));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl m-4">
@@ -275,17 +256,6 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
                   disabled={!formData.state_id}
                 />
               </div>
-            </div>
-
-            {/* Distribuidor */}
-            <div>
-              <Label>Distribuidor *</Label>
-              <Select
-                options={distributorOptions}
-                placeholder="Selecciona un distribuidor"
-                onChange={(value) => setFormData({ ...formData, distributor_id: parseInt(value) })}
-                value={formData.distributor_id?.toString() || ""}
-              />
             </div>
 
             {/* Información básica */}

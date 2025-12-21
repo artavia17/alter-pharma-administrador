@@ -15,15 +15,12 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { getPharmacyRequests, updatePharmacyRequestStatus } from "../../../services/protected/pharmacy-requests.services";
-import { getDistributors } from "../../../services/protected/distributors.services";
 import { PharmacyRequestData, PharmacyRequestStatus } from "../../../types/services/protected/pharmacy-requests.types";
-import { DistributorData } from "../../../types/services/protected/distributors.types";
 import { formatDate } from "../../../helper/formatData";
 import EditRequestModal from "../../../components/pharmacy-requests/EditRequestModal";
 
 export default function SolicitudesFarmaciasPage() {
   const [requests, setRequests] = useState<PharmacyRequestData[]>([]);
-  const [distributors, setDistributors] = useState<DistributorData[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<PharmacyRequestData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,7 +34,6 @@ export default function SolicitudesFarmaciasPage() {
 
   // Update status form
   const [newStatus, setNewStatus] = useState<PharmacyRequestStatus>("pending");
-  const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
 
   // Alerts
   const [successMessage, setSuccessMessage] = useState<string>("");
@@ -50,7 +46,6 @@ export default function SolicitudesFarmaciasPage() {
 
   useEffect(() => {
     loadRequests();
-    loadDistributors();
   }, []);
 
   const loadRequests = async () => {
@@ -64,16 +59,6 @@ export default function SolicitudesFarmaciasPage() {
     }
   };
 
-  const loadDistributors = async () => {
-    try {
-      const response = await getDistributors();
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setDistributors(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando distribuidores:", error);
-    }
-  };
 
   // Filtrar solicitudes
   const filteredRequests = useMemo(() => {
@@ -155,14 +140,6 @@ export default function SolicitudesFarmaciasPage() {
     { value: "rejected", label: "Rechazado" },
   ];
 
-  const distributorOptions = useMemo(() => {
-    return distributors
-      .filter(d => d.status)
-      .map(d => ({
-        value: d.id.toString(),
-        label: d.business_name
-      }));
-  }, [distributors]);
 
   const handleViewDetails = (request: PharmacyRequestData) => {
     setSelectedRequest(request);
@@ -172,7 +149,6 @@ export default function SolicitudesFarmaciasPage() {
   const handleOpenUpdateStatus = (request: PharmacyRequestData) => {
     setSelectedRequest(request);
     setNewStatus(request.status);
-    setSelectedDistributorId(request.distributor_id);
     setSuccessMessage("");
     setErrorMessage("");
     openUpdateStatusModal();
@@ -181,24 +157,15 @@ export default function SolicitudesFarmaciasPage() {
   const handleUpdateStatus = async () => {
     if (!selectedRequest) return;
 
-    // Validar que si es "approved" debe tener distribuidor
-    if (newStatus === "approved" && !selectedDistributorId) {
-      setErrorMessage("Para aprobar la solicitud, debe seleccionar un distribuidor");
-      return;
-    }
 
     setIsLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
 
     try {
-      const params: { status: PharmacyRequestStatus; distributor_id?: number } = {
+      const params = {
         status: newStatus,
       };
-
-      if (newStatus === "approved" && selectedDistributorId) {
-        params.distributor_id = selectedDistributorId;
-      }
 
       const response = await updatePharmacyRequestStatus(selectedRequest.id, params);
 
@@ -300,9 +267,6 @@ export default function SolicitudesFarmaciasPage() {
                   Teléfono
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Distribuidor
-                </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Estado
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
@@ -335,11 +299,6 @@ export default function SolicitudesFarmaciasPage() {
                     <TableCell className="px-5 py-4 text-start">
                       <span className="text-gray-500 text-theme-sm dark:text-gray-400">
                         {request.phone}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-start">
-                      <span className="text-gray-500 text-theme-sm dark:text-gray-400">
-                        {request.distributor?.business_name || "-"}
                       </span>
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
@@ -593,12 +552,6 @@ export default function SolicitudesFarmaciasPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Distribuidor
-                  </label>
-                  <p className="text-gray-800 dark:text-white">{selectedRequest.distributor?.business_name || "-"}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Estado
                   </label>
                   {getStatusBadge(selectedRequest.status)}
@@ -678,23 +631,6 @@ export default function SolicitudesFarmaciasPage() {
                   placeholder="Selecciona un estado"
                 />
               </div>
-
-              {newStatus === "approved" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Distribuidor <span className="text-red-500">*</span>
-                  </label>
-                  <Select
-                    options={distributorOptions}
-                    value={selectedDistributorId?.toString() || ""}
-                    onChange={(value) => setSelectedDistributorId(value ? Number(value) : null)}
-                    placeholder="Selecciona un distribuidor"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Requerido para aprobar la solicitud
-                  </p>
-                </div>
-              )}
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button variant="outline" onClick={closeUpdateStatusModal} disabled={isLoading}>

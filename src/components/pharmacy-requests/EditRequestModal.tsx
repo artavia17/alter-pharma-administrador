@@ -10,11 +10,9 @@ import { updatePharmacyRequest } from "../../services/protected/pharmacy-request
 import { getCountries } from "../../services/protected/countries.services";
 import { getStates } from "../../services/protected/states.services";
 import { getMunicipalities } from "../../services/protected/municipalities.services";
-import { getDistributors } from "../../services/protected/distributors.services";
 import { PharmacyRequestData } from "../../types/services/protected/pharmacy-requests.types";
 import { CountryData, StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
-import { DistributorData } from "../../types/services/protected/distributors.types";
 
 interface EditRequestModalProps {
   isOpen: boolean;
@@ -27,7 +25,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [states, setStates] = useState<StateData[]>([]);
   const [municipalities, setMunicipalities] = useState<MunicipalityData[]>([]);
-  const [distributors, setDistributors] = useState<DistributorData[]>([]);
 
   // Form fields
   const [legalName, setLegalName] = useState("");
@@ -41,7 +38,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
   const [countryId, setCountryId] = useState<number | null>(null);
   const [stateId, setStateId] = useState<number | null>(null);
   const [municipalityId, setMunicipalityId] = useState<number | null>(null);
-  const [distributorId, setDistributorId] = useState<number | null>(null);
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -53,7 +49,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
   useEffect(() => {
     if (isOpen && request) {
       loadCountries();
-      loadDistributors();
       loadFormData();
     }
   }, [isOpen, request]);
@@ -72,7 +67,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
     setCountryId(request.country_id);
     setStateId(request.state_id);
     setMunicipalityId(request.municipality_id);
-    setDistributorId(request.distributor_id);
 
     // Set phone prefix based on country
     if (request.country) {
@@ -125,16 +119,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
     }
   };
 
-  const loadDistributors = async () => {
-    try {
-      const response = await getDistributors();
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setDistributors(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando distribuidores:", error);
-    }
-  };
 
   const handleCountryChange = (value: string) => {
     const id = parseInt(value);
@@ -212,7 +196,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
         country_id: countryId!,
         state_id: stateId!,
         municipality_id: municipalityId!,
-        distributor_id: distributorId!,
         legal_name: legalName,
         commercial_name: commercialName,
         identification_number: identificationNumber,
@@ -256,12 +239,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
       .filter(m => m.status)
       .map(m => ({ value: m.id.toString(), label: m.name }));
   }, [municipalities]);
-
-  const distributorOptions = useMemo(() => {
-    return distributors
-      .filter(d => d.status)
-      .map(d => ({ value: d.id.toString(), label: d.business_name }));
-  }, [distributors]);
 
   if (!request) return null;
 
@@ -381,15 +358,6 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
                 onChange={(value) => setMunicipalityId(parseInt(value))}
                 placeholder="Selecciona un municipio"
                 disabled={!stateId}
-              />
-            </div>
-            <div>
-              <Label>Distribuidor *</Label>
-              <Select
-                options={distributorOptions}
-                value={distributorId?.toString() || ""}
-                onChange={(value) => setDistributorId(parseInt(value))}
-                placeholder="Selecciona un distribuidor"
               />
             </div>
             <div className="md:col-span-2 flex items-center gap-3">

@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
-import Label from "../form/Label";
-import Select from "../form/Select";
 import Alert from "../ui/alert/Alert";
-import { getDistributors } from "../../services/protected/distributors.services";
 import { bulkCreateSubPharmacies, type BulkSubPharmacyData } from "../../services/protected/sub-pharmacies.services";
-import { DistributorData } from "../../types/services/protected/distributors.types";
 import * as XLSX from 'xlsx';
 
 interface BulkUploadSubPharmacyModalProps {
@@ -18,9 +14,6 @@ interface BulkUploadSubPharmacyModalProps {
 }
 
 export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess, pharmacyId, pharmacyName }: BulkUploadSubPharmacyModalProps) {
-  const [distributors, setDistributors] = useState<DistributorData[]>([]);
-  const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
-
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<BulkSubPharmacyData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -32,21 +25,9 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
 
   useEffect(() => {
     if (isOpen) {
-      loadDistributors();
       clearUploadState();
     }
   }, [isOpen]);
-
-  const loadDistributors = async () => {
-    try {
-      const response = await getDistributors();
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setDistributors(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando distribuidores:", error);
-    }
-  };
 
   const clearUploadState = () => {
     setFile(null);
@@ -57,7 +38,6 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
     setUploadProgress(0);
     setShowResults(false);
     setIsUploading(false);
-    setSelectedDistributorId(null);
 
     const fileInput = document.getElementById('excel-upload-subpharmacy') as HTMLInputElement;
     if (fileInput) {
@@ -91,7 +71,6 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
           phone: String(row['Teléfono'] || row['phone'] || ''),
           email: row['Email'] || row['email'] || '',
           administrator_name: row['Administrador'] || row['administrator_name'] || '',
-          distributor_id: selectedDistributorId!,
         }));
 
         setPreviewData(parsedData);
@@ -105,11 +84,6 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
   };
 
   const handleUpload = async () => {
-    if (!selectedDistributorId) {
-      setErrors(['Debes seleccionar un distribuidor antes de cargar el archivo']);
-      return;
-    }
-
     if (previewData.length === 0) {
       setErrors(['No hay datos para cargar']);
       return;
@@ -252,29 +226,10 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         )}
 
         <div className="px-2 space-y-6">
-          {/* Paso 1: Seleccionar Distribuidor */}
+          {/* Paso 1: Template */}
           <div>
             <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 1: Selecciona el distribuidor
-            </h5>
-            <div className="max-w-md">
-              <Label>Distribuidor *</Label>
-              <Select
-                options={distributors.filter(d => d.status).map(d => ({ value: d.id.toString(), label: d.business_name }))}
-                placeholder="Selecciona un distribuidor"
-                onChange={(value) => setSelectedDistributorId(parseInt(value))}
-                value={selectedDistributorId?.toString() || ""}
-              />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                El distribuidor seleccionado se asignará a todas las sucursales del archivo Excel
-              </p>
-            </div>
-          </div>
-
-          {/* Paso 2: Template */}
-          <div>
-            <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 2: Descarga la plantilla
+              Paso 1: Descarga la plantilla
             </h5>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
@@ -298,12 +253,11 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
             </div>
           </div>
 
-          {/* Paso 3: Cargar archivo */}
-          {selectedDistributorId && (
-            <div>
-              <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-                Paso 3: Carga el archivo Excel
-              </h5>
+          {/* Paso 2: Cargar archivo */}
+          <div>
+            <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
+              Paso 2: Carga el archivo Excel
+            </h5>
             <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
               <input
                 type="file"
@@ -325,8 +279,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
                 </p>
               </label>
             </div>
-            </div>
-          )}
+          </div>
 
           {/* Vista previa */}
           {previewData.length > 0 && !isUploading && !showResults && (
@@ -423,7 +376,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
             <Button
               size="sm"
               onClick={handleUpload}
-              disabled={isUploading || !selectedDistributorId}
+              disabled={isUploading}
             >
               {isUploading ? 'Procesando...' : `Cargar ${previewData.length} Sucursales`}
             </Button>

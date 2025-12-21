@@ -78,7 +78,6 @@ interface CreateSubPharmacyParams {
   phone: string;
   email: string;
   administrator_name: string;
-  distributor_id: number;
 }
 
 interface CreateSubPharmacyResponse {
@@ -95,7 +94,6 @@ interface BulkSubPharmacyData {
   phone: string;
   email: string;
   administrator_name: string;
-  distributor_id: number;
 }
 
 interface BulkCreateSubPharmaciesParams {

@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
-import Label from "../form/Label";
-import Select from "../form/Select";
 import Alert from "../ui/alert/Alert";
-import { getDistributors } from "../../services/protected/distributors.services";
 import { bulkCreatePharmacies, type BulkPharmacyData } from "../../services/protected/pharmacies.services";
-import { DistributorData } from "../../types/services/protected/distributors.types";
 import * as XLSX from 'xlsx';
 
 interface BulkUploadModalProps {
@@ -16,9 +12,6 @@ interface BulkUploadModalProps {
 }
 
 export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUploadModalProps) {
-  const [distributors, setDistributors] = useState<DistributorData[]>([]);
-  const [selectedDistributorId, setSelectedDistributorId] = useState<number | null>(null);
-
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<BulkPharmacyData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -30,7 +23,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
 
   useEffect(() => {
     if (isOpen) {
-      loadDistributors();
       // Limpiar todo cuando se abre el modal
       setFile(null);
       setPreviewData([]);
@@ -40,7 +32,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
       setUploadProgress(0);
       setShowResults(false);
       setIsUploading(false);
-      setSelectedDistributorId(null);
 
       // Limpiar el input de archivo
       const fileInput = document.getElementById('excel-upload') as HTMLInputElement;
@@ -49,17 +40,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
       }
     }
   }, [isOpen]);
-
-  const loadDistributors = async () => {
-    try {
-      const response = await getDistributors();
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setDistributors(response.data);
-      }
-    } catch (error) {
-      console.error("Error cargando distribuidores:", error);
-    }
-  };
 
   const clearUploadState = () => {
     setFile(null);
@@ -111,7 +91,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
           email: row['Email'] || row['email'] || '',
           administrator_name: row['Administrador'] || row['administrator_name'] || '',
           is_chain: row['Es Cadena'] === 'SI' || row['Es Cadena'] === 'TRUE' || row['Es Cadena'] === 'true' || row['is_chain'] === true || row['is_chain'] === 'true' || false,
-          distributor_id: selectedDistributorId!,
         }));
 
         setPreviewData(parsedData);
@@ -125,11 +104,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   };
 
   const handleUpload = async () => {
-    if (!selectedDistributorId) {
-      setErrors(['Debes seleccionar un distribuidor antes de cargar el archivo']);
-      return;
-    }
-
     if (previewData.length === 0) {
       setErrors(['No hay datos para cargar']);
       return;
@@ -245,7 +219,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   const resetModal = () => {
     setFile(null);
     setPreviewData([]);
-    setSelectedDistributorId(null);
     setErrors([]);
     setSuccessCount(0);
     setFailedCount(0);
@@ -253,10 +226,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
     setShowResults(false);
     onClose();
   };
-
-  const distributorOptions = distributors
-    .filter(d => d.status)
-    .map(d => ({ value: d.id.toString(), label: d.business_name }));
 
   return (
     <Modal isOpen={isOpen} onClose={resetModal} className="max-w-4xl m-4">
@@ -291,29 +260,10 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
         )}
 
         <div className="px-2 space-y-6">
-          {/* Paso 1: Seleccionar Distribuidor */}
+          {/* Paso 1: Template */}
           <div>
             <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 1: Selecciona el distribuidor
-            </h5>
-            <div className="max-w-md">
-              <Label>Distribuidor *</Label>
-              <Select
-                options={distributorOptions}
-                placeholder="Selecciona un distribuidor"
-                onChange={(value) => setSelectedDistributorId(parseInt(value))}
-                value={selectedDistributorId?.toString() || ""}
-              />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                El distribuidor seleccionado se asignará a todas las farmacias del archivo Excel
-              </p>
-            </div>
-          </div>
-
-          {/* Paso 2: Template */}
-          <div>
-            <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-              Paso 2: Descarga la plantilla
+              Paso 1: Descarga la plantilla
             </h5>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
@@ -341,12 +291,11 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
             </div>
           </div>
 
-          {/* Paso 3: Cargar archivo */}
-          {selectedDistributorId && (
-            <div>
-              <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
-                Paso 3: Carga el archivo Excel
-              </h5>
+          {/* Paso 2: Cargar archivo */}
+          <div>
+            <h5 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
+              Paso 2: Carga el archivo Excel
+            </h5>
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
                 <input
                   type="file"
@@ -368,8 +317,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                   </p>
                 </label>
               </div>
-            </div>
-          )}
+          </div>
 
           {/* Vista previa */}
           {previewData.length > 0 && !isUploading && !showResults && (
@@ -476,7 +424,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
             <Button
               size="sm"
               onClick={handleUpload}
-              disabled={isUploading || !selectedDistributorId}
+              disabled={isUploading}
             >
               {isUploading ? 'Procesando...' : `Cargar ${previewData.length} Farmacias`}
             </Button>

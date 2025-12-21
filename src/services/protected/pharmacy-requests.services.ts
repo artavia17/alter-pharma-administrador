@@ -13,14 +13,12 @@ const getPharmacyRequest = async (id: number) => {
 
 interface UpdatePharmacyRequestStatusParams {
     status: PharmacyRequestStatus;
-    distributor_id?: number;
 }
 
 interface UpdatePharmacyRequestParams {
     country_id: number;
     state_id: number;
     municipality_id: number;
-    distributor_id: number;
     legal_name: string;
     commercial_name: string;
     identification_number: string;
