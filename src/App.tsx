@@ -34,6 +34,7 @@ import EspecialidadesPage from "./pages/ProtectedPages/Doctores/Especialidades";
 import DoctoresPage from "./pages/ProtectedPages/Doctores/Doctores";
 import ProductosPage from "./pages/ProtectedPages/Medicamentos/Productos";
 import DosisPage from "./pages/ProtectedPages/Medicamentos/Dosis";
+import GruposProductosPage from "./pages/ProtectedPages/Medicamentos/GruposProductos";
 import PacientesPage from "./pages/ProtectedPages/Pacientes/Pacientes";
 import TransaccionesPage from "./pages/ProtectedPages/Transacciones/Transacciones";
 import SaltosFacturacionPage from "./pages/ProtectedPages/Transacciones/SaltosFacturacion";
@@ -84,6 +85,7 @@ export default function App() {
 
               {/* Medicamentos */}
               <Route path="/medicamentos/productos" element={<ProductosPage />} />
+              <Route path="/medicamentos/grupos" element={<GruposProductosPage />} />
               <Route path="/medicamentos/presentacion" element={<DosisPage />} />
 
               {/* Pacientes */}

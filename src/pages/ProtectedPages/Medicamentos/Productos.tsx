@@ -17,14 +17,17 @@ import {
 } from "../../../components/ui/table";
 import { getProducts, createProduct, updateProduct, toggleProductStatus, deleteProduct } from "../../../services/protected/products.services";
 import { getCountries } from "../../../services/protected/countries.services";
+import { getProductGroups } from "../../../services/protected/product-groups.services";
 import { ProductData } from "../../../types/services/protected/products.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
+import { ProductGroupData } from "../../../types/services/protected/product-groups.types";
 import { formatDate } from "../../../helper/formatData";
 import * as XLSX from 'xlsx';
 
 export default function ProductosPage() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
+  const [productGroups, setProductGroups] = useState<ProductGroupData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
 
@@ -37,6 +40,7 @@ export default function ProductosPage() {
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [selectedCountries, setSelectedCountries] = useState<number[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,6 +54,7 @@ export default function ProductosPage() {
   useEffect(() => {
     loadProducts();
     loadCountries();
+    loadProductGroups();
   }, []);
 
   const loadProducts = async () => {
@@ -71,6 +76,17 @@ export default function ProductosPage() {
       }
     } catch (error) {
       console.error("Error cargando países:", error);
+    }
+  };
+
+  const loadProductGroups = async () => {
+    try {
+      const response = await getProductGroups({ is_active: true });
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setProductGroups(response.data);
+      }
+    } catch (error) {
+      console.error("Error cargando grupos de productos:", error);
     }
   };
 
@@ -140,11 +156,19 @@ export default function ProductosPage() {
     setIsLoading(true);
     setErrors({});
 
+    // Validación
+    if (!selectedGroupId) {
+      setErrors({ product_group_id: "Debes seleccionar un grupo de producto" });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const params = {
         name: productName,
         description: productDescription || undefined,
         country_ids: selectedCountries,
+        product_group_id: selectedGroupId,
       };
 
       const response = await createProduct(params);
@@ -174,11 +198,19 @@ export default function ProductosPage() {
     setIsLoading(true);
     setErrors({});
 
+    // Validación
+    if (!selectedGroupId) {
+      setErrors({ product_group_id: "Debes seleccionar un grupo de producto" });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const params = {
         name: productName,
         description: productDescription || undefined,
         country_ids: selectedCountries,
+        product_group_id: selectedGroupId,
       };
 
       const response = await updateProduct(selectedProduct.id, params);
@@ -232,6 +264,7 @@ export default function ProductosPage() {
     setProductName("");
     setProductDescription("");
     setSelectedCountries([]);
+    setSelectedGroupId(null);
     setErrors({});
   };
 
@@ -246,6 +279,7 @@ export default function ProductosPage() {
     setProductName(product.name);
     setProductDescription(product.description || "");
     setSelectedCountries(product.country_ids);
+    setSelectedGroupId(product.product_group_id ? Number(product.product_group_id) : null);
     openEditModal();
   };
 
@@ -427,6 +461,7 @@ export default function ProductosPage() {
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Nombre</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Grupo</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Descripción</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Países</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Presentación</TableCell>
@@ -441,6 +476,11 @@ export default function ProductosPage() {
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{product.id}</TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">{product.name}</span>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-start">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {product.product_group?.name || "-"}
+                      </span>
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -634,6 +674,24 @@ export default function ProductosPage() {
                 />
               </div>
               <div>
+                <Label>Grupo de Producto *</Label>
+                <select
+                  value={selectedGroupId || ""}
+                  onChange={(e) => setSelectedGroupId(e.target.value ? Number(e.target.value) : null)}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white/90 ${
+                    errors.product_group_id ? 'border-red-500' : 'border-gray-200 dark:border-white/[0.05]'
+                  }`}
+                >
+                  <option value="">Selecciona un grupo</option>
+                  {productGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.product_group_id && <p className="text-xs text-red-500 mt-1">{errors.product_group_id}</p>}
+              </div>
+              <div>
                 <Label>Países * (selecciona al menos uno)</Label>
                 <div className="mt-2 grid grid-cols-2 gap-3">
                   {countries
@@ -704,6 +762,24 @@ export default function ProductosPage() {
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-white/[0.03] dark:border-white/[0.05] dark:text-white/90 resize-none"
                 />
+              </div>
+              <div>
+                <Label>Grupo de Producto *</Label>
+                <select
+                  value={selectedGroupId || ""}
+                  onChange={(e) => setSelectedGroupId(e.target.value ? Number(e.target.value) : null)}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white/90 ${
+                    errors.product_group_id ? 'border-red-500' : 'border-gray-200 dark:border-white/[0.05]'
+                  }`}
+                >
+                  <option value="">Selecciona un grupo</option>
+                  {productGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.product_group_id && <p className="text-xs text-red-500 mt-1">{errors.product_group_id}</p>}
               </div>
               <div>
                 <Label>Países * (selecciona al menos uno)</Label>

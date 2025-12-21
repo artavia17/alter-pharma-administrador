@@ -29,16 +29,27 @@ export interface DoseData {
   updated_at: string;
 }
 
-export interface ProductData {
+export interface ProductGroupBasic {
   id: number;
   name: string;
   description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductData {
+  id: number;
+  product_group_id: string | null;
+  name: string;
+  description: string;
   country_ids: number[];
-  countries: CountryData[];
+  countries?: CountryData[];
   status: boolean;
   created_at: string;
   updated_at: string;
   doses: DoseData[];
+  product_group: ProductGroupBasic | null;
 }
 
 export interface ProductsResponse {
@@ -54,6 +65,14 @@ export interface SingleProductResponse {
 }
 
 export interface CreateProductParams {
+  product_group_id: number;
+  name: string;
+  description?: string;
+  country_ids: number[];
+}
+
+export interface UpdateProductParams {
+  product_group_id: number;
   name: string;
   description?: string;
   country_ids: number[];

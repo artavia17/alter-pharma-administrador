@@ -80,6 +80,7 @@ const navItems: NavItem[] = [
     name: "Medicamentos",
     subItems: [
       { name: "Productos", path: "/medicamentos/productos" },
+      { name: "Grupos", path: "/medicamentos/grupos" },
       { name: "Presentación", path: "/medicamentos/presentacion" },
     ],
     requiredModules: ["products"], // Requiere módulo de productos

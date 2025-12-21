@@ -1,4 +1,4 @@
-import { ProductsResponse, SingleProductResponse, CreateProductParams } from "../../types/services/protected/products.types";
+import { ProductsResponse, SingleProductResponse, CreateProductParams, UpdateProductParams } from "../../types/services/protected/products.types";
 import api from "../api";
 
 const getProducts = async () => {
@@ -16,7 +16,7 @@ const createProduct = async (params: CreateProductParams) => {
   return response.data;
 };
 
-const updateProduct = async (id: number, params: CreateProductParams) => {
+const updateProduct = async (id: number, params: UpdateProductParams) => {
   const response = await api.post<SingleProductResponse>(`/administrator/products/${id}`, params);
   return response.data;
 };
