@@ -27,6 +27,7 @@ interface UpdatePharmacyRequestParams {
     email: string;
     administrator_name: string;
     is_chain: boolean;
+    restock_day: number;
 }
 
 const updatePharmacyRequestStatus = async (id: number, params: UpdatePharmacyRequestStatusParams) => {

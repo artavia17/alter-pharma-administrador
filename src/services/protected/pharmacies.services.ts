@@ -22,6 +22,8 @@ interface CreatePharmacyParams {
     phone: string;
     email: string;
     administrator_name: string;
+    is_chain: boolean;
+    restock_day: number;
 }
 
 const createPharmacy = async (params: CreatePharmacyParams) => {

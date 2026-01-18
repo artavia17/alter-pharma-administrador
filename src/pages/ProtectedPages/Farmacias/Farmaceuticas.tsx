@@ -56,6 +56,7 @@ export default function FarmaceuticasPage() {
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
+  const [restockDay, setRestockDay] = useState<number>(1);
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -321,6 +322,7 @@ export default function FarmaceuticasPage() {
         email: email,
         administrator_name: administratorName,
         is_chain: isChain,
+        restock_day: restockDay,
       };
 
       const response = await createPharmacy(params);
@@ -373,6 +375,7 @@ export default function FarmaceuticasPage() {
         email: email,
         administrator_name: administratorName,
         is_chain: isChain,
+        restock_day: restockDay,
       };
 
       const response = await updatePharmacy(selectedPharmacy.id, params);
@@ -417,6 +420,7 @@ export default function FarmaceuticasPage() {
     setSelectedCountryId(null);
     setSelectedStateId(null);
     setSelectedMunicipalityId(null);
+    setRestockDay(1);
     setMunicipalities([]);
     setPhonePrefix("");
     setPhoneMinLength(0);
@@ -936,6 +940,27 @@ export default function FarmaceuticasPage() {
                   placeholder="Ej: Juan Pérez"
                 />
               </div>
+              <div>
+                <Label>Día de reabastecimiento *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={restockDay}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 1 && value <= 30) {
+                      setRestockDay(value);
+                    } else if (e.target.value === '') {
+                      setRestockDay(1);
+                    }
+                  }}
+                  placeholder="1-30"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Día del mes para reabastecimiento (1-30)
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
@@ -1094,6 +1119,27 @@ export default function FarmaceuticasPage() {
                   onChange={(e) => setAdministratorName(e.target.value)}
                   placeholder="Ej: Juan Pérez"
                 />
+              </div>
+              <div>
+                <Label>Día de reabastecimiento *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={restockDay}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 1 && value <= 30) {
+                      setRestockDay(value);
+                    } else if (e.target.value === '') {
+                      setRestockDay(1);
+                    }
+                  }}
+                  placeholder="1-30"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Día del mes para reabastecimiento (1-30)
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">

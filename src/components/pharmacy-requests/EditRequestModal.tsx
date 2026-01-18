@@ -38,6 +38,7 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
   const [countryId, setCountryId] = useState<number | null>(null);
   const [stateId, setStateId] = useState<number | null>(null);
   const [municipalityId, setMunicipalityId] = useState<number | null>(null);
+  const [restockDay, setRestockDay] = useState<number>(1);
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -67,6 +68,7 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
     setCountryId(request.country_id);
     setStateId(request.state_id);
     setMunicipalityId(request.municipality_id);
+    setRestockDay((request as any).restock_day || 1);
 
     // Set phone prefix based on country
     if (request.country) {
@@ -204,6 +206,7 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
         email,
         administrator_name: administratorName,
         is_chain: isChain,
+        restock_day: restockDay,
       });
 
       if (response.status === 200) {
@@ -359,6 +362,27 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
                 placeholder="Selecciona un municipio"
                 disabled={!stateId}
               />
+            </div>
+            <div>
+              <Label>Día de reabastecimiento *</Label>
+              <Input
+                type="number"
+                min="1"
+                max="30"
+                value={restockDay}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (value >= 1 && value <= 30) {
+                    setRestockDay(value);
+                  } else if (e.target.value === '') {
+                    setRestockDay(1);
+                  }
+                }}
+                placeholder="1-30"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Día del mes para reabastecimiento (1-30)
+              </p>
             </div>
             <div className="md:col-span-2 flex items-center gap-3">
               <Switch
