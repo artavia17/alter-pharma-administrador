@@ -286,8 +286,8 @@ export default function FarmaceuticasPage() {
   };
 
   const handleStreetAddressChange = (value: string) => {
-    // Limitar a 35 caracteres
-    if (value.length <= 35) {
+    // Limitar a 250 caracteres
+    if (value.length <= 250) {
       setStreetAddress(value);
     }
   };
@@ -904,7 +904,7 @@ export default function FarmaceuticasPage() {
                   placeholder="Ej: Calle 5, Avenida Central"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Máximo 35 caracteres
+                  Máximo 250 caracteres
                 </p>
               </div>
               <div>
@@ -1084,7 +1084,7 @@ export default function FarmaceuticasPage() {
                   placeholder="Ej: Calle 5, Avenida Central"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Máximo 35 caracteres
+                  Máximo 250 caracteres
                 </p>
               </div>
               <div>
