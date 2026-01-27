@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run copy-htaccess",
+    "copy-htaccess": "cp public/.htaccess dist/.htaccess",
     "lint": "eslint .",
     "preview": "vite preview"
   },

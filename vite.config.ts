@@ -15,4 +15,18 @@ export default defineConfig({
       },
     }),
   ],
+  publicDir: "public",
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          // Mantener el nombre .htaccess sin hash
+          if (assetInfo.names && assetInfo.names[0] === '.htaccess') {
+            return '.htaccess';
+          }
+          return 'assets/[name]-[hash][extname]';
+        },
+      },
+    },
+  },
 });
