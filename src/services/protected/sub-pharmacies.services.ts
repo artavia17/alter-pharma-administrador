@@ -74,6 +74,7 @@ interface CreateSubPharmacyParams {
   state_id: number;
   municipality_id: number;
   commercial_name: string;
+  identification_number: string;
   street_address: string;
   phone: string;
   email: string;

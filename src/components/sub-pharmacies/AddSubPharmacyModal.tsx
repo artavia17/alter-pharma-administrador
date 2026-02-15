@@ -34,6 +34,7 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     state_id: 0,
     municipality_id: 0,
     commercial_name: "",
+    identification_number: "",
     street_address: "",
     phone: "",
     email: "",
@@ -122,11 +123,20 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     }
   };
 
+  const handleIdentificationChange = (value: string) => {
+    // Solo permitir letras y números (sin espacios ni caracteres especiales) y limitar a 100 caracteres
+    const cleanValue = value.replace(/[^a-zA-Z0-9]/g, '');
+    if (cleanValue.length <= 100) {
+      setFormData({ ...formData, identification_number: cleanValue });
+    }
+  };
+
   const resetForm = (clearAlert: boolean = true) => {
     setFormData({
       state_id: 0,
       municipality_id: 0,
       commercial_name: "",
+      identification_number: "",
       street_address: "",
       phone: phonePrefix || "",
       email: "",
@@ -169,15 +179,9 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
     try {
       const response = await createSubPharmacy(pharmacyId, formData);
       if (response.status === 201) {
-        setAlert({
-          show: true,
-          type: "success",
-          title: "Éxito",
-          message: response.message || "Sucursal creada exitosamente. Credenciales enviadas por email."
-        });
         onSuccess();
-        // Limpiar formulario para agregar otra sucursal, pero no cerrar el modal ni la alerta de éxito
-        resetForm(false);
+        resetForm(true);
+        onClose();
       }
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || "Error al crear la sucursal";
@@ -267,6 +271,19 @@ export default function AddSubPharmacyModal({ isOpen, onClose, onSuccess, pharma
                 value={formData.commercial_name}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, commercial_name: e.target.value })}
               />
+            </div>
+
+            <div>
+              <Label>Número de identificación *</Label>
+              <InputField
+                type="text"
+                placeholder="Ej: ABC123XYZ789"
+                value={formData.identification_number}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleIdentificationChange(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Solo letras y números, máximo 100 caracteres
+              </p>
             </div>
 
             <div>
