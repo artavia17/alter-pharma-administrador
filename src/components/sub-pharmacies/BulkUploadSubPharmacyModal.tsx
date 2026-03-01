@@ -67,6 +67,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
           state_name: row['Estado/Provincia'] || row['state_name'] || '',
           municipality_name: row['Municipio/Cantón'] || row['municipality_name'] || '',
           commercial_name: row['Nombre Comercial'] || row['commercial_name'] || '',
+          identification_number: String(row['Identificación'] || row['identification_number'] || ''),
           street_address: row['Dirección'] || row['street_address'] || '',
           phone: String(row['Teléfono'] || row['phone'] || ''),
           email: row['Email'] || row['email'] || '',
@@ -174,6 +175,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
         'Estado/Provincia': 'Santo Domingo',
         'Municipio/Cantón': 'Distrito Nacional',
         'Nombre Comercial': 'Sucursal Centro',
+        'Identificación': 'ABC123XYZ',
         'Dirección': 'Calle Principal #123',
         'Teléfono': '555-1234',
         'Email': 'sucursal1@farmacia.com',
@@ -239,6 +241,7 @@ export default function BulkUploadSubPharmacyModal({ isOpen, onClose, onSuccess,
                 <li><strong>Estado/Provincia:</strong> Nombre del estado o provincia</li>
                 <li><strong>Municipio/Cantón:</strong> Nombre del municipio o cantón</li>
                 <li><strong>Nombre Comercial:</strong> Nombre de la sucursal</li>
+                <li><strong>Identificación:</strong> Número de identificación (solo letras y números)</li>
                 <li><strong>Dirección:</strong> Dirección física de la sucursal</li>
                 <li><strong>Teléfono:</strong> Número de contacto</li>
                 <li><strong>Email:</strong> Correo electrónico (se usará para el acceso)</li>

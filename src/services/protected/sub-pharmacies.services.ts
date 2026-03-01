@@ -91,6 +91,7 @@ interface BulkSubPharmacyData {
   state_name: string;
   municipality_name: string;
   commercial_name: string;
+  identification_number: string;
   street_address: string;
   phone: string;
   email: string;
