@@ -40,6 +40,7 @@ interface SubPharmaciesResponse {
     physical_address: string;
     phone: string;
     email: string;
+    plain_password: string | null;
     administrator_name: string;
     status: boolean;
     created_at: string;
