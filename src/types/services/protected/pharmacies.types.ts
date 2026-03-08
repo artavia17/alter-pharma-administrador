@@ -61,6 +61,7 @@ export interface PharmacyData {
     street_address: string;
     phone: string;
     email: string;
+    plain_password: string | null;
     administrator_name: string;
     is_chain: boolean;
     status: boolean;

@@ -253,6 +253,7 @@ export default function SucursalesPage() {
       'País': subPharmacy.pharmacy.country.name,
       'Teléfono': subPharmacy.phone || 'N/A',
       'Email': subPharmacy.email || 'N/A',
+      'Contraseña': subPharmacy.plain_password || 'N/A',
       'Administrador': subPharmacy.administrator_name || 'N/A',
       'Estado': subPharmacy.status ? 'Activo' : 'Inactivo',
       'Fecha de Creación': formatDate(subPharmacy.created_at)
@@ -272,6 +273,7 @@ export default function SucursalesPage() {
       { wch: 25 },  // País
       { wch: 15 },  // Teléfono
       { wch: 30 },  // Email
+      { wch: 20 },  // Contraseña
       { wch: 30 },  // Administrador
       { wch: 12 },  // Estado
       { wch: 18 }   // Fecha de Creación
@@ -408,6 +410,7 @@ export default function SucursalesPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Sucursal</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacia Matriz</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contacto</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Contraseña</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Administrador</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Creado</TableCell>
@@ -433,6 +436,9 @@ export default function SucursalesPage() {
                         <span className="block text-xs text-gray-500 dark:text-gray-400">{subPharmacy.email}</span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">{subPharmacy.phone}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {subPharmacy.plain_password || 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
                       {subPharmacy.administrator_name}

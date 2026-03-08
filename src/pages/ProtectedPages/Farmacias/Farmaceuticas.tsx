@@ -471,6 +471,7 @@ export default function FarmaceuticasPage() {
         'Municipio/Cantón': municipality?.name || 'N/A',
         'Teléfono': pharmacy.phone || 'N/A',
         'Email': pharmacy.email || 'N/A',
+        'Contraseña': pharmacy.plain_password || 'N/A',
         'Administrador': pharmacy.administrator_name || 'N/A',
         'Estado': pharmacy.status ? 'Activo' : 'Inactivo',
         'Fecha de Creación': formatDate(pharmacy.created_at)
@@ -495,6 +496,7 @@ export default function FarmaceuticasPage() {
       { wch: 25 },  // Municipio/Cantón
       { wch: 15 },  // Teléfono
       { wch: 30 },  // Email
+      { wch: 20 },  // Contraseña
       { wch: 30 },  // Administrador
       { wch: 12 },  // Estado
       { wch: 18 }   // Fecha de Creación
@@ -1214,9 +1216,14 @@ export default function FarmaceuticasPage() {
 
             <div>
               <Label>Administrador</Label>
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                {selectedPharmacy?.administrator_name}
-              </p>
+              <div className="mt-2 space-y-1">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {selectedPharmacy?.administrator_name}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Contraseña:</span> {selectedPharmacy?.plain_password ?? ''}
+                </p>
+              </div>
             </div>
 
             <div>
