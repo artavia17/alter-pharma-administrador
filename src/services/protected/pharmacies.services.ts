@@ -36,6 +36,16 @@ const updatePharmacy = async (id: number, params: CreatePharmacyParams) => {
     return response.data;
 };
 
+interface UpdatePharmacyCredentialsParams {
+    email?: string;
+    password?: string;
+}
+
+const updatePharmacyCredentials = async (id: number, params: UpdatePharmacyCredentialsParams) => {
+    const response = await api.post<SinglePharmacyResponse>(`/administrator/pharmacies/${id}`, params);
+    return response.data;
+};
+
 const togglePharmacyStatus = async (id: number) => {
     const response = await api.patch<SinglePharmacyResponse>(`/administrator/pharmacies/${id}/toggle-status`);
     return response.data;
@@ -83,6 +93,7 @@ export {
     getPharmacy,
     createPharmacy,
     updatePharmacy,
+    updatePharmacyCredentials,
     togglePharmacyStatus,
     bulkCreatePharmacies
 };

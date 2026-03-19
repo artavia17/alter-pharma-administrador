@@ -12,6 +12,7 @@ export interface DistributorData {
   street_address: string;
   phone: string;
   email: string;
+  plain_password: string | null;
   contact_person_name: string;
   status: boolean;
   created_at: string;
@@ -72,6 +73,11 @@ export interface UpdateDistributorResponse {
 export interface DeleteDistributorResponse {
   status: number;
   message: string;
+}
+
+export interface UpdateDistributorCredentialsParams {
+  email?: string;
+  password?: string;
 }
 
 export interface ToggleDistributorStatusResponse {

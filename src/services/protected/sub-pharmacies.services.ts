@@ -117,6 +117,17 @@ interface BulkCreateSubPharmaciesResponse {
   };
 }
 
+interface UpdateSubPharmacyCredentialsParams {
+  email?: string;
+  password?: string;
+}
+
+interface UpdateSubPharmacyCredentialsResponse {
+  status: number;
+  message: string;
+  data: any;
+}
+
 interface ToggleStatusResponse {
   status: number;
   message: string;
@@ -148,6 +159,11 @@ const bulkCreateSubPharmacies = async (pharmacyId: number, params: BulkCreateSub
   return response.data;
 };
 
+const updateSubPharmacyCredentials = async (pharmacyId: number, subPharmacyId: number, params: UpdateSubPharmacyCredentialsParams) => {
+  const response = await api.post<UpdateSubPharmacyCredentialsResponse>(`/administrator/pharmacies/${pharmacyId}/sub-pharmacies/${subPharmacyId}`, params);
+  return response.data;
+};
+
 const toggleSubPharmacyStatus = async (pharmacyId: number, subPharmacyId: number) => {
   const response = await api.patch<ToggleStatusResponse>(`/administrator/pharmacies/${pharmacyId}/sub-pharmacies/${subPharmacyId}/toggle-status`);
   return response.data;
@@ -162,6 +178,7 @@ export {
   getPharmaciesByCountry,
   getSubPharmacies,
   createSubPharmacy,
+  updateSubPharmacyCredentials,
   bulkCreateSubPharmacies,
   toggleSubPharmacyStatus,
   deleteSubPharmacy

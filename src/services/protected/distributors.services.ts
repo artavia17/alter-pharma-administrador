@@ -6,6 +6,7 @@ import {
   CreateDistributorResponse,
   UpdateDistributorParams,
   UpdateDistributorResponse,
+  UpdateDistributorCredentialsParams,
   DeleteDistributorResponse,
   ToggleDistributorStatusResponse
 } from '../../types/services/protected/distributors.types';
@@ -27,6 +28,11 @@ export const createDistributor = async (params: CreateDistributorParams) => {
 
 export const updateDistributor = async (id: number, params: UpdateDistributorParams) => {
   const response = await api.put<UpdateDistributorResponse>(`/administrator/distributors/${id}`, params);
+  return response.data;
+};
+
+export const updateDistributorCredentials = async (id: number, params: UpdateDistributorCredentialsParams) => {
+  const response = await api.post<UpdateDistributorResponse>(`/administrator/distributors/${id}`, params);
   return response.data;
 };
 

@@ -5,6 +5,8 @@ import { Modal } from "../../../components/ui/modal";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
 import Button from "../../../components/ui/button/Button";
+import Input from "../../../components/form/input/InputField";
+import Alert from "../../../components/ui/alert/Alert";
 import {
   Table,
   TableBody,
@@ -12,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { getPharmaciesByCountry, getSubPharmacies, toggleSubPharmacyStatus, deleteSubPharmacy } from "../../../services/protected/sub-pharmacies.services";
+import { getPharmaciesByCountry, getSubPharmacies, updateSubPharmacyCredentials, toggleSubPharmacyStatus, deleteSubPharmacy } from "../../../services/protected/sub-pharmacies.services";
 import { getCountries } from "../../../services/protected/countries.services";
 import { SubPharmacyData } from "../../../types/services/protected/sub-pharmacies.types";
 import { CountryData } from "../../../types/services/protected/countries.types";
@@ -43,10 +45,18 @@ export default function SucursalesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Credentials modal state
+  const [credTarget, setCredTarget] = useState<SubPharmacyData | null>(null);
+  const [credEmail, setCredEmail] = useState("");
+  const [credPassword, setCredPassword] = useState("");
+  const [credErrors, setCredErrors] = useState<Record<string, string>>({});
+  const [credLoading, setCredLoading] = useState(false);
+
   // Modales
   const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isBulkModalOpen, openModal: openBulkModal, closeModal: closeBulkModal } = useModal();
   const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
+  const { isOpen: isCredOpen, openModal: openCredModal, closeModal: closeCredModal } = useModal();
 
   // Ciudad para la sucursal a eliminar
   const [subPharmacyToDelete, setSubPharmacyToDelete] = useState<SubPharmacyData | null>(null);
@@ -154,6 +164,47 @@ export default function SucursalesPage() {
       console.error("Error eliminando sucursal:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openCred = (subPharmacy: SubPharmacyData) => {
+    setCredTarget(subPharmacy);
+    setCredEmail(subPharmacy.email);
+    setCredPassword("");
+    setCredErrors({});
+    openCredModal();
+  };
+
+  const handleCloseCred = () => {
+    setCredTarget(null);
+    setCredEmail("");
+    setCredPassword("");
+    setCredErrors({});
+    closeCredModal();
+  };
+
+  const handleUpdateCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!credTarget || !pharmacyFilter) return;
+    setCredLoading(true);
+    setCredErrors({});
+    try {
+      const params: { email?: string; password?: string } = {};
+      if (credEmail) params.email = credEmail;
+      if (credPassword) params.password = credPassword;
+      const response = await updateSubPharmacyCredentials(parseInt(pharmacyFilter), credTarget.id, params);
+      if (response.status === 200) {
+        await loadSubPharmacies(parseInt(pharmacyFilter));
+        handleCloseCred();
+      }
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        setCredErrors({ general: error.response.data.message });
+      } else {
+        setCredErrors({ general: "Error al actualizar credenciales" });
+      }
+    } finally {
+      setCredLoading(false);
     }
   };
 
@@ -458,6 +509,15 @@ export default function SucursalesPage() {
                     <TableCell className="px-5 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
+                          onClick={() => openCred(subPharmacy)}
+                          className="p-2 rounded-lg text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20 transition-colors"
+                          title="Actualizar credenciales"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z" />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => handleToggleStatus(subPharmacy.id)}
                           className={`p-2 rounded-lg transition-colors ${
                             subPharmacy.status
@@ -631,6 +691,49 @@ export default function SucursalesPage() {
           />
         </>
       )}
+
+      {/* Modal: Actualizar Credenciales */}
+      <Modal isOpen={isCredOpen} onClose={handleCloseCred} className="max-w-[450px] m-4">
+        <div className="no-scrollbar relative w-full max-w-[450px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+          <div className="px-2 pr-14 mb-6">
+            <h4 className="mb-1 text-2xl font-semibold text-gray-800 dark:text-white/90">Actualizar Credenciales</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{credTarget?.commercial_name}</p>
+          </div>
+          {credErrors.general && (
+            <div className="px-2 mb-4">
+              <Alert variant="error" title="Error" message={credErrors.general} />
+            </div>
+          )}
+          <form onSubmit={handleUpdateCredentials} className="flex flex-col">
+            <div className="space-y-4 px-2 pb-4">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={credEmail}
+                  onChange={(e) => setCredEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com"
+                />
+              </div>
+              <div>
+                <Label>Nueva contraseña <span className="text-gray-400 font-normal">(dejar vacío para no cambiar)</span></Label>
+                <Input
+                  type="password"
+                  value={credPassword}
+                  onChange={(e) => setCredPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+              <Button size="sm" variant="outline" type="button" onClick={handleCloseCred}>Cancelar</Button>
+              <Button size="sm" type="submit" disabled={credLoading || !credEmail}>
+                {credLoading ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
 
       {/* Modal: Eliminar Sucursal */}
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDelete} className="max-w-[500px] m-4">
