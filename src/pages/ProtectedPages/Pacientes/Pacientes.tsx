@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { searchPatients, togglePatientStatus } from "../../../services/protected/patients.services";
+import { searchPatients, togglePatientStatus, updatePatientEmail } from "../../../services/protected/patients.services";
 import { PatientData } from "../../../types/services/protected/patients.types";
 import { formatDate } from "../../../helper/formatData";
 import * as XLSX from 'xlsx';
@@ -35,8 +35,15 @@ export default function PacientesPage() {
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Email edit state
+  const [patientToEditEmail, setPatientToEditEmail] = useState<PatientData | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
+
   // Modals
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
+  const { isOpen: isEmailOpen, openModal: openEmailModal, closeModal: closeEmailModal } = useModal();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +103,48 @@ export default function PacientesPage() {
   const handleCloseDetail = () => {
     setSelectedPatient(null);
     closeDetailModal();
+  };
+
+  const openEditEmail = (patient: PatientData) => {
+    setPatientToEditEmail(patient);
+    setNewEmail(patient.email || "");
+    setEmailError("");
+    openEmailModal();
+  };
+
+  const handleCloseEditEmail = () => {
+    setPatientToEditEmail(null);
+    setNewEmail("");
+    setEmailError("");
+    closeEmailModal();
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!patientToEditEmail) return;
+
+    setIsEmailLoading(true);
+    setEmailError("");
+    try {
+      await updatePatientEmail(patientToEditEmail.id, newEmail);
+      // Actualizar email en la lista local
+      setPatients(prev =>
+        prev.map(p => p.id === patientToEditEmail.id ? { ...p, email: newEmail } : p)
+      );
+      // Si el detalle está abierto para este paciente, actualizar también
+      if (selectedPatient?.id === patientToEditEmail.id) {
+        setSelectedPatient(prev => prev ? { ...prev, email: newEmail } : prev);
+      }
+      handleCloseEditEmail();
+    } catch (error: any) {
+      const msg =
+        error.response?.data?.data?.email?.[0] ||
+        error.response?.data?.message ||
+        "Ocurrió un error al actualizar el email";
+      setEmailError(msg);
+    } finally {
+      setIsEmailLoading(false);
+    }
   };
 
   const handleToggleStatus = async (patient: PatientData) => {
@@ -320,12 +369,19 @@ export default function PacientesPage() {
                         />
                       </TableCell>
                       <TableCell className="px-5 py-4 text-center">
-                        <button onClick={() => openDetail(patient)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => openDetail(patient)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                          </button>
+                          <button onClick={() => openEditEmail(patient)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Actualizar email">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                            </svg>
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -347,6 +403,42 @@ export default function PacientesPage() {
           </div>
         )}
       </div>
+
+      {/* Modal: Actualizar Email */}
+      <Modal isOpen={isEmailOpen} onClose={handleCloseEditEmail} className="max-w-[450px] m-4">
+        <div className="no-scrollbar relative w-full max-w-[450px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+          <div className="px-2 pr-14 mb-6">
+            <h4 className="mb-1 text-2xl font-semibold text-gray-800 dark:text-white/90">Actualizar Email</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Paciente: <strong>{patientToEditEmail?.first_name} {patientToEditEmail?.last_name}</strong>
+            </p>
+          </div>
+          <form onSubmit={handleUpdateEmail}>
+            <div className="px-2 space-y-4">
+              {emailError && (
+                <Alert variant="error" title="Error" message={emailError} />
+              )}
+              <div>
+                <Label>Nuevo email</Label>
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="nuevo@email.com"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+              <Button size="sm" variant="outline" type="button" onClick={handleCloseEditEmail} disabled={isEmailLoading}>
+                Cancelar
+              </Button>
+              <Button size="sm" type="submit" disabled={isEmailLoading || !newEmail}>
+                {isEmailLoading ? "Guardando..." : "Guardar"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
 
       {/* Modal: Ver Detalles de Paciente */}
       <Modal isOpen={isDetailOpen} onClose={handleCloseDetail} className="max-w-[700px] m-4">

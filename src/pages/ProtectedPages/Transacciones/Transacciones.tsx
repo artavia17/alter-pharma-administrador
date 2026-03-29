@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { getTransactions } from "../../../services/protected/transactions.services";
+import { getTransactions, reverseTransaction } from "../../../services/protected/transactions.services";
 import { getPharmacies } from "../../../services/protected/pharmacies.services";
 import { TransactionData, TransactionsPagination } from "../../../types/services/protected/transactions.types";
 import { PharmacyData } from "../../../types/services/protected/pharmacies.types";
@@ -43,8 +43,15 @@ export default function TransaccionesPage() {
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Reversal state
+  const [transactionToReverse, setTransactionToReverse] = useState<TransactionData | null>(null);
+  const [reverseReason, setReverseReason] = useState("");
+  const [reverseError, setReverseError] = useState("");
+  const [isReverseLoading, setIsReverseLoading] = useState(false);
+
   // Modals
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
+  const { isOpen: isReverseOpen, openModal: openReverseModal, closeModal: closeReverseModal } = useModal();
 
   const loadPharmacies = async () => {
     try {
@@ -130,6 +137,36 @@ export default function TransaccionesPage() {
   const handleCloseDetail = () => {
     setSelectedTransaction(null);
     closeDetailModal();
+  };
+
+  const openReverse = (transaction: TransactionData) => {
+    setTransactionToReverse(transaction);
+    setReverseReason("");
+    setReverseError("");
+    openReverseModal();
+  };
+
+  const handleCloseReverse = () => {
+    setTransactionToReverse(null);
+    setReverseReason("");
+    setReverseError("");
+    closeReverseModal();
+  };
+
+  const handleReverseTransaction = async () => {
+    if (!transactionToReverse) return;
+    setIsReverseLoading(true);
+    setReverseError("");
+    try {
+      await reverseTransaction(transactionToReverse.id, reverseReason || undefined);
+      handleCloseReverse();
+      loadTransactions(currentPage);
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Ocurrió un error al reversar la transacción";
+      setReverseError(msg);
+    } finally {
+      setIsReverseLoading(false);
+    }
   };
 
   // Opciones para select de farmacias
@@ -419,12 +456,19 @@ export default function TransaccionesPage() {
                       {transaction.transaction_date ? formatDate(transaction.transaction_date) : 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-center">
-                      <button onClick={() => openDetail(transaction)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => openDetail(transaction)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                        </button>
+                        <button onClick={() => openReverse(transaction)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20" title="Reversar transacción">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                          </svg>
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -485,6 +529,50 @@ export default function TransaccionesPage() {
           )}
         </div>
       </div>
+
+      {/* Modal: Reversar Transacción */}
+      <Modal isOpen={isReverseOpen} onClose={handleCloseReverse} className="max-w-[500px] m-4">
+        <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+          <div className="px-2 pr-14 mb-6">
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Reversar Transacción</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              ¿Estás seguro de que deseas reversar la transacción <strong>#{transactionToReverse?.id}</strong>
+              {transactionToReverse?.invoice_number ? ` (Factura: ${transactionToReverse.invoice_number})` : ''}?
+            </p>
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+              Esta acción no se puede deshacer. La transacción será eliminada del sistema.
+            </p>
+          </div>
+          <div className="px-2 space-y-4">
+            {reverseError && (
+              <Alert variant="error" title="Error" message={reverseError} />
+            )}
+            <div>
+              <Label>Motivo de la reversión (opcional)</Label>
+              <textarea
+                value={reverseReason}
+                onChange={(e) => setReverseReason(e.target.value)}
+                placeholder="Ej: Factura ingresada incorrectamente..."
+                maxLength={500}
+                rows={3}
+                className="mt-1 block w-full rounded-lg border border-gray-200 dark:border-white/[0.05] bg-white dark:bg-white/[0.03] px-3 py-2 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+              />
+              <p className="mt-1 text-xs text-gray-400">{reverseReason.length}/500</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+            <Button size="sm" variant="outline" onClick={handleCloseReverse} disabled={isReverseLoading}>Cancelar</Button>
+            <Button
+              size="sm"
+              onClick={handleReverseTransaction}
+              disabled={isReverseLoading}
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+            >
+              {isReverseLoading ? 'Reversando...' : 'Reversar'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Modal: Ver Detalles de Transacción */}
       <Modal isOpen={isDetailOpen} onClose={handleCloseDetail} className="max-w-[600px] m-4">

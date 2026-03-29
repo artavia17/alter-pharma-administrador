@@ -97,6 +97,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Transacciones", path: "/transacciones" },
       { name: "Control de Ingresos", path: "/transacciones/saltos-facturacion" },
+      { name: "Transacciones Reversadas", path: "/transacciones/reversadas" },
     ],
     requiredModules: ["users"], // Requiere módulo de usuarios
   },

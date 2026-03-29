@@ -36,8 +36,14 @@ const togglePatientStatus = async (patientId: number) => {
     return response.data;
 };
 
+const updatePatientEmail = async (patientId: number, email: string) => {
+    const response = await api.put(`/administrator/patients/${patientId}/email`, { email });
+    return response.data;
+};
+
 export {
     getAllPatients,
     searchPatients,
-    togglePatientStatus
+    togglePatientStatus,
+    updatePatientEmail
 };
