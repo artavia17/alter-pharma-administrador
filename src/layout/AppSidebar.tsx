@@ -116,7 +116,7 @@ const navItems: NavItem[] = [
   {
     icon: <TableIcon />,
     name: "Portal Distribuidores",
-    externalUrl: "https://alter-pharma-distribuidores.vercel.app/auth/sign-in",
+    externalUrl: "https://distribuidores.alter-pharma-contigo.com",
     requiredModules: ["distributors"], // Requiere módulo de distribuidores
   },
   // {
