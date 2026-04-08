@@ -26,6 +26,8 @@ interface UpdatePharmacyRequestParams {
     phone: string;
     email: string;
     administrator_name: string;
+    legal_representative_name?: string | null;
+    legal_representative_email?: string | null;
     is_chain: boolean;
     restock_day: number;
 }

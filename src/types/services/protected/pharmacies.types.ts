@@ -63,6 +63,8 @@ export interface PharmacyData {
     email: string;
     plain_password: string | null;
     administrator_name: string;
+    legal_representative_name: string | null;
+    legal_representative_email: string | null;
     is_chain: boolean;
     status: boolean;
     created_at: string;

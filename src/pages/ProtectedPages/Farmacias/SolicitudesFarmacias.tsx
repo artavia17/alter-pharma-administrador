@@ -528,6 +528,18 @@ export default function SolicitudesFarmaciasPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Rep. Legal - Nombre
+                  </label>
+                  <p className="text-gray-800 dark:text-white">{selectedRequest.legal_representative_name || '—'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Rep. Legal - Email
+                  </label>
+                  <p className="text-gray-800 dark:text-white">{selectedRequest.legal_representative_email || '—'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Es Cadena
                   </label>
                   <p className="text-gray-800 dark:text-white">{selectedRequest.is_chain ? "Sí" : "No"}</p>

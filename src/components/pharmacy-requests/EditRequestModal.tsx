@@ -39,6 +39,8 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
   const [stateId, setStateId] = useState<number | null>(null);
   const [municipalityId, setMunicipalityId] = useState<number | null>(null);
   const [restockDay, setRestockDay] = useState<number>(1);
+  const [legalRepresentativeName, setLegalRepresentativeName] = useState("");
+  const [legalRepresentativeEmail, setLegalRepresentativeEmail] = useState("");
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -69,6 +71,8 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
     setStateId(request.state_id);
     setMunicipalityId(request.municipality_id);
     setRestockDay((request as any).restock_day || 1);
+    setLegalRepresentativeName(request.legal_representative_name || "");
+    setLegalRepresentativeEmail(request.legal_representative_email || "");
 
     // Set phone prefix based on country
     if (request.country) {
@@ -205,6 +209,8 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
         phone,
         email,
         administrator_name: administratorName,
+        legal_representative_name: legalRepresentativeName || null,
+        legal_representative_email: legalRepresentativeEmail || null,
         is_chain: isChain,
         restock_day: restockDay,
       });
@@ -323,6 +329,24 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
                 value={administratorName}
                 onChange={(e) => setAdministratorName(e.target.value)}
                 placeholder="Nombre del Administrador"
+              />
+            </div>
+            <div>
+              <Label>Rep. Legal - Nombre <span className="text-gray-400 font-normal">(opcional)</span></Label>
+              <Input
+                type="text"
+                value={legalRepresentativeName}
+                onChange={(e) => setLegalRepresentativeName(e.target.value)}
+                placeholder="Nombre del representante legal"
+              />
+            </div>
+            <div>
+              <Label>Rep. Legal - Email <span className="text-gray-400 font-normal">(opcional)</span></Label>
+              <Input
+                type="email"
+                value={legalRepresentativeEmail}
+                onChange={(e) => setLegalRepresentativeEmail(e.target.value)}
+                placeholder="Email del representante legal"
               />
             </div>
             <div className="md:col-span-2">

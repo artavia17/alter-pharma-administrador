@@ -321,7 +321,6 @@ export default function Home() {
                       <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Fecha</TableCell>
                       <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Factura</TableCell>
                       <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tipo</TableCell>
-                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-right text-theme-xs dark:text-gray-400">Total</TableCell>
                       <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                     </TableRow>
                   </TableHeader>
@@ -350,9 +349,6 @@ export default function Home() {
                           >
                             {transaction.entry_type === 'automatic' ? 'Automático' : 'Manual'}
                           </span>
-                        </TableCell>
-                        <TableCell className="px-5 py-4 text-right font-semibold text-green-600 dark:text-green-400">
-                          {formatCurrency(transaction.total)}
                         </TableCell>
                         <TableCell className="px-5 py-4 text-center">
                           <Button
@@ -423,8 +419,6 @@ export default function Home() {
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacia</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">RNC</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Transacciones</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-right text-theme-xs dark:text-gray-400">Total Ventas</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-right text-theme-xs dark:text-gray-400">Promedio</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Pacientes Únicos</TableCell>
                   </TableRow>
                 </TableHeader>
@@ -434,10 +428,6 @@ export default function Home() {
                       <TableCell className="px-5 py-4 font-medium text-gray-800 text-theme-sm dark:text-white/90">{pharmacy.commercial_name}</TableCell>
                       <TableCell className="px-5 py-4 font-mono text-sm text-gray-500 dark:text-gray-400">{pharmacy.identification_number}</TableCell>
                       <TableCell className="px-5 py-4 text-center text-gray-500 text-theme-sm dark:text-gray-400">{pharmacy.total_transactions}</TableCell>
-                      <TableCell className="px-5 py-4 text-right font-semibold text-green-600 dark:text-green-400">
-                        {formatCurrency(pharmacy.total_sales)}
-                      </TableCell>
-                      <TableCell className="px-5 py-4 text-right text-gray-500 text-theme-sm dark:text-gray-400">{formatCurrency(pharmacy.average_transaction)}</TableCell>
                       <TableCell className="px-5 py-4 text-center text-gray-500 text-theme-sm dark:text-gray-400">{pharmacy.unique_patients}</TableCell>
                     </TableRow>
                   ))}
@@ -469,7 +459,6 @@ export default function Home() {
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Producto</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Presentación</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Cantidad Vendida</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-right text-theme-xs dark:text-gray-400">Ingresos Totales</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Farmacias</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Pacientes</TableCell>
                   </TableRow>
@@ -480,9 +469,6 @@ export default function Home() {
                       <TableCell className="px-5 py-4 font-medium text-gray-800 text-theme-sm dark:text-white/90">{product.name}</TableCell>
                       <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">{product.dose}</TableCell>
                       <TableCell className="px-5 py-4 text-center font-semibold text-gray-800 text-theme-sm dark:text-white/90">{product.total_quantity}</TableCell>
-                      <TableCell className="px-5 py-4 text-right font-semibold text-green-600 dark:text-green-400">
-                        {formatCurrency(product.total_revenue)}
-                      </TableCell>
                       <TableCell className="px-5 py-4 text-center text-gray-500 text-theme-sm dark:text-gray-400">{product.pharmacies_count}</TableCell>
                       <TableCell className="px-5 py-4 text-center text-gray-500 text-theme-sm dark:text-gray-400">{product.patients_count}</TableCell>
                     </TableRow>

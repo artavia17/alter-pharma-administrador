@@ -522,6 +522,8 @@ export default function FarmaceuticasPage() {
         'Email': pharmacy.email || 'N/A',
         'Contraseña': pharmacy.plain_password || 'N/A',
         'Administrador': pharmacy.administrator_name || 'N/A',
+        'Rep. Legal - Nombre': pharmacy.legal_representative_name || 'N/A',
+        'Rep. Legal - Email': pharmacy.legal_representative_email || 'N/A',
         'Estado': pharmacy.status ? 'Activo' : 'Inactivo',
         'Fecha de Creación': formatDate(pharmacy.created_at)
       };
@@ -547,6 +549,8 @@ export default function FarmaceuticasPage() {
       { wch: 30 },  // Email
       { wch: 20 },  // Contraseña
       { wch: 30 },  // Administrador
+      { wch: 30 },  // Rep. Legal - Nombre
+      { wch: 30 },  // Rep. Legal - Email
       { wch: 12 },  // Estado
       { wch: 18 }   // Fecha de Creación
     ];
@@ -1279,6 +1283,24 @@ export default function FarmaceuticasPage() {
                 </p>
               </div>
             </div>
+
+            {(selectedPharmacy?.legal_representative_name || selectedPharmacy?.legal_representative_email) && (
+              <div>
+                <Label>Representante Legal</Label>
+                <div className="mt-2 space-y-1">
+                  {selectedPharmacy.legal_representative_name && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <span className="font-medium">Nombre:</span> {selectedPharmacy.legal_representative_name}
+                    </p>
+                  )}
+                  {selectedPharmacy.legal_representative_email && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <span className="font-medium">Email:</span> {selectedPharmacy.legal_representative_email}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div>
               <Label>Información adicional</Label>
