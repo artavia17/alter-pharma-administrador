@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { searchPatients, togglePatientStatus, updatePatientEmail } from "../../../services/protected/patients.services";
+import EditPatientModal from "../../../components/patients/EditPatientModal";
 import { PatientData } from "../../../types/services/protected/patients.types";
 import { formatDate } from "../../../helper/formatData";
 import * as XLSX from 'xlsx';
@@ -35,6 +36,9 @@ export default function PacientesPage() {
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Edit patient state
+  const [patientToEdit, setPatientToEdit] = useState<PatientData | null>(null);
+
   // Email edit state
   const [patientToEditEmail, setPatientToEditEmail] = useState<PatientData | null>(null);
   const [newEmail, setNewEmail] = useState("");
@@ -43,6 +47,7 @@ export default function PacientesPage() {
 
   // Modals
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
+  const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isEmailOpen, openModal: openEmailModal, closeModal: closeEmailModal } = useModal();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -103,6 +108,11 @@ export default function PacientesPage() {
   const handleCloseDetail = () => {
     setSelectedPatient(null);
     closeDetailModal();
+  };
+
+  const openEdit = (patient: PatientData) => {
+    setPatientToEdit(patient);
+    openEditModal();
   };
 
   const openEditEmail = (patient: PatientData) => {
@@ -376,6 +386,11 @@ export default function PacientesPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                             </svg>
                           </button>
+                          <button onClick={() => openEdit(patient)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg dark:text-green-400 dark:hover:bg-green-900/20" title="Editar paciente">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                            </svg>
+                          </button>
                           <button onClick={() => openEditEmail(patient)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Actualizar email">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
@@ -403,6 +418,17 @@ export default function PacientesPage() {
           </div>
         )}
       </div>
+
+      {/* Modal: Editar Paciente */}
+      <EditPatientModal
+        isOpen={isEditOpen}
+        onClose={closeEditModal}
+        onSuccess={(updated) => {
+          setPatients(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+          if (selectedPatient?.id === updated.id) setSelectedPatient(updated);
+        }}
+        patient={patientToEdit}
+      />
 
       {/* Modal: Actualizar Email */}
       <Modal isOpen={isEmailOpen} onClose={handleCloseEditEmail} className="max-w-[450px] m-4">
