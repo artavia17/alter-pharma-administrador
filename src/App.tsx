@@ -39,6 +39,7 @@ import PacientesPage from "./pages/ProtectedPages/Pacientes/Pacientes";
 import TransaccionesPage from "./pages/ProtectedPages/Transacciones/Transacciones";
 import SaltosFacturacionPage from "./pages/ProtectedPages/Transacciones/SaltosFacturacion";
 import TransaccionesReversadasPage from "./pages/ProtectedPages/Transacciones/TransaccionesReversadas";
+import ReportesDinamicosPage from "./pages/ProtectedPages/Reportes/ReportesDinamicos";
 import DistribuidoresPage from "./pages/ProtectedPages/Distribuidores/Distribuidores";
 import BonosPage from "./pages/ProtectedPages/Bonos/Bonos";
 import SolicitudesFarmaciasPage from "./pages/ProtectedPages/Farmacias/SolicitudesFarmacias";
@@ -61,6 +62,7 @@ export default function App() {
               <Route index path="/" element={<Home />} />
               <Route path="/reportes/canjes" element={<Redemptions />} />
               <Route path="/reportes/pacientes-productos" element={<PatientProductRedemptions />} />
+              <Route path="/reportes/dinamicos" element={<ReportesDinamicosPage />} />
 
               {/* Account */}
               <Route path="/account/me" element={<UserProfiles />} />
