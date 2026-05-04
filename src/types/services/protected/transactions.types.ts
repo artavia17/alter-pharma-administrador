@@ -93,7 +93,23 @@ export interface TransactionData {
         created_at: string;
         updated_at: string;
     };
-    sub_pharmacy?: any | null;
+    sub_pharmacy?: {
+        id: number;
+        pharmacy_id: string;
+        state_id: string;
+        municipality_id: string;
+        commercial_name: string;
+        identification_number: string;
+        street_address: string;
+        phone: string;
+        email: string;
+        plain_password: string | null;
+        administrator_name: string;
+        status: boolean;
+        last_login: string | null;
+        created_at: string;
+        updated_at: string;
+    } | null;
     products?: TransactionProductData[];
 }
 

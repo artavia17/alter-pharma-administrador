@@ -619,8 +619,37 @@ export default function TransaccionesPage() {
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <span className="font-medium">Razón social:</span> {selectedTransaction?.pharmacy?.legal_name}
                 </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Email:</span> {selectedTransaction?.pharmacy?.email || 'N/A'}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Teléfono:</span> {selectedTransaction?.pharmacy?.phone || 'N/A'}
+                </p>
               </div>
             </div>
+
+            {selectedTransaction?.sub_pharmacy && (
+              <div>
+                <Label>Información de la sucursal</Label>
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">Nombre comercial:</span> {selectedTransaction.sub_pharmacy.commercial_name}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">Administrador:</span> {selectedTransaction.sub_pharmacy.administrator_name || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">Email:</span> {selectedTransaction.sub_pharmacy.email || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">Teléfono:</span> {selectedTransaction.sub_pharmacy.phone || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">Dirección:</span> {selectedTransaction.sub_pharmacy.street_address || 'N/A'}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div>
               <Label>Productos</Label>
