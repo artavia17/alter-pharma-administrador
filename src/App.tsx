@@ -27,6 +27,7 @@ import ModulosPage from "./pages/ProtectedPages/Accesos/Modulos";
 import UsuariosPage from "./pages/ProtectedPages/Accesos/Usuarios";
 import FarmaceuticasPage from "./pages/ProtectedPages/Farmacias/Farmaceuticas";
 import SucursalesPage from "./pages/ProtectedPages/Farmacias/Sucursales";
+import AjustesFarmaciasPage from "./pages/ProtectedPages/Farmacias/AjustesFarmacias";
 import PaisesPage from "./pages/ProtectedPages/Localizaciones/Paises";
 import CiudadesPage from "./pages/ProtectedPages/Localizaciones/Ciudades";
 import MunicipiosPage from "./pages/ProtectedPages/Localizaciones/Municipios";
@@ -85,6 +86,7 @@ export default function App() {
               <Route path="/farmaceuticas" element={<FarmaceuticasPage />} />
               <Route path="/farmaceuticas/sucursales" element={<SucursalesPage />} />
               <Route path="/farmaceuticas/solicitudes" element={<SolicitudesFarmaciasPage />} />
+              <Route path="/farmaceuticas/ajustes" element={<AjustesFarmaciasPage />} />
 
               {/* Medicamentos */}
               <Route path="/medicamentos/productos" element={<ProductosPage />} />
