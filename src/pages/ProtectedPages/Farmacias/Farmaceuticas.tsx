@@ -57,6 +57,7 @@ export default function FarmaceuticasPage() {
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<number | null>(null);
   const [restockDay, setRestockDay] = useState<number>(1);
+  const [restockType, setRestockType] = useState<'cedi' | 'pos' | ''>('');
   const [phonePrefix, setPhonePrefix] = useState("");
   const [phoneMinLength, setPhoneMinLength] = useState<number>(0);
   const [phoneMaxLength, setPhoneMaxLength] = useState<number>(0);
@@ -73,7 +74,7 @@ export default function FarmaceuticasPage() {
 
   // Modals
   const { isOpen: isAddOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
-  const { isOpen: isEditOpen, closeModal: closeEditModal } = useModal();
+  const { isOpen: isEditOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
   const { isOpen: isBulkUploadOpen, openModal: openBulkUploadModal, closeModal: closeBulkUploadModal } = useModal();
   const { isOpen: isCredOpen, openModal: openCredModal, closeModal: closeCredModal } = useModal();
@@ -232,6 +233,11 @@ export default function FarmaceuticasPage() {
   }, [municipalities, selectedStateId]);
 
 
+  const restockTypeOptions = [
+    { value: 'cedi', label: 'Centralizado (Cedi)' },
+    { value: 'pos', label: 'Por Punto de Venta' },
+  ];
+
   // Actualizar prefijo de teléfono cuando cambia el país
   const handleCountryChange = (countryId: string) => {
     const id = parseInt(countryId);
@@ -331,6 +337,7 @@ export default function FarmaceuticasPage() {
         administrator_name: administratorName,
         is_chain: isChain,
         restock_day: restockDay,
+        restock_type: restockType as 'cedi' | 'pos',
       };
 
       const response = await createPharmacy(params);
@@ -384,6 +391,7 @@ export default function FarmaceuticasPage() {
         administrator_name: administratorName,
         is_chain: isChain,
         restock_day: restockDay,
+        restock_type: restockType as 'cedi' | 'pos',
       };
 
       const response = await updatePharmacy(selectedPharmacy.id, params);
@@ -429,6 +437,7 @@ export default function FarmaceuticasPage() {
     setSelectedStateId(null);
     setSelectedMunicipalityId(null);
     setRestockDay(1);
+    setRestockType('');
     setMunicipalities([]);
     setPhonePrefix("");
     setPhoneMinLength(0);
@@ -452,6 +461,43 @@ export default function FarmaceuticasPage() {
   const openDetail = (pharmacy: PharmacyData) => {
     setSelectedPharmacy(pharmacy);
     openDetailModal();
+  };
+
+  const openEdit = async (pharmacy: PharmacyData) => {
+    setSelectedPharmacy(pharmacy);
+    setLegalName(pharmacy.legal_name);
+    setCommercialName(pharmacy.commercial_name);
+    setIdentificationNumber(pharmacy.identification_number);
+    setStreetAddress(pharmacy.street_address);
+    setPhone(pharmacy.phone);
+    setEmail(pharmacy.email);
+    setAdministratorName(pharmacy.administrator_name);
+    setIsChain(pharmacy.is_chain);
+    setRestockDay(pharmacy.restock_day ?? 1);
+    setRestockType(pharmacy.restock_type ?? '');
+    setSelectedCountryId(pharmacy.country_id);
+    setSelectedStateId(pharmacy.state_id ?? null);
+    setSelectedMunicipalityId(pharmacy.municipality_id ?? null);
+
+    const country = countries.find(c => c.id === pharmacy.country_id);
+    if (country) {
+      setPhonePrefix(`+${country.phone_code} `);
+      setPhoneMinLength(country.phone_min_length);
+      setPhoneMaxLength(country.phone_max_length);
+    }
+
+    if (pharmacy.state_id) {
+      try {
+        const response = await getMunicipalities(pharmacy.state_id);
+        if (response.status === 200 && Array.isArray(response.data)) {
+          setMunicipalities(response.data);
+        }
+      } catch {
+        setMunicipalities([]);
+      }
+    }
+
+    openEditModal();
   };
 
   const handleCloseDetail = () => {
@@ -514,6 +560,7 @@ export default function FarmaceuticasPage() {
         'Nombre Comercial': pharmacy.commercial_name || 'N/A',
         'Número de Identificación': pharmacy.identification_number,
         'Tipo': pharmacy.is_chain ? 'Cadena' : 'Independiente',
+        'Tipo Reabastecimiento': pharmacy.restock_type === 'cedi' ? 'Centralizado (Cedi)' : pharmacy.restock_type === 'pos' ? 'Por Punto de Venta' : 'N/A',
         'Dirección': pharmacy.street_address || 'N/A',
         'País': pharmacy.country.name,
         'Ciudad/Provincia': state?.name || 'N/A',
@@ -541,6 +588,7 @@ export default function FarmaceuticasPage() {
       { wch: 30 },  // Nombre Comercial
       { wch: 20 },  // Número de Identificación
       { wch: 15 },  // Tipo
+      { wch: 25 },  // Tipo Reabastecimiento
       { wch: 40 },  // Dirección
       { wch: 25 },  // País
       { wch: 25 },  // Ciudad/Provincia
@@ -686,6 +734,7 @@ export default function FarmaceuticasPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">País</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Identificación</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tipo</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Reabastecimiento</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
@@ -722,6 +771,19 @@ export default function FarmaceuticasPage() {
                         {pharmacy.is_chain ? "Cadena" : "Independiente"}
                       </span>
                     </TableCell>
+                    <TableCell className="px-5 py-4 text-start">
+                      {pharmacy.restock_type ? (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          pharmacy.restock_type === 'cedi'
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
+                            : "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                        }`}>
+                          {pharmacy.restock_type === 'cedi' ? 'Cedi' : 'Por Punto de Venta'}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="px-5 py-4">
                       <Switch
                         label={pharmacy.status ? "Activo" : "Inactivo"}
@@ -731,6 +793,11 @@ export default function FarmaceuticasPage() {
                     </TableCell>
                     <TableCell className="px-5 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
+                        <button onClick={() => openEdit(pharmacy)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20" title="Editar">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                          </svg>
+                        </button>
                         <button onClick={() => openDetail(pharmacy)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg dark:text-purple-400 dark:hover:bg-purple-900/20" title="Ver detalles">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -1021,10 +1088,19 @@ export default function FarmaceuticasPage() {
                   Día del mes para reabastecimiento (1-30)
                 </p>
               </div>
+              <div>
+                <Label>Tipo de reabastecimiento *</Label>
+                <Select
+                  options={restockTypeOptions}
+                  placeholder="Selecciona un tipo"
+                  onChange={(value) => setRestockType(value as 'cedi' | 'pos')}
+                  defaultValue=""
+                />
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId || !selectedMunicipalityId}>
+              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId || !selectedMunicipalityId || !restockType}>
                 {isLoading ? 'Guardando...' : 'Guardar'}
               </Button>
             </div>
@@ -1201,10 +1277,19 @@ export default function FarmaceuticasPage() {
                   Día del mes para reabastecimiento (1-30)
                 </p>
               </div>
+              <div>
+                <Label>Tipo de reabastecimiento *</Label>
+                <Select
+                  options={restockTypeOptions}
+                  placeholder="Selecciona un tipo"
+                  onChange={(value) => setRestockType(value as 'cedi' | 'pos')}
+                  value={restockType}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseEdit}>Cancelar</Button>
-              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId || !selectedMunicipalityId}>
+              <Button size="sm" type="submit" disabled={isLoading || !legalName || !commercialName || !identificationNumber || !streetAddress || !phone || !email || !administratorName || !selectedCountryId || !selectedStateId || !selectedMunicipalityId || !restockType}>
                 {isLoading ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
             </div>
@@ -1301,6 +1386,23 @@ export default function FarmaceuticasPage() {
                 </div>
               </div>
             )}
+
+            <div>
+              <Label>Reabastecimiento</Label>
+              <div className="mt-2 space-y-1">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Día:</span> {selectedPharmacy?.restock_day ?? '—'}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Tipo:</span>{' '}
+                  {selectedPharmacy?.restock_type === 'cedi'
+                    ? 'Centralizado (Cedi)'
+                    : selectedPharmacy?.restock_type === 'pos'
+                      ? 'Por Punto de Venta'
+                      : '—'}
+                </p>
+              </div>
+            </div>
 
             <div>
               <Label>Información adicional</Label>

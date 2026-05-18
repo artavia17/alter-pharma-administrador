@@ -19,6 +19,7 @@ export interface PharmacyRequestData {
     legal_representative_name: string | null;
     legal_representative_email: string | null;
     is_chain: boolean;
+    restock_type: 'cedi' | 'pos' | null;
     status: PharmacyRequestStatus;
     created_at: string;
     updated_at: string;
