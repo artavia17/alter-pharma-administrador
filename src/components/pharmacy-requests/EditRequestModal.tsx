@@ -39,6 +39,7 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
   const [stateId, setStateId] = useState<number | null>(null);
   const [municipalityId, setMunicipalityId] = useState<number | null>(null);
   const [restockDay, setRestockDay] = useState<number>(1);
+  const [restockType, setRestockType] = useState<'cedi' | 'pos' | ''>('');
   const [legalRepresentativeName, setLegalRepresentativeName] = useState("");
   const [legalRepresentativeEmail, setLegalRepresentativeEmail] = useState("");
   const [phonePrefix, setPhonePrefix] = useState("");
@@ -71,6 +72,7 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
     setStateId(request.state_id);
     setMunicipalityId(request.municipality_id);
     setRestockDay((request as any).restock_day || 1);
+    setRestockType(request.restock_type ?? '');
     setLegalRepresentativeName(request.legal_representative_name || "");
     setLegalRepresentativeEmail(request.legal_representative_email || "");
 
@@ -213,6 +215,7 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
         legal_representative_email: legalRepresentativeEmail || null,
         is_chain: isChain,
         restock_day: restockDay,
+        restock_type: restockType || null,
       });
 
       if (response.status === 200) {
@@ -407,6 +410,18 @@ export default function EditRequestModal({ isOpen, onClose, onSuccess, request }
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Día del mes para reabastecimiento (1-30)
               </p>
+            </div>
+            <div>
+              <Label>Tipo de reabastecimiento</Label>
+              <Select
+                options={[
+                  { value: 'cedi', label: 'Centralizado (Cedi)' },
+                  { value: 'pos', label: 'Por Punto de Venta' },
+                ]}
+                placeholder="Selecciona un tipo"
+                onChange={(value) => setRestockType(value as 'cedi' | 'pos')}
+                value={restockType}
+              />
             </div>
             <div className="md:col-span-2 flex items-center gap-3">
               <Switch

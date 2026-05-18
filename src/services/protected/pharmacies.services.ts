@@ -23,6 +23,7 @@ interface CreatePharmacyParams {
     email: string;
     administrator_name: string;
     is_chain: boolean;
+    restock_type: 'cedi' | 'pos';
     restock_day: number;
 }
 
@@ -63,6 +64,7 @@ interface BulkPharmacyData {
     email: string;
     administrator_name: string;
     is_chain: boolean;
+    restock_type: 'cedi' | 'pos';
 }
 
 interface BulkCreatePharmaciesParams {

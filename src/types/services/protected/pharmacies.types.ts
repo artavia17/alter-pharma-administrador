@@ -66,6 +66,8 @@ export interface PharmacyData {
     legal_representative_name: string | null;
     legal_representative_email: string | null;
     is_chain: boolean;
+    restock_day: number | null;
+    restock_type: 'cedi' | 'pos' | null;
     status: boolean;
     created_at: string;
     updated_at: string;

@@ -91,6 +91,12 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
           email: row['Email'] || row['email'] || '',
           administrator_name: row['Administrador'] || row['administrator_name'] || '',
           is_chain: row['Es Cadena'] === 'SI' || row['Es Cadena'] === 'TRUE' || row['Es Cadena'] === 'true' || row['is_chain'] === true || row['is_chain'] === 'true' || false,
+          restock_type: (() => {
+            const rt = String(row['Tipo Reabastecimiento'] || row['restock_type'] || '').toLowerCase();
+            if (rt === 'cedi' || rt === 'centralizado' || rt === 'centralizado (cedi)') return 'cedi';
+            if (rt === 'pos' || rt === 'punto de venta' || rt === 'por punto de venta') return 'pos';
+            return 'cedi';
+          })() as 'cedi' | 'pos',
         }));
 
         setPreviewData(parsedData);
@@ -203,6 +209,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
         'Email': 'farmacia@example.com',
         'Administrador': 'Juan Pérez',
         'Es Cadena': 'NO',
+        'Tipo Reabastecimiento': 'cedi',
       }
     ];
 
@@ -281,6 +288,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 <li><strong>Email:</strong> Correo electrónico (se usará para el acceso)</li>
                 <li><strong>Administrador:</strong> Nombre del administrador</li>
                 <li><strong>Es Cadena:</strong> Escribe "SI" si es cadena, "NO" si no lo es</li>
+                <li><strong>Tipo Reabastecimiento:</strong> Escribe "cedi" o "pos"</li>
               </ul>
               <Button size="sm" onClick={downloadTemplate}>
                 <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

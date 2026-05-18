@@ -30,6 +30,7 @@ interface UpdatePharmacyRequestParams {
     legal_representative_email?: string | null;
     is_chain: boolean;
     restock_day: number;
+    restock_type?: 'cedi' | 'pos' | null;
 }
 
 const updatePharmacyRequestStatus = async (id: number, params: UpdatePharmacyRequestStatusParams) => {
