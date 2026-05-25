@@ -116,6 +116,12 @@ const navItems: NavItem[] = [
     requiredModules: ["users"], // Requiere módulo de usuarios
   },
   {
+    icon: <ListIcon />,
+    name: "Trans. Manuales",
+    path: "/transacciones-manuales",
+    requiredModules: ["users"], // Requiere módulo de usuarios
+  },
+  {
     icon: <TableIcon />,
     name: "Portal Distribuidores",
     externalUrl: "https://distribuidores.alter-pharma-contigo.com",
