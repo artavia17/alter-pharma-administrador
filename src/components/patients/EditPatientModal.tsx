@@ -12,6 +12,7 @@ import { getMunicipalities } from "../../services/protected/municipalities.servi
 import { PatientData } from "../../types/services/protected/patients.types";
 import { CountryData, StateData } from "../../types/services/protected/countries.types";
 import { MunicipalityData } from "../../types/services/protected/municipalities.types";
+import { INTERNATIONAL_PHONE_CODES, parseStoredPhone } from "../../constants/phoneCodes";
 
 interface EditPatientModalProps {
   isOpen: boolean;
@@ -47,7 +48,8 @@ export default function EditPatientModal({ isOpen, onClose, onSuccess, patient }
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phoneDialCode, setPhoneDialCode] = useState("+1");
+  const [phoneDigits, setPhoneDigits] = useState("");
   const [email, setEmail] = useState("");
   const [countryId, setCountryId] = useState<number | null>(null);
   const [stateId, setStateId] = useState<number | null>(null);
@@ -73,7 +75,9 @@ export default function EditPatientModal({ isOpen, onClose, onSuccess, patient }
     setDateOfBirth(p.date_of_birth);
     setGender(p.gender);
     setStreetAddress(p.street_address);
-    setPhone(p.phone);
+    const { dialCode, digits } = parseStoredPhone(p.phone);
+    setPhoneDialCode(dialCode);
+    setPhoneDigits(digits);
     setEmail(p.email);
     setCountryId(p.country_id);
     setStateId(p.state_id);
@@ -141,7 +145,7 @@ export default function EditPatientModal({ isOpen, onClose, onSuccess, patient }
         date_of_birth: dateOfBirth,
         gender,
         street_address: streetAddress,
-        phone,
+        phone: `${phoneDialCode} ${phoneDigits}`,
         email,
         country_id: countryId ?? undefined,
         state_id: stateId ?? undefined,
@@ -239,7 +243,32 @@ export default function EditPatientModal({ isOpen, onClose, onSuccess, patient }
             </div>
             <div>
               <Label>Teléfono *</Label>
-              <Input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Teléfono" />
+              <div className="flex rounded-lg border border-gray-300 overflow-hidden focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/10 dark:border-gray-700">
+                <select
+                  value={phoneDialCode}
+                  onChange={(e) => setPhoneDialCode(e.target.value)}
+                  disabled={isLoading}
+                  className="flex-none px-2 py-2.5 text-sm bg-gray-50 border-r border-gray-300 text-gray-700 outline-none cursor-pointer max-w-[180px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                >
+                  {INTERNATIONAL_PHONE_CODES.map((c) => (
+                    <option key={`${c.code}-${c.dialCode}`} value={c.dialCode}>
+                      {c.dialCode} ({c.name})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  value={phoneDigits}
+                  onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, "").slice(0, 15))}
+                  placeholder="Número"
+                  maxLength={15}
+                  disabled={isLoading}
+                  className="flex-1 min-w-0 px-4 py-2.5 text-sm bg-white text-gray-800 outline-none placeholder:text-gray-400 dark:bg-gray-900 dark:text-white/90"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-400">
+                Máx. 15 dígitos · Formato: {phoneDialCode} {phoneDigits || "XXXXXXXXXXXXXXX"}
+              </p>
             </div>
             <div>
               <Label>País *</Label>
