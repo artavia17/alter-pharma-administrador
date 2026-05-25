@@ -43,6 +43,7 @@ import TransaccionesReversadasPage from "./pages/ProtectedPages/Transacciones/Tr
 import ReportesDinamicosPage from "./pages/ProtectedPages/Reportes/ReportesDinamicos";
 import DistribuidoresPage from "./pages/ProtectedPages/Distribuidores/Distribuidores";
 import BonosPage from "./pages/ProtectedPages/Bonos/Bonos";
+import RegistrarTransaccionesPage from "./pages/ProtectedPages/ManualTransactions/RegistrarTransacciones";
 import SolicitudesFarmaciasPage from "./pages/ProtectedPages/Farmacias/SolicitudesFarmacias";
 
 export default function App() {
@@ -106,6 +107,9 @@ export default function App() {
 
               {/* Bonos */}
               <Route path="/bonos" element={<BonosPage />} />
+
+              {/* Transacciones Manuales */}
+              <Route path="/transacciones-manuales" element={<RegistrarTransaccionesPage />} />
 
               {/* ----------------------------------------------------------------------------- */}
               {/* ----------------------------------------------------------------------------- */}
