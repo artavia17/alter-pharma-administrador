@@ -49,6 +49,7 @@ export default function DosisPage() {
   const [redemptionDays, setRedemptionDays] = useState<number>(30);
   const [maxRedemptionsPerMonth, setMaxRedemptionsPerMonth] = useState<number>(1);
   const [maxRedemptionsPerYear, setMaxRedemptionsPerYear] = useState<number>(1);
+  const [maxPurchasePerTransaction, setMaxPurchasePerTransaction] = useState<number>(10);
 
   // Error handling
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -119,6 +120,7 @@ export default function DosisPage() {
         redemption_days: redemptionDays,
         max_redemptions_per_month: maxRedemptionsPerMonth,
         max_redemptions_per_year: maxRedemptionsPerYear,
+        max_purchase_per_transaction: maxPurchasePerTransaction,
       };
 
       const response = await createDose(selectedProductId, params);
@@ -157,6 +159,7 @@ export default function DosisPage() {
         redemption_days: redemptionDays,
         max_redemptions_per_month: maxRedemptionsPerMonth,
         max_redemptions_per_year: maxRedemptionsPerYear,
+        max_purchase_per_transaction: maxPurchasePerTransaction,
       };
 
       const response = await updateDose(selectedProductId, selectedDose.id, params);
@@ -220,6 +223,7 @@ export default function DosisPage() {
     setRedemptionDays(30);
     setMaxRedemptionsPerMonth(1);
     setMaxRedemptionsPerYear(1);
+    setMaxPurchasePerTransaction(10);
     setErrors({});
   };
 
@@ -237,6 +241,7 @@ export default function DosisPage() {
     setRedemptionDays(doseItem.redemption_days);
     setMaxRedemptionsPerMonth(doseItem.max_redemptions_per_month);
     setMaxRedemptionsPerYear(doseItem.max_redemptions_per_year);
+    setMaxPurchasePerTransaction(doseItem.max_purchase_per_transaction ?? 1);
     openEditModal();
   };
 
@@ -352,6 +357,7 @@ export default function DosisPage() {
           'Días de Canje': dose.redemption_days,
           'Max. Canjes/Mes': dose.max_redemptions_per_month,
           'Max. Canjes/Año': dose.max_redemptions_per_year,
+          'Max. Compra/Transacción': dose.max_purchase_per_transaction,
           'Estado': dose.status ? 'Activo' : 'Inactivo',
           'Fecha de Creación': formatDate(dose.created_at)
         };
@@ -372,6 +378,7 @@ export default function DosisPage() {
         { wch: 18 },  // Días de Canje
         { wch: 18 },  // Max. Canjes/Mes
         { wch: 18 },  // Max. Canjes/Año
+        { wch: 22 },  // Max. Compra/Transacción
         { wch: 12 },  // Estado
         { wch: 18 }   // Fecha de Creación
       ];
@@ -504,6 +511,7 @@ export default function DosisPage() {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Días redención</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Canjes por mes</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Canjes por año</TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Máx. compra</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Estado</TableCell>
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Acciones</TableCell>
                 </TableRow>
@@ -529,6 +537,9 @@ export default function DosisPage() {
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
                       {doseItem.max_redemptions_per_year}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {doseItem.max_purchase_per_transaction ?? 1}
                     </TableCell>
                     <TableCell className="px-5 py-4">
                       <Switch
@@ -784,6 +795,19 @@ export default function DosisPage() {
                   min="1"
                 />
               </div>
+              <div>
+                <Label>Máximo de compra por transacción *</Label>
+                <Input
+                  type="number"
+                  value={maxPurchasePerTransaction}
+                  onChange={(e) => setMaxPurchasePerTransaction(parseInt(e.target.value))}
+                  placeholder="Ej: 1"
+                  min="1"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Máx. unidades que el paciente puede comprar en una sola transacción
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseAdd}>Cancelar</Button>
@@ -889,6 +913,19 @@ export default function DosisPage() {
                   min="1"
                 />
               </div>
+              <div>
+                <Label>Máximo de compra por transacción *</Label>
+                <Input
+                  type="number"
+                  value={maxPurchasePerTransaction}
+                  onChange={(e) => setMaxPurchasePerTransaction(parseInt(e.target.value))}
+                  placeholder="Ej: 1"
+                  min="1"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Máx. unidades que el paciente puede comprar en una sola transacción
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" type="button" onClick={handleCloseEdit}>Cancelar</Button>
@@ -943,6 +980,9 @@ export default function DosisPage() {
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <span className="font-medium">Máximo de canjes por año:</span> {selectedDose?.max_redemptions_per_year}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-medium">Máximo de compra por transacción:</span> {selectedDose?.max_purchase_per_transaction ?? 1}
                 </p>
               </div>
             </div>
