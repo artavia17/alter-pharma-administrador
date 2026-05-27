@@ -8,6 +8,7 @@ export interface DoseData {
   redemption_days: number;
   max_redemptions_per_month: number;
   max_redemptions_per_year: number;
+  max_purchase_per_transaction: number;
   status: boolean;
   created_at: string;
   updated_at: string;
@@ -32,4 +33,5 @@ export interface CreateDoseParams {
   redemption_days: number;
   max_redemptions_per_month: number;
   max_redemptions_per_year: number;
+  max_purchase_per_transaction: number;
 }
