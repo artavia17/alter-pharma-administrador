@@ -61,4 +61,17 @@ const getProductSalesReport = async (params?: ProductSalesParams) => {
   return response.data;
 };
 
-export { getPurchaseReport, getPharmacySalesReport, getProductSalesReport };
+// Get Expiring Redemptions Report
+const getExpiringRedemptionsReport = async (params?: { days?: number; pharmacy_id?: number }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.days) queryParams.append('days', params.days.toString());
+  if (params?.pharmacy_id) queryParams.append('pharmacy_id', params.pharmacy_id.toString());
+  const queryString = queryParams.toString();
+  const url = queryString
+    ? `/administrator/reports/redemptions/expiring?${queryString}`
+    : '/administrator/reports/redemptions/expiring';
+  const response = await api.get(url);
+  return response.data;
+};
+
+export { getPurchaseReport, getPharmacySalesReport, getProductSalesReport, getExpiringRedemptionsReport };

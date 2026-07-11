@@ -42,6 +42,7 @@ import SaltosFacturacionPage from "./pages/ProtectedPages/Transacciones/SaltosFa
 import TransaccionesReversadasPage from "./pages/ProtectedPages/Transacciones/TransaccionesReversadas";
 import ReportesDinamicosPage from "./pages/ProtectedPages/Reportes/ReportesDinamicos";
 import CanjesFarmaciaPage from "./pages/ProtectedPages/Reportes/CanjesFarmacia";
+import CanjesPorExpirarPage from "./pages/ProtectedPages/Reportes/CanjesPorExpirar";
 import DistribuidoresPage from "./pages/ProtectedPages/Distribuidores/Distribuidores";
 import BonosPage from "./pages/ProtectedPages/Bonos/Bonos";
 import RegistrarTransaccionesPage from "./pages/ProtectedPages/ManualTransactions/RegistrarTransacciones";
@@ -67,6 +68,7 @@ export default function App() {
               <Route path="/reportes/pacientes-productos" element={<PatientProductRedemptions />} />
               <Route path="/reportes/dinamicos" element={<ReportesDinamicosPage />} />
               <Route path="/reportes/canjes-farmacia" element={<CanjesFarmaciaPage />} />
+              <Route path="/reportes/canjes-por-expirar" element={<CanjesPorExpirarPage />} />
 
               {/* Account */}
               <Route path="/account/me" element={<UserProfiles />} />
