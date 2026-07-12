@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
       { name: "Pacientes - Productos", path: "/reportes/pacientes-productos" },
       { name: "Reportes Dinámicos", path: "/reportes/dinamicos" },
       { name: "Canjes por Farmacia", path: "/reportes/canjes-farmacia" },
+      { name: "Canjes por Expirar", path: "/reportes/canjes-por-expirar" },
     ],
     // Inicio siempre visible para todos
   },
