@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
 import Button from "../../../components/ui/button/Button";
+import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
 import Alert from "../../../components/ui/alert/Alert";
@@ -22,6 +23,13 @@ const DAYS_OPTIONS = [
   { value: "7", label: "7 días" },
   { value: "15", label: "15 días" },
   { value: "30", label: "30 días" },
+];
+
+const PER_PAGE_OPTIONS = [
+  { value: "15", label: "15 por página" },
+  { value: "30", label: "30 por página" },
+  { value: "50", label: "50 por página" },
+  { value: "100", label: "100 por página" },
 ];
 
 interface ExpiringRedemption {
@@ -57,8 +65,14 @@ export default function CanjesPorExpirarPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
+  // Filters
   const [filterDays, setFilterDays] = useState("7");
   const [filterPharmacyId, setFilterPharmacyId] = useState("");
+
+  // Search & pagination (client-side)
+  const [search, setSearch] = useState("");
+  const [perPage, setPerPage] = useState(15);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     getPharmacies()
@@ -76,6 +90,8 @@ export default function CanjesPorExpirarPage() {
       if (res.status === 200) {
         setRedemptions(res.data);
         setHasSearched(true);
+        setCurrentPage(1);
+        setSearch("");
       }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || "Ocurrió un error al obtener el reporte");
@@ -93,15 +109,40 @@ export default function CanjesPorExpirarPage() {
   const resetFilters = () => {
     setFilterDays("7");
     setFilterPharmacyId("");
+    setSearch("");
     setRedemptions([]);
     setHasSearched(false);
     setErrorMessage("");
+    setCurrentPage(1);
   };
+
+  // Client-side search filter
+  const filteredRedemptions = useMemo(() => {
+    if (!search.trim()) return redemptions;
+    const term = search.toLowerCase();
+    return redemptions.filter((r) =>
+      r.pharmacy_name.toLowerCase().includes(term) ||
+      r.patient.full_name.toLowerCase().includes(term) ||
+      r.patient.identification_number.toLowerCase().includes(term) ||
+      r.patient.phone.toLowerCase().includes(term) ||
+      r.product.name.toLowerCase().includes(term)
+    );
+  }, [redemptions, search]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRedemptions.length / perPage);
+  const paginatedRedemptions = useMemo(() => {
+    const start = (currentPage - 1) * perPage;
+    return filteredRedemptions.slice(start, start + perPage);
+  }, [filteredRedemptions, currentPage, perPage]);
+
+  // Reset page when search or perPage changes
+  useEffect(() => { setCurrentPage(1); }, [search, perPage]);
 
   const handleExportToExcel = async () => {
     setIsExporting(true);
     try {
-      const dataToExport = redemptions.map((r) => ({
+      const dataToExport = filteredRedemptions.map((r) => ({
         "Farmacia/Sucursal": r.pharmacy_name,
         "Paciente": r.patient.full_name,
         "Cédula": r.patient.identification_number,
@@ -149,7 +190,7 @@ export default function CanjesPorExpirarPage() {
               Canjes disponibles próximos a vencer — filtrá por rango de días y farmacia
             </p>
           </div>
-          {hasSearched && redemptions.length > 0 && (
+          {hasSearched && filteredRedemptions.length > 0 && (
             <Button onClick={handleExportToExcel} size="md" variant="outline" disabled={isExporting}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -176,6 +217,10 @@ export default function CanjesPorExpirarPage() {
                 <Label>Farmacia</Label>
                 <Select options={pharmacyOptions} value={filterPharmacyId} onChange={setFilterPharmacyId} placeholder="Todas las farmacias" />
               </div>
+              <div>
+                <Label>Registros por página</Label>
+                <Select options={PER_PAGE_OPTIONS} value={perPage.toString()} onChange={(v) => setPerPage(parseInt(v))} />
+              </div>
             </div>
             <div className="flex items-center gap-3 mt-4">
               <Button type="submit" disabled={isLoading}>
@@ -186,12 +231,24 @@ export default function CanjesPorExpirarPage() {
               </Button>
               {hasSearched && (
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {redemptions.length} resultado{redemptions.length !== 1 ? "s" : ""}
+                  {filteredRedemptions.length} resultado{filteredRedemptions.length !== 1 ? "s" : ""}
                 </span>
               )}
             </div>
           </form>
         </div>
+
+        {/* Buscador */}
+        {hasSearched && (
+          <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <Input
+              type="text"
+              placeholder="Buscar por farmacia, paciente, cédula, teléfono o producto..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        )}
 
         {/* Tabla */}
         {hasSearched && (
@@ -211,7 +268,7 @@ export default function CanjesPorExpirarPage() {
                 </TableHeader>
 
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                  {redemptions.map((r) => (
+                  {paginatedRedemptions.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="px-5 py-4 text-start">
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">{r.pharmacy_name}</span>
@@ -243,14 +300,14 @@ export default function CanjesPorExpirarPage() {
                 </TableBody>
               </Table>
 
-              {redemptions.length === 0 && !isLoading && (
+              {filteredRedemptions.length === 0 && !isLoading && (
                 <div className="px-5 py-12 text-center">
                   <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
                   </svg>
                   <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white/90">Sin resultados</h3>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    No hay canjes que vencen en los próximos {filterDays} días.
+                    {search ? "No hay coincidencias con tu búsqueda." : `No hay canjes que venzan en los próximos ${filterDays} días.`}
                   </p>
                 </div>
               )}
@@ -263,6 +320,28 @@ export default function CanjesPorExpirarPage() {
                 </div>
               )}
             </div>
+
+            {/* Paginación */}
+            {totalPages > 1 && (
+              <div className="border-t border-gray-200 dark:border-white/[0.05] px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Página {currentPage} de {totalPages} — {filteredRedemptions.length} registros
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setCurrentPage((p) => p - 1)} disabled={currentPage === 1}>
+                      Anterior
+                    </Button>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <Button size="sm" variant="outline" onClick={() => setCurrentPage((p) => p + 1)} disabled={currentPage === totalPages}>
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
