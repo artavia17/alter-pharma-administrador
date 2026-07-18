@@ -47,6 +47,7 @@ import DistribuidoresPage from "./pages/ProtectedPages/Distribuidores/Distribuid
 import BonosPage from "./pages/ProtectedPages/Bonos/Bonos";
 import RegistrarTransaccionesPage from "./pages/ProtectedPages/ManualTransactions/RegistrarTransacciones";
 import SolicitudesFarmaciasPage from "./pages/ProtectedPages/Farmacias/SolicitudesFarmacias";
+import AnalyticsDashboardPage from "./pages/ProtectedPages/Dashboard/AnalyticsDashboard";
 
 export default function App() {
   return (
@@ -64,6 +65,7 @@ export default function App() {
             <Route element={<AppLayout />}>
               {/* Dashboard */}
               <Route index path="/" element={<Home />} />
+              <Route path="/dashboard" element={<AnalyticsDashboardPage />} />
               <Route path="/reportes/canjes" element={<Redemptions />} />
               <Route path="/reportes/pacientes-productos" element={<PatientProductRedemptions />} />
               <Route path="/reportes/dinamicos" element={<ReportesDinamicosPage />} />

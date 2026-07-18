@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Inicio",
     subItems: [
+      { name: "Dashboard Analytics", path: "/dashboard" },
       { name: "Reportes de compras", path: "/" },
       { name: "Reportes de canjes", path: "/reportes/canjes" },
       { name: "Pacientes - Productos", path: "/reportes/pacientes-productos" },
