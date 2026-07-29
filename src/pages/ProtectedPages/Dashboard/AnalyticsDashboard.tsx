@@ -83,6 +83,36 @@ function getProductColor(product: string, index: number): string {
   return PRODUCT_COLORS[product] ?? FALLBACK_COLORS[index % FALLBACK_COLORS.length];
 }
 
+// ─── Product summary (promedios) ──────────────────────────────────────────────
+
+interface ProductSummaryRow {
+  name: string;
+  average: number;
+  percentage: number;
+  colorIndex: number;
+}
+
+function computeProductSummary(data: ProductMonthly): ProductSummaryRow[] {
+  const numMonths = data.months.length;
+  if (numMonths === 0) return [];
+
+  let grandTotal = 0;
+  const totals: Record<string, number> = {};
+  for (const p of data.products) {
+    totals[p] = data.months.reduce((s, m) => s + (m.by_product[p] ?? 0), 0);
+    grandTotal += totals[p];
+  }
+
+  return data.products
+    .map((p, i) => ({
+      name: p,
+      average: totals[p] / numMonths,
+      percentage: grandTotal > 0 ? (totals[p] / grandTotal) * 100 : 0,
+      colorIndex: i,
+    }))
+    .sort((a, b) => b.percentage - a.percentage);
+}
+
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
 function toDateStr(d: Date): string {
@@ -167,9 +197,10 @@ interface StackedBarProps {
   title: string;
   data: ProductMonthly | null;
   loading: boolean;
+  showSummary?: boolean;
 }
 
-function StackedBarChart({ title, data, loading }: StackedBarProps) {
+function StackedBarChart({ title, data, loading, showSummary = false }: StackedBarProps) {
   const isEmpty = !data || data.months.length === 0 || data.products.length === 0;
 
   const series: ApexAxisChartSeries = isEmpty
@@ -208,6 +239,8 @@ function StackedBarChart({ title, data, loading }: StackedBarProps) {
     },
   };
 
+  const summary = !isEmpty && showSummary ? computeProductSummary(data!) : [];
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
       <h3 className="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3>
@@ -216,13 +249,66 @@ function StackedBarChart({ title, data, loading }: StackedBarProps) {
       ) : isEmpty ? (
         <EmptyChart />
       ) : (
-        <ReactApexChart
-          type="bar"
-          series={series}
-          options={options}
-          height={320}
-          width="100%"
-        />
+        <>
+          <ReactApexChart
+            type="bar"
+            series={series}
+            options={options}
+            height={320}
+            width="100%"
+          />
+
+          {showSummary && summary.length > 0 && (
+            <div className="mt-5 border-t border-gray-100 pt-4 dark:border-white/[0.05]">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                Promedio mensual por medicamento
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-100 dark:border-white/[0.05]">
+                      <th className="pb-2 text-left font-medium text-gray-400 dark:text-gray-500">Medicamento</th>
+                      <th className="pb-2 text-right font-medium text-gray-400 dark:text-gray-500">Promedio / mes</th>
+                      <th className="pb-2 text-right font-medium text-gray-400 dark:text-gray-500">% del total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.map((s) => (
+                      <tr
+                        key={s.name}
+                        className="border-b border-gray-50 last:border-0 dark:border-white/[0.03]"
+                      >
+                        <td className="py-1.5">
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="inline-block h-2 w-2 flex-shrink-0 rounded-full"
+                              style={{ backgroundColor: getProductColor(s.name, s.colorIndex) }}
+                            />
+                            <span className="text-gray-700 dark:text-gray-300">{s.name}</span>
+                          </span>
+                        </td>
+                        <td className="py-1.5 text-right text-gray-700 dark:text-gray-300">
+                          {s.average.toLocaleString("es", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                        </td>
+                        <td className="py-1.5 text-right">
+                          <span className="inline-flex items-center justify-end gap-1">
+                            <span
+                              className="inline-block h-1.5 rounded-full bg-blue-500"
+                              style={{ width: `${Math.max(4, Math.round(s.percentage * 0.6))}px` }}
+                            />
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">
+                              {s.percentage.toFixed(1)}%
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -386,6 +472,24 @@ function BranchesPie({ title, entries, loading }: BranchesPieProps) {
   );
 }
 
+// ─── Print styles ─────────────────────────────────────────────────────────────
+
+const PRINT_STYLES = `
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .no-print { display: none !important; }
+  .dashboard-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+  .dashboard-grid-4 { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
+  .dashboard-section { margin-bottom: 12px !important; }
+  .rounded-xl { border-radius: 8px !important; }
+  .p-6 { padding: 12px !important; }
+  * { font-size: 11px !important; }
+  h3 { font-size: 12px !important; }
+  .text-3xl { font-size: 20px !important; }
+}
+`;
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AnalyticsDashboard() {
@@ -436,6 +540,10 @@ export default function AnalyticsDashboard() {
     setEndDate(pendingEnd);
   }
 
+  function handleExportPDF() {
+    window.print();
+  }
+
   const summary = data?.summary;
 
   const presetBtnClass = (p: Preset) =>
@@ -447,6 +555,8 @@ export default function AnalyticsDashboard() {
 
   return (
     <>
+      <style>{PRINT_STYLES}</style>
+
       <PageMeta
         title="Dashboard Analytics | Alter Pharma"
         description="Dashboard analítico con métricas de farmacias, pacientes, compras y canjes"
@@ -454,7 +564,7 @@ export default function AnalyticsDashboard() {
       <PageBreadcrumb pageTitle="Dashboard Analytics" />
 
       {/* ── Filter Bar ── */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="no-print mb-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-wrap gap-2">
             <button className={presetBtnClass("3m")} onClick={() => handlePresetClick("3m")}>
@@ -511,6 +621,21 @@ export default function AnalyticsDashboard() {
               Período: {data.period.start} — {data.period.end}
             </span>
           )}
+
+          <div className="ml-auto">
+            <button
+              onClick={handleExportPDF}
+              disabled={loading || !data}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-gray-200 dark:hover:bg-white/[0.08]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Exportar PDF
+            </button>
+          </div>
         </div>
       </div>
 
@@ -521,7 +646,7 @@ export default function AnalyticsDashboard() {
       )}
 
       {/* ── KPI Cards ── */}
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="dashboard-grid-4 dashboard-section mb-6 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Farmacias Activas"
           value={summary?.total_pharmacies ?? 0}
@@ -549,7 +674,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* ── Pharmacies table + Patients chart ── */}
-      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="dashboard-grid-2 dashboard-section mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <PharmaciesTable
           rows={data?.pharmacies_monthly ?? []}
           loading={loading}
@@ -562,25 +687,27 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* ── Purchases stacked bar (full width) ── */}
-      <div className="mb-6">
+      <div className="dashboard-section mb-6">
         <StackedBarChart
           title="Compras Registradas por Mes"
           data={data?.purchases_monthly ?? null}
           loading={loading}
+          showSummary
         />
       </div>
 
       {/* ── Redemptions stacked bar (full width) ── */}
-      <div className="mb-6">
+      <div className="dashboard-section mb-6">
         <StackedBarChart
           title="Canjes Registrados por Mes"
           data={data?.redemptions_monthly ?? null}
           loading={loading}
+          showSummary
         />
       </div>
 
       {/* ── Top 10 by Pharmacy ── */}
-      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="dashboard-grid-2 dashboard-section mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <TopList
           title="Top 10 Farmacias por Compras"
           entries={data?.top_pharmacies_purchases ?? []}
@@ -594,7 +721,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* ── Pie charts by branch ── */}
-      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="dashboard-grid-2 dashboard-section mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <BranchesPie
           title="Distribución Compras por Sucursal"
           entries={data?.top_branches_purchases ?? []}
