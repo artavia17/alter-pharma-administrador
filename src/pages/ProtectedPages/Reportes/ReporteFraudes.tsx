@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
 import Button from "../../../components/ui/button/Button";
@@ -184,8 +184,6 @@ export default function ReporteFraudesPage() {
       setIsExporting(false);
     }
   };
-
-  const pharmacyOptions = useMemo(() => [], []);
 
   return (
     <>
