@@ -74,4 +74,26 @@ const getExpiringRedemptionsReport = async (params?: { days?: number; pharmacy_i
   return response.data;
 };
 
-export { getPurchaseReport, getPharmacySalesReport, getProductSalesReport, getExpiringRedemptionsReport };
+// Get Fraud Report
+const getFraudReport = async (params?: {
+  start_date?: string;
+  end_date?: string;
+  pharmacy_id?: number;
+  search?: string;
+  per_page?: number;
+  page?: number;
+}) => {
+  const queryParams = new URLSearchParams();
+  if (params?.start_date) queryParams.append('start_date', params.start_date);
+  if (params?.end_date) queryParams.append('end_date', params.end_date);
+  if (params?.pharmacy_id) queryParams.append('pharmacy_id', params.pharmacy_id.toString());
+  if (params?.search) queryParams.append('search', params.search);
+  if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params?.page) queryParams.append('page', params.page.toString());
+  const queryString = queryParams.toString();
+  const url = queryString ? `/administrator/reports/fraud?${queryString}` : '/administrator/reports/fraud';
+  const response = await api.get(url);
+  return response.data;
+};
+
+export { getPurchaseReport, getPharmacySalesReport, getProductSalesReport, getExpiringRedemptionsReport, getFraudReport };
