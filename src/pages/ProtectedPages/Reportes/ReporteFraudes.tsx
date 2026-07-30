@@ -170,7 +170,6 @@ export default function ReporteFraudesPage() {
               placeholder="Nombre o cédula..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
             />
           </div>
           <div>
