@@ -31,6 +31,7 @@ interface FraudRow {
   transaction_count: number;
   total_quantity: number;
   locations: string;
+  invoice_numbers: string;
 }
 
 interface PaginationMeta {
@@ -164,6 +165,7 @@ export default function ReporteFraudesPage() {
         "Presentación": r.dose,
         "Farmacia / Cadena": r.pharmacy_name,
         "Ubicaciones": r.locations,
+        "N° Factura(s)": r.invoice_numbers,
         "Fecha": r.transaction_date,
         "# Transacciones": r.transaction_count,
         "Unidades totales": r.total_quantity,
@@ -175,7 +177,7 @@ export default function ReporteFraudesPage() {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Fraudes");
       worksheet["!cols"] = [
         { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 28 }, { wch: 20 },
-        { wch: 30 }, { wch: 45 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 12 },
+        { wch: 30 }, { wch: 45 }, { wch: 35 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 12 },
       ];
       XLSX.writeFile(workbook, `Reporte_Fraudes_${today}.xlsx`);
     } catch {
@@ -272,6 +274,7 @@ export default function ReporteFraudesPage() {
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Farmacia / Cadena</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Fecha</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ubicaciones</TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">N° Factura(s)</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Riesgo</TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Unidades</TableCell>
                   </TableRow>
@@ -299,6 +302,9 @@ export default function ReporteFraudesPage() {
                       </TableCell>
                       <TableCell className="px-5 py-4 text-start">
                         <span className="text-xs text-gray-500 dark:text-gray-400">{row.locations}</span>
+                      </TableCell>
+                      <TableCell className="px-5 py-4 text-start">
+                        <span className="text-xs text-gray-700 dark:text-gray-300 font-mono">{row.invoice_numbers || '—'}</span>
                       </TableCell>
                       <TableCell className="px-5 py-4 text-center">
                         <RiskBadge count={row.transaction_count} />
