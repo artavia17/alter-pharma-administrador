@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
       { name: "Canjes por Farmacia", path: "/reportes/canjes-farmacia" },
       { name: "Canjes por Expirar", path: "/reportes/canjes-por-expirar" },
       { name: "Reporte de Fraudes", path: "/reportes/fraudes" },
+      { name: "Canjes Bloqueados", path: "/reportes/canjes-bloqueados" },
     ],
     // Inicio siempre visible para todos
   },
