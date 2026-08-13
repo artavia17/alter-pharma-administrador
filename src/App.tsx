@@ -45,6 +45,7 @@ import CanjesFarmaciaPage from "./pages/ProtectedPages/Reportes/CanjesFarmacia";
 import CanjesPorExpirarPage from "./pages/ProtectedPages/Reportes/CanjesPorExpirar";
 import ReporteFraudesPage from "./pages/ProtectedPages/Reportes/ReporteFraudes";
 import CanjesBloqueadosPage from "./pages/ProtectedPages/Reportes/CanjesBloqueados";
+import SolicitudesEvidenciaPage from "./pages/ProtectedPages/Farmacias/SolicitudesEvidencia";
 import DistribuidoresPage from "./pages/ProtectedPages/Distribuidores/Distribuidores";
 import BonosPage from "./pages/ProtectedPages/Bonos/Bonos";
 import RegistrarTransaccionesPage from "./pages/ProtectedPages/ManualTransactions/RegistrarTransacciones";
@@ -75,6 +76,7 @@ export default function App() {
               <Route path="/reportes/canjes-por-expirar" element={<CanjesPorExpirarPage />} />
               <Route path="/reportes/fraudes" element={<ReporteFraudesPage />} />
               <Route path="/reportes/canjes-bloqueados" element={<CanjesBloqueadosPage />} />
+              <Route path="/farmacias/solicitudes-evidencia" element={<SolicitudesEvidenciaPage />} />
 
               {/* Account */}
               <Route path="/account/me" element={<UserProfiles />} />
