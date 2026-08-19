@@ -123,7 +123,7 @@ export default function SolicitudesEvidenciaPage() {
       });
       if (res.status === 201) {
         setSuccessMessage("Solicitud enviada. Se envió un correo a la farmacia con el plazo de 5 días hábiles.");
-        setShowCreateModal(false);
+        closeCreateModal();
         setNewPharmacyId(""); setNewReason("");
         setNewInvoices([{ invoice_number: "", patient_name: "", pharmacy_name: "" }]);
         loadData(1);
