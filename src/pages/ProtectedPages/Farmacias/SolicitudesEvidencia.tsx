@@ -82,7 +82,7 @@ export default function SolicitudesEvidenciaPage() {
   const [inactivatingId, setInactivatingId] = useState<number | null>(null);
 
   useEffect(() => {
-    getPharmacies().then(r => { if (r.status === 200) setPharmacies(r.data); });
+    getPharmacies().then(r => { if (r.status === 200 && Array.isArray(r.data)) setPharmacies(r.data); });
   }, []);
 
   const loadData = useCallback(async (page = 1) => {
@@ -158,7 +158,7 @@ export default function SolicitudesEvidenciaPage() {
     try {
       const res = await togglePharmacyStatus(pharmacyId);
       if (res.status === 200) {
-        const isNowActive = res.data?.status;
+        const isNowActive = (res.data as { status?: boolean })?.status;
         setSuccessMessage(`Farmacia ${isNowActive ? "activada" : "inactivada"} exitosamente.`);
         setSelected(null);
         loadData(currentPage);
