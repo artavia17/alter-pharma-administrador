@@ -6,6 +6,8 @@ import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Select from "../../../components/form/Select";
 import Alert from "../../../components/ui/alert/Alert";
+import { Modal } from "../../../components/ui/modal";
+import { useModal } from "../../../hooks/useModal";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../../components/ui/table";
@@ -71,7 +73,8 @@ export default function SolicitudesEvidenciaPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { isOpen: isCreateOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
+  const { isOpen: isDetailOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
   const [newPharmacyId, setNewPharmacyId] = useState("");
   const [newReason, setNewReason] = useState("");
   const [newInvoices, setNewInvoices] = useState<InvoiceLine[]>([{ invoice_number: "", patient_name: "", pharmacy_name: "" }]);
@@ -182,7 +185,7 @@ export default function SolicitudesEvidenciaPage() {
               Gestione solicitudes de documentación a farmacias con patrones sospechosos. Plazo: 5 días hábiles.
             </p>
           </div>
-          <Button onClick={() => setShowCreateModal(true)}>+ Nueva Solicitud</Button>
+          <Button onClick={openCreateModal}>+ Nueva Solicitud</Button>
         </div>
 
         {errorMessage && <div className="mb-2"><Alert variant="error" title="Error" message={errorMessage} /></div>}
@@ -234,7 +237,7 @@ export default function SolicitudesEvidenciaPage() {
                       </TableCell>
                       <TableCell className="px-5 py-4 text-center">
                         <div className="flex items-center justify-center gap-2 flex-wrap">
-                          <Button size="sm" variant="outline" onClick={() => { setSelected(row); setResolutionNotes(""); }}>Ver</Button>
+                          <Button size="sm" variant="outline" onClick={() => { setSelected(row); setResolutionNotes(""); openDetailModal(); }}>Ver</Button>
                           {row.status === 'pending' && (
                             <Button size="sm" variant="outline" onClick={() => handleReminder(row.id)} disabled={actionLoading}>
                               {row.reminder_sent_at ? "Re-enviar aviso" : "Recordatorio"}
@@ -287,10 +290,12 @@ export default function SolicitudesEvidenciaPage() {
       </div>
 
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowCreateModal(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Nueva Solicitud de Evidencia</h3>
+      <Modal isOpen={isCreateOpen} onClose={closeCreateModal} className="max-w-[700px] m-4">
+        <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+            <div className="px-2 pr-14 mb-6">
+              <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Nueva Solicitud de Evidencia</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Completa los datos para enviar una solicitud de documentación a la farmacia</p>
+            </div>
             <div className="flex flex-col gap-4">
               <div>
                 <Label>Farmacia</Label>
@@ -368,41 +373,44 @@ export default function SolicitudesEvidenciaPage() {
                 Se enviará un correo automático a la farmacia con las facturas listadas y el plazo de <strong>5 días hábiles</strong>.
               </p>
             </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
+            <div className="flex justify-end gap-3 mt-6 border-t border-gray-200 dark:border-white/[0.05] pt-4 px-2">
+              <Button variant="outline" onClick={closeCreateModal}>Cancelar</Button>
               <Button onClick={handleCreate} disabled={creating || !newPharmacyId || !newReason.trim()}>
                 {creating ? "Enviando..." : "Enviar Solicitud"}
               </Button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Detail Modal */}
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setSelected(null)}>
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Detalle de Solicitud #{selected.id}</h3>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+      <Modal isOpen={isDetailOpen} onClose={() => { closeDetailModal(); setSelected(null); }} className="max-w-[700px] m-4">
+        {selected && (
+          <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+            <div className="px-2 pr-14 mb-6">
+              <h4 className="mb-1 text-2xl font-semibold text-gray-800 dark:text-white/90">Detalle de Solicitud #{selected.id}</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{selected.pharmacy.commercial_name} — {selected.pharmacy.email}</p>
             </div>
-            <div className="flex flex-col gap-4 text-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <div><span className="text-gray-500">Farmacia:</span><p className="font-medium">{selected.pharmacy.commercial_name}</p></div>
-                <div><span className="text-gray-500">Email:</span><p className="font-medium">{selected.pharmacy.email}</p></div>
-                <div><span className="text-gray-500">Solicitado por:</span><p className="font-medium">{selected.requested_by}</p></div>
-                <div><span className="text-gray-500">Fecha solicitud:</span><p className="font-medium">{fmtDT(selected.created_at)}</p></div>
-                <div><span className="text-gray-500">Fecha límite:</span><p className={`font-medium ${selected.is_overdue && selected.status === 'pending' ? 'text-red-600' : ''}`}>{fmt(selected.deadline_at)}</p></div>
-                <div><span className="text-gray-500">Recordatorio:</span><p className="font-medium">{selected.reminder_sent_at ? fmtDT(selected.reminder_sent_at) : 'No enviado'}</p></div>
+            <div className="space-y-4 px-2 pb-4 max-h-[500px] overflow-y-auto border-b border-t pt-4 border-gray-200 dark:border-white/[0.05] text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div><p className="text-gray-500 text-xs mb-1">Solicitado por</p><p className="font-medium text-gray-800 dark:text-white/90">{selected.requested_by}</p></div>
+                <div><p className="text-gray-500 text-xs mb-1">Fecha solicitud</p><p className="font-medium text-gray-800 dark:text-white/90">{fmtDT(selected.created_at)}</p></div>
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Fecha límite</p>
+                  <p className={`font-medium ${selected.is_overdue && selected.status === 'pending' ? 'text-red-600' : 'text-gray-800 dark:text-white/90'}`}>
+                    {fmt(selected.deadline_at)}
+                    {selected.is_overdue && selected.status === 'pending' && <span className="ml-1 text-xs">⚠️ Vencida</span>}
+                  </p>
+                </div>
+                <div><p className="text-gray-500 text-xs mb-1">Recordatorio</p><p className="font-medium text-gray-800 dark:text-white/90">{selected.reminder_sent_at ? fmtDT(selected.reminder_sent_at) : 'No enviado'}</p></div>
               </div>
               <div>
-                <span className="text-gray-500">Motivo:</span>
-                <p className="mt-1 text-gray-800 dark:text-white/80 bg-gray-50 dark:bg-gray-800 rounded p-3">{selected.reason}</p>
+                <p className="text-gray-500 text-xs mb-1">Motivo</p>
+                <p className="text-gray-800 dark:text-white/80 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">{selected.reason}</p>
               </div>
               {selected.invoices?.length > 0 && (
                 <div>
-                  <span className="text-gray-500">Facturas solicitadas:</span>
-                  <div className="mt-1 bg-gray-50 dark:bg-gray-800 rounded p-3 space-y-1">
+                  <p className="text-gray-500 text-xs mb-1">Facturas solicitadas</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-1">
                     {selected.invoices.map((inv, i) => (
                       <p key={i} className="text-gray-800 dark:text-white/80">
                         <strong>Factura {inv.invoice_number}</strong>
@@ -415,12 +423,12 @@ export default function SolicitudesEvidenciaPage() {
               )}
               {selected.evidence_message && (
                 <div>
-                  <span className="text-gray-500">Evidencia enviada por farmacia ({selected.evidence_submitted_at ? fmtDT(selected.evidence_submitted_at) : ''}):</span>
-                  <p className="mt-1 text-gray-800 dark:text-white/80 bg-green-50 dark:bg-green-900/20 rounded p-3 whitespace-pre-line">{selected.evidence_message}</p>
+                  <p className="text-gray-500 text-xs mb-1">Evidencia enviada por farmacia {selected.evidence_submitted_at ? `(${fmtDT(selected.evidence_submitted_at)})` : ''}</p>
+                  <p className="text-gray-800 dark:text-white/80 bg-green-50 dark:bg-green-900/20 rounded-lg p-3 whitespace-pre-line">{selected.evidence_message}</p>
                 </div>
               )}
               {selected.resolved_at && (
-                <div className="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
                   <p><strong>Resuelto por:</strong> {selected.resolved_by} el {fmtDT(selected.resolved_at)}</p>
                   {selected.resolution_notes && <p className="mt-1"><strong>Notas:</strong> {selected.resolution_notes}</p>}
                 </div>
@@ -429,7 +437,7 @@ export default function SolicitudesEvidenciaPage() {
                 <div>
                   <Label>Notas de resolución (opcional)</Label>
                   <textarea
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-800 dark:text-white/90"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-800 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     rows={3}
                     value={resolutionNotes}
                     onChange={e => setResolutionNotes(e.target.value)}
@@ -439,7 +447,7 @@ export default function SolicitudesEvidenciaPage() {
               )}
             </div>
             {selected.status !== 'resolved' && (
-              <div className="flex justify-between gap-3 mt-6">
+              <div className="flex justify-between gap-3 mt-4 px-2">
                 <Button
                   variant="outline"
                   onClick={() => handleToggleStatus(selected.pharmacy.id)}
@@ -448,7 +456,7 @@ export default function SolicitudesEvidenciaPage() {
                   {inactivatingId === selected.pharmacy.id ? "Procesando..." : "Inactivar farmacia"}
                 </Button>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setSelected(null)}>Cerrar</Button>
+                  <Button variant="outline" onClick={() => { closeDetailModal(); setSelected(null); }}>Cerrar</Button>
                   <Button onClick={() => handleResolve(selected.id)} disabled={actionLoading}>
                     {actionLoading ? "Guardando..." : "Marcar como Resuelto"}
                   </Button>
@@ -456,8 +464,8 @@ export default function SolicitudesEvidenciaPage() {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </>
   );
 }
