@@ -16,7 +16,11 @@ export const getEvidenceRequests = async (params?: {
   return response.data;
 };
 
-export const createEvidenceRequest = async (data: { pharmacy_id: number; reason: string }) => {
+export const createEvidenceRequest = async (data: {
+  pharmacy_id: number;
+  reason: string;
+  invoices?: { invoice_number: string; patient_name: string; pharmacy_name: string }[];
+}) => {
   const response = await api.post('/administrator/evidence-requests', data);
   return response.data;
 };

@@ -17,11 +17,18 @@ import {
 } from "../../../services/protected/evidence-requests.services";
 import { getPharmacies, togglePharmacyStatus } from "../../../services/protected/pharmacies.services";
 
+interface InvoiceLine {
+  invoice_number: string;
+  patient_name: string;
+  pharmacy_name: string;
+}
+
 interface EvidenceRequest {
   id: number;
   pharmacy: { id: number; commercial_name: string; email: string };
   requested_by: string;
   reason: string;
+  invoices: InvoiceLine[];
   status: "pending" | "evidence_submitted" | "resolved" | "expired";
   deadline_at: string;
   is_overdue: boolean;
@@ -67,6 +74,7 @@ export default function SolicitudesEvidenciaPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPharmacyId, setNewPharmacyId] = useState("");
   const [newReason, setNewReason] = useState("");
+  const [newInvoices, setNewInvoices] = useState<InvoiceLine[]>([{ invoice_number: "", patient_name: "", pharmacy_name: "" }]);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<EvidenceRequest | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
@@ -94,15 +102,27 @@ export default function SolicitudesEvidenciaPage() {
 
   useEffect(() => { loadData(1); }, [loadData]);
 
+  const handleInvoiceChange = (index: number, field: keyof InvoiceLine, value: string) => {
+    setNewInvoices(prev => prev.map((inv, i) => i === index ? { ...inv, [field]: value } : inv));
+  };
+  const addInvoiceLine = () => setNewInvoices(prev => [...prev, { invoice_number: "", patient_name: "", pharmacy_name: "" }]);
+  const removeInvoiceLine = (index: number) => setNewInvoices(prev => prev.filter((_, i) => i !== index));
+
   const handleCreate = async () => {
     if (!newPharmacyId || !newReason.trim()) return;
     setCreating(true);
     try {
-      const res = await createEvidenceRequest({ pharmacy_id: Number(newPharmacyId), reason: newReason });
+      const validInvoices = newInvoices.filter(inv => inv.invoice_number.trim());
+      const res = await createEvidenceRequest({
+        pharmacy_id: Number(newPharmacyId),
+        reason: newReason,
+        invoices: validInvoices.length > 0 ? validInvoices : undefined,
+      });
       if (res.status === 201) {
         setSuccessMessage("Solicitud enviada. Se envió un correo a la farmacia con el plazo de 5 días hábiles.");
         setShowCreateModal(false);
         setNewPharmacyId(""); setNewReason("");
+        setNewInvoices([{ invoice_number: "", patient_name: "", pharmacy_name: "" }]);
         loadData(1);
       }
     } catch (e: unknown) {
@@ -269,7 +289,7 @@ export default function SolicitudesEvidenciaPage() {
       {/* Create Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowCreateModal(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Nueva Solicitud de Evidencia</h3>
             <div className="flex flex-col gap-4">
               <div>
@@ -280,14 +300,72 @@ export default function SolicitudesEvidenciaPage() {
                 <Label>Motivo de la solicitud</Label>
                 <textarea
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-800 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  rows={4}
+                  rows={3}
                   value={newReason}
                   onChange={e => setNewReason(e.target.value)}
                   placeholder="Describa el motivo (canjes sospechosos, facturas duplicadas, etc.)..."
                 />
               </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Facturas a solicitar</Label>
+                  <button
+                    type="button"
+                    onClick={addInvoiceLine}
+                    className="text-xs text-brand-500 hover:text-brand-600 font-medium"
+                  >
+                    + Agregar factura
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-12 gap-2 text-xs text-gray-500 dark:text-gray-400 px-1">
+                    <span className="col-span-3">N° Factura *</span>
+                    <span className="col-span-4">Nombre del paciente</span>
+                    <span className="col-span-4">Farmacia / Sucursal</span>
+                  </div>
+                  {newInvoices.map((inv, i) => (
+                    <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-3">
+                        <Input
+                          type="text"
+                          value={inv.invoice_number}
+                          onChange={e => handleInvoiceChange(i, "invoice_number", e.target.value)}
+                          placeholder="Ej: 123456"
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <Input
+                          type="text"
+                          value={inv.patient_name}
+                          onChange={e => handleInvoiceChange(i, "patient_name", e.target.value)}
+                          placeholder="Nombre paciente"
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <Input
+                          type="text"
+                          value={inv.pharmacy_name}
+                          onChange={e => handleInvoiceChange(i, "pharmacy_name", e.target.value)}
+                          placeholder="Farmacia o sucursal"
+                        />
+                      </div>
+                      <div className="col-span-1 flex justify-center">
+                        {newInvoices.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeInvoiceLine(i)}
+                            className="text-red-400 hover:text-red-600 text-lg leading-none"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Se enviará un correo automático a la farmacia con el plazo de <strong>5 días hábiles</strong>.
+                Se enviará un correo automático a la farmacia con las facturas listadas y el plazo de <strong>5 días hábiles</strong>.
               </p>
             </div>
             <div className="flex justify-end gap-3 mt-6">
@@ -321,6 +399,20 @@ export default function SolicitudesEvidenciaPage() {
                 <span className="text-gray-500">Motivo:</span>
                 <p className="mt-1 text-gray-800 dark:text-white/80 bg-gray-50 dark:bg-gray-800 rounded p-3">{selected.reason}</p>
               </div>
+              {selected.invoices?.length > 0 && (
+                <div>
+                  <span className="text-gray-500">Facturas solicitadas:</span>
+                  <div className="mt-1 bg-gray-50 dark:bg-gray-800 rounded p-3 space-y-1">
+                    {selected.invoices.map((inv, i) => (
+                      <p key={i} className="text-gray-800 dark:text-white/80">
+                        <strong>Factura {inv.invoice_number}</strong>
+                        {inv.patient_name ? ` – ${inv.patient_name}` : ""}
+                        {inv.pharmacy_name ? ` – ${inv.pharmacy_name}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
               {selected.evidence_message && (
                 <div>
                   <span className="text-gray-500">Evidencia enviada por farmacia ({selected.evidence_submitted_at ? fmtDT(selected.evidence_submitted_at) : ''}):</span>
