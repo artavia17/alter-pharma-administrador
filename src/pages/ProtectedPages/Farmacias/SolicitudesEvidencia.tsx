@@ -71,6 +71,26 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 const fmt = (d: string) => new Date(d).toLocaleDateString("es-ES", { year: "numeric", month: "short", day: "numeric" });
 const fmtDT = (d: string) => new Date(d).toLocaleString("es-ES", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
+function ImageLightbox({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+      onClick={onClose}
+    >
+      <div className="relative max-w-4xl max-h-[90vh] w-full mx-4" onClick={e => e.stopPropagation()}>
+        <img src={url} alt={name} className="max-w-full max-h-[85vh] object-contain rounded-lg mx-auto block" />
+        <div className="mt-2 text-center text-sm text-white/70">{name}</div>
+        <button
+          onClick={onClose}
+          className="absolute -top-3 -right-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function SolicitudesEvidenciaPage() {
   const [rows, setRows] = useState<EvidenceRequest[]>([]);
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
@@ -91,6 +111,7 @@ export default function SolicitudesEvidenciaPage() {
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [inactivatingId, setInactivatingId] = useState<number | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
 
   useEffect(() => {
     getPharmacies().then(r => { if (r.status === 200 && Array.isArray(r.data)) setPharmacies(r.data); });
@@ -438,30 +459,35 @@ export default function SolicitudesEvidenciaPage() {
                   {selected.evidence_files?.length > 0 && (
                     <div className="grid grid-cols-2 gap-3 mt-2">
                       {selected.evidence_files.map((file, i) => (
-                        <a
-                          key={i}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block rounded-lg overflow-hidden border border-gray-200 dark:border-white/[0.08] hover:border-brand-400 transition-colors"
-                          title={file.original_name}
-                        >
-                          {file.mime_type.startsWith('image/') ? (
-                            <img
-                              src={file.url}
-                              alt={file.original_name}
-                              className="w-full h-36 object-cover"
-                            />
-                          ) : (
+                        file.mime_type.startsWith('image/') ? (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setLightbox({ url: file.url, name: file.original_name })}
+                            className="block rounded-lg overflow-hidden border border-gray-200 dark:border-white/[0.08] hover:border-brand-400 transition-colors text-left w-full"
+                            title="Ver imagen"
+                          >
+                            <img src={file.url} alt={file.original_name} className="w-full h-36 object-cover" />
+                            <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 truncate">{file.original_name}</div>
+                          </button>
+                        ) : (
+                          <a
+                            key={i}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-lg overflow-hidden border border-gray-200 dark:border-white/[0.08] hover:border-brand-400 transition-colors"
+                            title={file.original_name}
+                          >
                             <div className="flex flex-col items-center justify-center h-36 bg-gray-50 dark:bg-gray-800 gap-2">
                               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-red-500">
                                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
                               </svg>
                               <span className="text-xs text-gray-500 dark:text-gray-400 text-center px-2 truncate w-full text-center">{file.original_name}</span>
                             </div>
-                          )}
-                          <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 truncate">{file.original_name}</div>
-                        </a>
+                            <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 truncate">{file.original_name}</div>
+                          </a>
+                        )
                       ))}
                     </div>
                   )}
@@ -506,6 +532,9 @@ export default function SolicitudesEvidenciaPage() {
           </div>
         )}
       </Modal>
+      {lightbox && (
+        <ImageLightbox url={lightbox.url} name={lightbox.name} onClose={() => setLightbox(null)} />
+      )}
     </>
   );
 }
