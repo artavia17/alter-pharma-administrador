@@ -25,12 +25,20 @@ interface InvoiceLine {
   pharmacy_name: string;
 }
 
+interface EvidenceFile {
+  path: string;
+  original_name: string;
+  mime_type: string;
+  url: string;
+}
+
 interface EvidenceRequest {
   id: number;
   pharmacy: { id: number; commercial_name: string; email: string };
   requested_by: string;
   reason: string;
   invoices: InvoiceLine[];
+  evidence_files: EvidenceFile[];
   status: "pending" | "evidence_submitted" | "resolved" | "expired";
   deadline_at: string;
   is_overdue: boolean;
@@ -421,10 +429,42 @@ export default function SolicitudesEvidenciaPage() {
                   </div>
                 </div>
               )}
-              {selected.evidence_message && (
+              {(selected.evidence_message || selected.evidence_files?.length > 0) && (
                 <div>
                   <p className="text-gray-500 text-xs mb-1">Evidencia enviada por farmacia {selected.evidence_submitted_at ? `(${fmtDT(selected.evidence_submitted_at)})` : ''}</p>
-                  <p className="text-gray-800 dark:text-white/80 bg-green-50 dark:bg-green-900/20 rounded-lg p-3 whitespace-pre-line">{selected.evidence_message}</p>
+                  {selected.evidence_message && (
+                    <p className="text-gray-800 dark:text-white/80 bg-green-50 dark:bg-green-900/20 rounded-lg p-3 whitespace-pre-line mb-3">{selected.evidence_message}</p>
+                  )}
+                  {selected.evidence_files?.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      {selected.evidence_files.map((file, i) => (
+                        <a
+                          key={i}
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block rounded-lg overflow-hidden border border-gray-200 dark:border-white/[0.08] hover:border-brand-400 transition-colors"
+                          title={file.original_name}
+                        >
+                          {file.mime_type.startsWith('image/') ? (
+                            <img
+                              src={file.url}
+                              alt={file.original_name}
+                              className="w-full h-36 object-cover"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-36 bg-gray-50 dark:bg-gray-800 gap-2">
+                              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-red-500">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                              </svg>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 text-center px-2 truncate w-full text-center">{file.original_name}</span>
+                            </div>
+                          )}
+                          <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 truncate">{file.original_name}</div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               {selected.resolved_at && (
