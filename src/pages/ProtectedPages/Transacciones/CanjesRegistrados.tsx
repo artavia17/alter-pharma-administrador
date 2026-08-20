@@ -131,13 +131,12 @@ export default function CanjesRegistradosPage() {
       <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
         {/* Filters */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
+          <div onKeyDown={(e) => e.key === "Enter" && handleSearch()}>
             <Label>Buscar (paciente / farmacia)</Label>
             <Input
               placeholder="Nombre, ID o farmacia..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
           </div>
           <div>
@@ -157,12 +156,12 @@ export default function CanjesRegistradosPage() {
 
         {successMessage && (
           <div className="mb-4">
-            <Alert variant="success" message={successMessage} />
+            <Alert variant="success" title="Éxito" message={successMessage} />
           </div>
         )}
         {errorMessage && (
           <div className="mb-4">
-            <Alert variant="error" message={errorMessage} />
+            <Alert variant="error" title="Error" message={errorMessage} />
           </div>
         )}
 
@@ -196,7 +195,7 @@ export default function CanjesRegistradosPage() {
                 <TableBody>
                   {rows.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9}>
+                      <TableCell>
                         <p className="py-4 text-center text-gray-400">No se encontraron resultados.</p>
                       </TableCell>
                     </TableRow>
