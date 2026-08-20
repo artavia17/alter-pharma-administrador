@@ -74,7 +74,8 @@ const fmtDT = (d: string) => new Date(d).toLocaleString("es-ES", { year: "numeri
 function ImageLightbox({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+      className="fixed inset-0 flex items-center justify-center bg-black/80"
+      style={{ zIndex: 99999 }}
       onClick={onClose}
     >
       <div className="relative max-w-4xl max-h-[90vh] w-full mx-4" onClick={e => e.stopPropagation()}>
