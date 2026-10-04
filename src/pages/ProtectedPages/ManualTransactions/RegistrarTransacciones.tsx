@@ -19,6 +19,8 @@ import {
 import { searchPatients } from "../../../services/protected/patients.services";
 import { getProducts } from "../../../services/protected/products.services";
 import { getDoses } from "../../../services/protected/doses.services";
+import { getPharmacies } from "../../../services/protected/pharmacies.services";
+import { getSubPharmacies } from "../../../services/protected/sub-pharmacies.services";
 import {
   ManualTransactionData,
   ManualTransactionStatistics,
@@ -26,6 +28,7 @@ import {
 import { PatientData } from "../../../types/services/protected/patients.types";
 import { ProductData } from "../../../types/services/protected/products.types";
 import { DoseData } from "../../../types/services/protected/doses.types";
+import { PharmacyData } from "../../../types/services/protected/pharmacies.types";
 import * as XLSX from "xlsx";
 
 export default function RegistrarTransacciones() {
@@ -48,6 +51,8 @@ export default function RegistrarTransacciones() {
   const [patients, setPatients] = useState<PatientData[]>([]);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [doses, setDoses] = useState<DoseData[]>([]);
+  const [pharmacies, setPharmacies] = useState<PharmacyData[]>([]);
+  const [subPharmacies, setSubPharmacies] = useState<Array<{ id: number; commercial_name: string }>>([]);
   const [statistics, setStatistics] = useState<ManualTransactionStatistics | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<ManualTransactionData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -69,6 +74,9 @@ export default function RegistrarTransacciones() {
   const [expirationDays, setExpirationDays] = useState<number>(60);
   const [notes, setNotes] = useState<string>("");
   const [sendEmail, setSendEmail] = useState<boolean>(true);
+  const [selectedPharmacyId, setSelectedPharmacyId] = useState<number>(0);
+  const [selectedSubPharmacyId, setSelectedSubPharmacyId] = useState<number>(0);
+  const [loadingSubPharmacies, setLoadingSubPharmacies] = useState<boolean>(false);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
 
   // Alerts
@@ -93,7 +101,7 @@ export default function RegistrarTransacciones() {
   const loadData = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadTransactions(), loadProducts(), loadStatistics()]);
+      await Promise.all([loadTransactions(), loadProducts(), loadStatistics(), loadPharmacies()]);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -231,6 +239,41 @@ export default function RegistrarTransacciones() {
     }
   };
 
+  const loadPharmacies = async () => {
+    try {
+      const response = await getPharmacies();
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setPharmacies(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading pharmacies:", error);
+    }
+  };
+
+  const handlePharmacyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const pharmacyId = parseInt(e.target.value);
+    setSelectedPharmacyId(pharmacyId);
+    setSelectedSubPharmacyId(0);
+    setSubPharmacies([]);
+
+    if (pharmacyId > 0) {
+      const pharmacy = pharmacies.find((p) => p.id === pharmacyId);
+      if (pharmacy?.is_chain) {
+        setLoadingSubPharmacies(true);
+        try {
+          const response = await getSubPharmacies(pharmacyId);
+          if (response.status === 200 && Array.isArray(response.data)) {
+            setSubPharmacies(response.data);
+          }
+        } catch (error) {
+          console.error("Error loading sub-pharmacies:", error);
+        } finally {
+          setLoadingSubPharmacies(false);
+        }
+      }
+    }
+  };
+
   const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProductId = parseInt(e.target.value);
     setProductId(newProductId);
@@ -250,6 +293,9 @@ export default function RegistrarTransacciones() {
     setExpirationDays(60);
     setNotes("");
     setSendEmail(true);
+    setSelectedPharmacyId(0);
+    setSelectedSubPharmacyId(0);
+    setSubPharmacies([]);
     setDoses([]);
     setModalAlert({ show: false, type: "success", title: "", message: "" });
   };
@@ -276,6 +322,8 @@ export default function RegistrarTransacciones() {
         expiration_days: expirationDays,
         notes,
         send_email: sendEmail,
+        pharmacy_id: selectedPharmacyId > 0 ? selectedPharmacyId : undefined,
+        sub_pharmacy_id: selectedSubPharmacyId > 0 ? selectedSubPharmacyId : undefined,
       });
 
       if (response.status === 201) {
@@ -840,6 +888,46 @@ export default function RegistrarTransacciones() {
                     )}
                   </div>
                 </div>
+
+                {/* Pharmacy Selector */}
+                <div className="col-span-2">
+                  <Label>Farmacia asociada</Label>
+                  <select
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                    value={selectedPharmacyId}
+                    onChange={handlePharmacyChange}
+                  >
+                    <option value={0}>Sin farmacia asociada</option>
+                    {pharmacies.map((pharmacy) => (
+                      <option key={pharmacy.id} value={pharmacy.id}>
+                        {pharmacy.commercial_name}
+                        {pharmacy.is_chain ? " (cadena)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sub-pharmacy selector — only shown when the pharmacy is a chain */}
+                {selectedPharmacyId > 0 && pharmacies.find((p) => p.id === selectedPharmacyId)?.is_chain && (
+                  <div className="col-span-2">
+                    <Label>Sucursal</Label>
+                    <select
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      value={selectedSubPharmacyId}
+                      onChange={(e) => setSelectedSubPharmacyId(parseInt(e.target.value))}
+                      disabled={loadingSubPharmacies}
+                    >
+                      <option value={0}>
+                        {loadingSubPharmacies ? "Cargando sucursales..." : "Farmacia principal (sin sucursal)"}
+                      </option>
+                      {subPharmacies.map((sub) => (
+                        <option key={sub.id} value={sub.id}>
+                          {sub.commercial_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="col-span-2">
                   <Label>

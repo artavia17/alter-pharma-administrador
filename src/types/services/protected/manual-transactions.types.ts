@@ -69,4 +69,6 @@ export interface CreateManualTransactionParams {
   expiration_days: number;
   notes?: string;
   send_email?: boolean;
+  pharmacy_id?: number;
+  sub_pharmacy_id?: number;
 }
